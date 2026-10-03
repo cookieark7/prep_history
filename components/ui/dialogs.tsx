@@ -33,13 +33,13 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
                 <span className="mono-tab mt-0.5 w-12 shrink-0 text-[11px] text-muted">
                   {new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
-                <span className={`flex-1 text-[13px] leading-snug ${h.undone ? "text-muted line-through" : ""}`}>{h.label}</span>
-                {h.inverse && !h.undone && (
+                <span className={`flex-1 text-[13px] leading-snug ${h.status === "undone" ? "text-muted line-through" : ""}`}>{h.label}</span>
+                {h.inverse && h.status !== "undone" && (
                   <button type="button" onClick={() => undo(h.id)} className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-[12px] text-accent hover:bg-accent-soft">
                     <Icon.undo size={12} /> Undo
                   </button>
                 )}
-                {h.undone && <span className="text-[11.5px] text-muted">undone</span>}
+                {h.status === "undone" && <span className="text-[11.5px] text-muted">undone</span>}
               </li>
             ))}
           </ol>

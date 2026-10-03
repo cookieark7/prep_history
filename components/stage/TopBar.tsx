@@ -5,6 +5,7 @@ import type { Depth, Mode } from "@/lib/contracts";
 import Link from "next/link";
 import { useWorkspace } from "@/lib/store/workspace";
 import { Icon } from "@/components/ui/icons";
+import { JumpToSheet, LessonProgress } from "./LessonRail";
 
 export const MODES: { id: Mode; label: string }[] = [
   { id: "reader", label: "Reader" },
@@ -46,7 +47,7 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
   const mode = useWorkspace((s) => s.mode);
   const depth = useWorkspace((s) => s.depth);
   const chatOpen = useWorkspace((s) => s.chatOpen);
-  const historyCount = useWorkspace((s) => s.history.filter((h) => !h.undone).length);
+  const historyCount = useWorkspace((s) => s.history.filter((h) => h.status !== "undone").length);
   const { hidden, progress } = useScrollChrome();
 
   return (
@@ -90,6 +91,7 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
           >
             <Icon.clock />
           </button>
+          <JumpToSheet />
           <button
             type="button"
             onClick={onPalette}
@@ -101,6 +103,7 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
           </button>
         </div>
       </div>
+      {mode === "reader" && <LessonProgress className="md:hidden" />}
       <div className="h-px bg-transparent">
         <div className="h-px bg-accent transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />
       </div>

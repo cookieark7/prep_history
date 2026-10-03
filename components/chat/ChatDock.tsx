@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { landedFor } from "@/lib/rail";
 import { scrollToEl } from "@/lib/scroll";
 import Link from "next/link";
 import { useWorkspace, type ChatEntry } from "@/lib/store/workspace";
@@ -42,8 +43,11 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
 
 function DirectorRow({ entry }: { entry: ChatEntry }) {
   const blocks = useWorkspace((s) => s.blocks);
+  const history = useWorkspace((s) => s.history);
   const flashBlock = useWorkspace((s) => s.flashBlock);
   const streaming = entry.status === "streaming";
+  // landed chips are read from the step trace (same entries as the drawer and the rail)
+  const landed = useMemo(() => landedFor(history, entry.id, blocks), [history, entry.id, blocks]);
   return (
     <div>
       {entry.text ? (
@@ -53,9 +57,9 @@ function DirectorRow({ entry }: { entry: ChatEntry }) {
       ) : null}
       <StatusLine entry={entry} className="mt-2" />
 
-      {entry.landed.length > 0 && (
+      {landed.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">
-          {entry.landed.map((id) => {
+          {landed.map((id) => {
             const b = blocks.find((x) => x.id === id);
             if (!b) return null;
             const I = Icon[b.type];
@@ -149,7 +153,7 @@ export function ChatScroller({ className = "", innerClassName = "", children }: 
   // a cheap signature of "the conversation changed"
   const sig = useWorkspace((s) => {
     const l = s.chat.at(-1);
-    return `${s.chat.length}|${l?.text.length}|${l?.landed.length}|${l?.followups.length}|${l?.status}`;
+    return `${s.chat.length}|${l?.text.length}|${s.history.length}|${l?.followups.length}|${l?.status}`;
   });
   useLayoutEffect(() => {
     const el = ref.current;

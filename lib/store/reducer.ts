@@ -19,15 +19,22 @@ export type Inverse =
   | { kind: "sections"; id: string; remove: string[]; restore: ArticleSection[] }
   | { kind: "view"; mode: Mode; focusId: string | null; fullscreen: boolean };
 
+export type StepStatus = "applied" | "skipped" | "undone";
+
+/**
+ * One step of the trace (v0.1 E3). The landed chips in a reply, the lesson-history drawer
+ * and the lesson rail all read these entries; there is no parallel structure.
+ */
 export interface HistoryEntry {
   id: string;
-  /** which Director op produced this entry (optional on entries saved before v0.1) */
-  op?: Op["op"];
+  op: Op["op"];
   label: string;
-  at: number;
   blockId: string | null;
+  status: StepStatus;
+  at: number;
+  /** id of the Director chat entry (turn) that produced it */
+  turn: string | null;
   inverse: Inverse | null; // null: nothing to undo (e.g. a skipped update)
-  undone?: boolean;
 }
 
 /** Per-turn bookkeeping so ids renamed on collision are rewritten in later ops of the same turn. */
@@ -151,7 +158,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       turn.addedIds.push(block.id);
       return {
         state: { ...state, blocks },
-        entry: { id: entryId(), op: "add", at, blockId: block.id, label: `Added ${describe(block)}`, inverse: { kind: "remove", id: block.id } },
+        entry: { id: entryId(), op: "add", status: "applied", turn: null, at, blockId: block.id, label: `Added ${describe(block)}`, inverse: { kind: "remove", id: block.id } },
         landed: block.id,
       };
     }
@@ -160,7 +167,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       const id = mapId(op.id);
       const idx = state.blocks.findIndex((b) => b.id === id);
       if (idx < 0) {
-        return { state, landed: null, entry: { id: entryId(), op: "patch", at, blockId: id, label: `Update skipped: no block ${id}`, inverse: null } };
+        return { state, landed: null, entry: { id: entryId(), op: "patch", status: "skipped", turn: null, at, blockId: id, label: `Update skipped: no block ${id}`, inverse: null } };
       }
       const old = state.blocks[idx];
       const parsed = Block.safeParse(mergePatch(old, op.set));
@@ -168,14 +175,14 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       if (!parsed.success || problem) {
         return {
           state, landed: null,
-          entry: { id: entryId(), op: "patch", at, blockId: id, label: `Update skipped for ${describe(old)} (${problem ?? "invalid"})`, inverse: null },
+          entry: { id: entryId(), op: "patch", status: "skipped", turn: null, at, blockId: id, label: `Update skipped for ${describe(old)} (${problem ?? "invalid"})`, inverse: null },
         };
       }
       const blocks = [...state.blocks];
       blocks[idx] = parsed.data;
       return {
         state: { ...state, blocks },
-        entry: { id: entryId(), op: "patch", at, blockId: id, label: patchLabel(old, op.set), inverse: patchInverse(old, op.set) },
+        entry: { id: entryId(), op: "patch", status: "applied", turn: null, at, blockId: id, label: patchLabel(old, op.set), inverse: patchInverse(old, op.set) },
         landed: id,
       };
     }
@@ -191,7 +198,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
           blocks: state.blocks.filter((b) => b.id !== id),
           focusId: state.focusId === id ? null : state.focusId,
         },
-        entry: { id: entryId(), op: "remove", at, blockId: id, label: `Removed ${describe(block)}`, inverse: { kind: "restore", block, index } },
+        entry: { id: entryId(), op: "remove", status: "applied", turn: null, at, blockId: id, label: `Removed ${describe(block)}`, inverse: { kind: "restore", block, index } },
         landed: null,
       };
     }
@@ -201,7 +208,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       return {
         state: { ...state, mode: op.mode },
         entry: {
-          id: entryId(), op: "layout", at, blockId: null, label: `Switched to ${op.mode}`,
+          id: entryId(), op: "layout", status: "applied", turn: null, at, blockId: null, label: `Switched to ${op.mode}`,
           inverse: { kind: "view", mode: state.mode, focusId: state.focusId, fullscreen: state.fullscreen },
         },
         landed: null,
@@ -215,7 +222,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       return {
         state: { ...state, focusId: id, fullscreen: op.fullscreen },
         entry: {
-          id: entryId(), op: "focus", at, blockId: id, label: `Focused ${describe(block)}${op.fullscreen ? " (fullscreen)" : ""}`,
+          id: entryId(), op: "focus", status: "applied", turn: null, at, blockId: id, label: `Focused ${describe(block)}${op.fullscreen ? " (fullscreen)" : ""}`,
           inverse: { kind: "view", mode: state.mode, focusId: state.focusId, fullscreen: state.fullscreen },
         },
         landed: null,

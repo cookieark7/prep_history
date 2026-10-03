@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Block } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { BlockFrame } from "./BlockFrame";
 import { TimeSpine } from "./TimeSpine";
 import { LandingChips } from "./LandingChips";
+import { orderedBlocks } from "@/lib/rail";
+import { LessonRail, useDwellCompletion, useRailItems } from "./LessonRail";
 
 /** Ids of blocks still hidden behind an unanswered prediction gate. */
 export function useBlurred(): Set<string> {
@@ -20,10 +21,7 @@ export function useBlurred(): Set<string> {
   return out;
 }
 
-export function orderedBlocks(blocks: Block[], pinned: string[]): Block[] {
-  const pins = pinned.map((id) => blocks.find((b) => b.id === id)).filter((b): b is Block => !!b);
-  return [...pins, ...blocks.filter((b) => !pinned.includes(b.id))];
-}
+export { orderedBlocks };
 
 /** Track which block is at the top of the reading area. */
 export function useCurrentBlock(ids: string[]) {
@@ -59,9 +57,12 @@ export function ReaderStage({ margin }: { margin?: React.ReactNode }) {
   const blurred = useBlurred();
   const list = orderedBlocks(blocks, pinned);
   const current = useCurrentBlock(list.map((b) => b.id));
+  const rail = useRailItems();
+  useDwellCompletion(rail);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1040px] gap-6 px-4 pb-40 pt-8 md:px-8">
+    <div className="mx-auto flex w-full max-w-[1040px] gap-6 px-4 pb-40 pt-8 md:pl-8 md:pr-16">
+      <LessonRail items={rail} current={current} />
       <div className="sticky top-20 hidden h-[calc(100vh-7rem)] w-6 shrink-0 md:block">
         <TimeSpine blocks={list} currentId={current} />
       </div>

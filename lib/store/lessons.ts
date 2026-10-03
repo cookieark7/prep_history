@@ -2,6 +2,7 @@
 
 import type { PersistedWorkspace } from "./workspace";
 import { blockPeriod } from "@/lib/period";
+import { migrateV1toV2 } from "./migrate";
 
 const KEY = "chronicle:lessons:v1";
 const MAX = 8;
@@ -60,5 +61,9 @@ export function listLessons(): LessonSummary[] {
 }
 
 export function getLesson(id: string): PersistedWorkspace | null {
-  return readAll().find((l) => l.id === id)?.snapshot ?? null;
+  const snap = readAll().find((l) => l.id === id)?.snapshot;
+  if (!snap) return null;
+  // lessons archived before v0.1 carry the v1 step-trace shape
+  const v1 = (snap.history as unknown[]).some((h) => !(h as { status?: string }).status);
+  return v1 ? (migrateV1toV2(snap as unknown as Record<string, unknown>) as unknown as PersistedWorkspace) : snap;
 }

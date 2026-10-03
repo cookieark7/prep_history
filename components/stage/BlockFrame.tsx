@@ -74,7 +74,7 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: 
 });
 
 function BlockMenu({ block, pinned }: { block: Block; pinned: boolean }) {
-  const canUndo = useWorkspace((s) => s.history.some((h) => h.blockId === block.id && !h.undone && h.inverse));
+  const canUndo = useWorkspace((s) => s.history.some((h) => h.blockId === block.id && h.status !== "undone" && h.inverse));
   const item = "flex h-9 w-full items-center gap-2 rounded px-2 text-left text-[13px] hover:bg-hover disabled:opacity-40";
   return (
     <Popover.Root>

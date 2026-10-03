@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { useWorkspace, type ChatEntry } from "@/lib/store/workspace";
 import { ROTATE_MS, statusText, type LastOp } from "@/lib/status";
+import { lastLanded } from "@/lib/rail";
 
 /** What the last op of this turn did, for op-driven status text. */
 export function useLastOp(entry: ChatEntry | undefined): LastOp | null {
-  const lastId = entry?.landed.at(-1);
-  const type = useWorkspace((s) => s.blocks.find((b) => b.id === lastId)?.type);
-  const patched = useWorkspace((s) => !!(lastId && s.patched[lastId]));
-  if (!lastId || !type) return null;
-  return { type, kind: patched ? "updated" : "added" };
+  const step = useWorkspace((s) => (entry ? lastLanded(s.history, entry.id) : null));
+  const type = useWorkspace((s) => s.blocks.find((b) => b.id === step?.blockId)?.type);
+  if (!step || !type) return null;
+  return { type, kind: step.op === "patch" ? "updated" : "added" };
 }
 
 /** Rotating verbs until the first op lands, then op-driven text. Cleared when the turn ends. */

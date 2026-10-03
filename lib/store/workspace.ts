@@ -9,6 +9,7 @@ import {
 } from "@/lib/contracts";
 import { applyInverse, applyOp, type HistoryEntry, type StageState, type TurnContext } from "./reducer";
 import { archiveLesson } from "./lessons";
+import { migrateV1toV2 } from "./migrate";
 
 export type Theme = "paper" | "sepia" | "ink";
 
@@ -16,7 +17,6 @@ export interface ChatEntry {
   id: string;
   role: "learner" | "director";
   text: string;
-  landed: string[];
   followups: { kind: FollowupKind; label: string }[];
   status?: "streaming" | "done" | "error" | "aborted";
   /** the request to replay on Retry */
@@ -62,6 +62,8 @@ export interface WorkspaceState extends StageState {
   localQuiz: QuizBlock | null;
   /** quiz id -> item id -> answered correctly */
   quizRuns: Record<string, Record<string, boolean>>;
+  /** blocks read to completion (dwell) or otherwise marked done — feeds the lesson rail */
+  completed: Record<string, true>;
   streaming: boolean;
   /** transient UI signals (not persisted) */
   flash: { id: string; node: string | null; nonce: number } | null;
@@ -97,6 +99,7 @@ interface Actions {
   startQuiz: (quizId: string, local?: QuizBlock) => void;
   recordAnswer: (quizId: string, itemId: string, correct: boolean) => void;
   resetRun: (quizId: string) => void;
+  markComplete: (blockId: string) => void;
   updateMastery: (ref: string, correct: boolean) => void;
   addNote: (n: Omit<Note, "id" | "at">) => Note;
   removeNote: (id: string) => void;
@@ -120,6 +123,7 @@ const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" 
   patched: {},
   localQuiz: null,
   quizRuns: {},
+  completed: {},
   streaming: false,
   flash: null,
   arrivals: {},
@@ -129,7 +133,8 @@ const TRANSIENT = ["streaming", "flash", "arrivals"] as const;
 export type PersistedWorkspace = Omit<WorkspaceState, (typeof TRANSIENT)[number]>;
 
 export const STORAGE_KEY = "chronicle:workspace";
-export const STORAGE_VERSION = 1;
+// v2 (v0.1 E3): HistoryEntry gains op/status/turn, ChatEntry loses `landed`. See migrate.ts.
+export const STORAGE_VERSION = 2;
 
 // Enough shape-checking to refuse a stale or corrupted save instead of crashing.
 const PersistedShape = z.object({
@@ -190,11 +195,11 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         set((s) => {
           if (learnerText) {
             s.chat.push({
-              id: uid("c"), role: "learner", text: learnerText, landed: [], followups: [],
+              id: uid("c"), role: "learner", text: learnerText, followups: [],
               ...(attachmentWords ? { attachment: { words: attachmentWords } } : {}),
             });
           }
-          s.chat.push({ id, role: "director", text: "", landed: [], followups: [], status: "streaming", retry });
+          s.chat.push({ id, role: "director", text: "", followups: [], status: "streaming", retry });
           s.streaming = true;
           s.patched = {};
         });
@@ -214,12 +219,9 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
           s.mode = r.state.mode;
           s.focusId = r.state.focusId;
           s.fullscreen = r.state.fullscreen;
-          if (r.entry) s.history.push(r.entry);
-          if (r.landed) {
-            const e = s.chat.find((c) => c.id === entryId);
-            if (e && !e.landed.includes(r.landed)) e.landed.push(r.landed);
-            s.arrivals[r.landed] = stamp;
-          }
+          // the step trace: chips, drawer and rail all read these entries
+          if (r.entry) s.history.push({ ...r.entry, turn: entryId });
+          if (r.landed) s.arrivals[r.landed] = stamp;
           if (op.op === "patch" && r.landed && r.entry) {
             // E5: a section streamed into a block added earlier in this same turn just gets the
             // soft arrival edge; "updated / Undo" is for changes to blocks from earlier turns
@@ -252,7 +254,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       undo: (historyId) => {
         const s0 = get();
         const entry = s0.history.find((h) => h.id === historyId);
-        if (!entry || entry.undone || !entry.inverse) return;
+        if (!entry || entry.status === "undone" || !entry.inverse) return;
         const next = applyInverse({ blocks: s0.blocks, mode: s0.mode, focusId: s0.focusId, fullscreen: s0.fullscreen }, entry.inverse);
         set((s) => {
           s.blocks = next.blocks as Block[];
@@ -260,12 +262,12 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
           s.focusId = next.focusId;
           s.fullscreen = next.fullscreen;
           const h = s.history.find((x) => x.id === historyId);
-          if (h) h.undone = true;
+          if (h) h.status = "undone";
           for (const [bid, hid] of Object.entries(s.patched)) if (hid === historyId) delete s.patched[bid];
         });
       },
       undoLatestFor: (blockId) => {
-        const h = [...get().history].reverse().find((x) => x.blockId === blockId && !x.undone && x.inverse);
+        const h = [...get().history].reverse().find((x) => x.blockId === blockId && x.status !== "undone" && x.inverse);
         if (h) get().undo(h.id);
       },
       togglePin: (blockId) => set((s) => {
@@ -286,6 +288,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         (s.quizRuns[quizId] ??= {})[itemId] = correct;
       }),
       resetRun: (quizId) => set((s) => { delete s.quizRuns[quizId]; }),
+      markComplete: (blockId) => set((s) => { s.completed[blockId] = true; }),
       updateMastery: (ref, correct) => set((s) => {
         const cur = s.mastery[ref] ?? 0.5;
         s.mastery[ref] = Math.min(1, Math.max(0, cur + (correct ? 0.25 : -0.35)));
@@ -303,8 +306,9 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       storage: createJSONStorage(() => localStorage),
       skipHydration: true,
       partialize: (s) => persistable(s),
-      // Schema mismatch: discard the save rather than crash.
-      migrate: () => undefined as unknown as WorkspaceState,
+      // v1 saves migrate to v2; anything else (unknown version) is discarded rather than crash.
+      migrate: (persisted, version) =>
+        (version === 1 && persisted ? migrateV1toV2(persisted as Record<string, unknown>) : undefined) as unknown as WorkspaceState,
       merge: (persisted, current) => {
         const ok = PersistedShape.safeParse(persisted);
         if (!ok.success) {
