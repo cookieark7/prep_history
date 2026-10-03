@@ -20,7 +20,9 @@ export interface ChatEntry {
   followups: { kind: FollowupKind; label: string }[];
   status?: "streaming" | "done" | "error" | "aborted";
   /** the request to replay on Retry */
-  retry?: { message: string | null; eventJson: string | null };
+  retry?: { message: string | null; eventJson: string | null; sourceText?: string | null };
+  /** learner line sent with a pasted-text card */
+  attachment?: { words: number };
 }
 
 export interface Note {
@@ -80,7 +82,7 @@ interface Actions {
   focusBlock: (id: string | null, fullscreen: boolean) => void;
   exitFocus: () => void;
 
-  beginTurn: (learnerText: string | null, retry: ChatEntry["retry"]) => string;
+  beginTurn: (learnerText: string | null, retry: ChatEntry["retry"], attachmentWords?: number) => string;
   say: (entryId: string, text: string) => void;
   applyDirectorOp: (entryId: string, op: Op, turn: TurnContext) => void;
   followup: (entryId: string, f: { kind: FollowupKind; label: string }) => void;
@@ -183,10 +185,15 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         if (s.mode === "focus") s.mode = "reader";
       }),
 
-      beginTurn: (learnerText, retry) => {
+      beginTurn: (learnerText, retry, attachmentWords) => {
         const id = uid("c");
         set((s) => {
-          if (learnerText) s.chat.push({ id: uid("c"), role: "learner", text: learnerText, landed: [], followups: [] });
+          if (learnerText) {
+            s.chat.push({
+              id: uid("c"), role: "learner", text: learnerText, landed: [], followups: [],
+              ...(attachmentWords ? { attachment: { words: attachmentWords } } : {}),
+            });
+          }
           s.chat.push({ id, role: "director", text: "", landed: [], followups: [], status: "streaming", retry });
           s.streaming = true;
           s.patched = {};

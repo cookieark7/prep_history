@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import { DEFAULT_SOURCE_PROMPT } from "@/lib/composer";
+import { PasteCard, useComposer, type ComposerSubmit } from "@/components/chat/useComposer";
 import { useRouter } from "next/navigation";
 import type { Level } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
@@ -26,7 +28,6 @@ const EXAMPLES = [
 export function Home() {
   const hydrated = useHydrated();
   const router = useRouter();
-  const [text, setText] = useState("");
   const [era, setEra] = useState<(typeof ERAS)[number] | null>(null);
   const [level, setLevel] = useState<Level>("some");
 
@@ -37,14 +38,16 @@ export function Home() {
 
   const recent = useMemo<LessonSummary[]>(() => (hydrated ? listLessons() : []), [hydrated]);
 
-  const start = (topic: string) => {
-    const t = topic.trim();
+  const start = ({ text, card }: ComposerSubmit) => {
+    const t = text.trim() || (card ? DEFAULT_SOURCE_PROMPT : "");
     if (!t) return;
-    useWorkspace.getState().startLesson(t, level);
-    void sendTurn({ message: era ? `${t} (era: ${era})` : t });
+    useWorkspace.getState().startLesson(text.trim() || "Pasted reading", level);
+    void sendTurn({ message: era ? `${t} (era: ${era})` : t, sourceText: card?.text, attachmentWords: card?.words });
     router.push("/study");
   };
-  const onSubmit = (e: FormEvent) => { e.preventDefault(); start(text); };
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const composer = useComposer({ ref: inputRef, streaming: false, onSubmit: start });
+  const onSubmit = (e: FormEvent) => { e.preventDefault(); void composer.submit(); };
 
   return (
     <main className="min-h-screen bg-bg">
@@ -57,24 +60,25 @@ export function Home() {
 
         <form onSubmit={onSubmit} className="mt-8">
           <div className="rounded-md border border-rule-strong bg-surface focus-within:border-text">
+            {composer.card && <PasteCard card={composer.card} onRemove={() => composer.setCard(null)} />}
             <label htmlFor="home-composer" className="sr-only">Topic or question</label>
             <textarea
               id="home-composer"
+              ref={inputRef}
               autoFocus
               rows={3}
               maxLength={1000}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); start(text); }
-              }}
-              placeholder="A topic, a question, or paste a paragraph you're reading"
-              className="block w-full resize-none bg-transparent px-4 pt-3.5 font-serif text-[19px] leading-snug outline-none placeholder:text-muted"
+              value={composer.text}
+              onChange={(e) => composer.setText(e.target.value)}
+              onKeyDown={composer.onKeyDown}
+              onPaste={composer.onPaste}
+              placeholder={composer.card ? "What do you want from this? (optional)" : "A topic, a question, or paste a paragraph you're reading"}
+              className="block min-h-[88px] w-full resize-none bg-transparent px-4 pt-3.5 font-serif text-[19px] leading-[26px] outline-none placeholder:text-muted"
             />
             <div className="flex items-center justify-end px-3 pb-3">
               <button
                 type="submit"
-                disabled={!text.trim()}
+                disabled={!composer.canSend}
                 className="inline-flex h-9 items-center gap-1.5 rounded-md bg-accent px-3.5 text-[13.5px] font-medium text-surface disabled:bg-rule disabled:text-muted"
               >
                 Start <Icon.chevronRight size={14} />
@@ -118,7 +122,7 @@ export function Home() {
             <li key={ex}>
               <button
                 type="button"
-                onClick={() => start(ex)}
+                onClick={() => start({ text: ex, card: null })}
                 className="font-serif text-[18px] italic text-muted underline-offset-4 hover:text-text hover:underline"
               >
                 {ex}

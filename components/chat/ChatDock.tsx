@@ -25,7 +25,14 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
       {chat.map((c) => (
         <li key={c.id} className="border-b border-rule px-5 py-3.5 last:border-b-0">
           {c.role === "learner" ? (
-            <p className="text-[13.5px] leading-snug text-muted">{c.text}</p>
+            <>
+              <p className="text-[13.5px] leading-snug text-muted">{c.text}</p>
+              {c.attachment && (
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-[2px] border border-rule px-1.5 py-0.5 text-[11.5px] text-muted">
+                  <Icon.article size={11} /> Pasted text, {c.attachment.words.toLocaleString()} words
+                </p>
+              )}
+            </>
           ) : (
             <DirectorRow entry={c} />
           )}

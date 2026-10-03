@@ -52,21 +52,40 @@ export function abortTurn() {
   current?.abort();
 }
 
-/** Send one turn (a learner message or a UI event) and stream the result into the store. */
-export async function sendTurn(input: { message?: string; event?: UiEvent; detail?: string; echo?: string | null }) {
+export type TurnStatus = "done" | "error" | "aborted";
+
+/**
+ * Send one turn (a learner message or a UI event) and stream the result into the store.
+ * Resolves with how the turn ended, so a composer can restore its draft on error.
+ */
+export async function sendTurn(input: {
+  message?: string;
+  event?: UiEvent;
+  detail?: string;
+  echo?: string | null;
+  /** long pasted text the learner is reading (TurnRequest.source_text) */
+  sourceText?: string;
+  attachmentWords?: number;
+}): Promise<TurnStatus> {
   const store = useWorkspace.getState();
   if (store.streaming) abortTurn();
 
   const message = input.message?.trim() || null;
   const event = input.event ?? null;
+  const sourceText = input.sourceText || null;
   const echo = input.echo === undefined ? message : input.echo;
-  const entryId = store.beginTurn(echo, { message, eventJson: event ? JSON.stringify(event) : null });
+  const entryId = store.beginTurn(
+    echo,
+    { message, eventJson: event ? JSON.stringify(event) : null, sourceText },
+    input.attachmentWords,
+  );
 
   const req: TurnRequest = {
     message,
     event,
     workspace: workspaceSummary(useWorkspace.getState()),
     detail: input.detail ?? null,
+    source_text: sourceText,
   };
 
   const ctrl = new AbortController();
@@ -90,10 +109,13 @@ export async function sendTurn(input: { message?: string; event?: UiEvent; detai
         case "done": return;
       }
     }, (raw) => console.warn("[chronicle] ignored invalid line", raw.slice(0, 160)));
-    s().finishTurn(entryId, sawDone ? "done" : "error");
+    const status: TurnStatus = sawDone ? "done" : ctrl.signal.aborted ? "aborted" : "error";
+    s().finishTurn(entryId, status);
+    return status;
   } catch (e) {
-    const aborted = (e as Error).name === "AbortError";
-    s().finishTurn(entryId, aborted ? "aborted" : "error");
+    const status: TurnStatus = (e as Error).name === "AbortError" ? "aborted" : "error";
+    s().finishTurn(entryId, status);
+    return status;
   } finally {
     if (current === ctrl) current = null;
   }
@@ -103,6 +125,11 @@ export async function sendTurn(input: { message?: string; event?: UiEvent; detai
 export function retryTurn(entryId: string) {
   const entry = useWorkspace.getState().chat.find((c) => c.id === entryId);
   if (!entry?.retry) return;
-  const { message, eventJson } = entry.retry;
-  void sendTurn({ message: message ?? undefined, event: eventJson ? JSON.parse(eventJson) : undefined, echo: null });
+  const { message, eventJson, sourceText } = entry.retry;
+  void sendTurn({
+    message: message ?? undefined,
+    event: eventJson ? JSON.parse(eventJson) : undefined,
+    sourceText: sourceText ?? undefined,
+    echo: null,
+  });
 }

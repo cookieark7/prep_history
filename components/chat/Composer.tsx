@@ -1,36 +1,32 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useRef } from "react";
 import { useWorkspace } from "@/lib/store/workspace";
 import { abortTurn, sendTurn } from "@/lib/stream-client";
+import { DEFAULT_SOURCE_PROMPT } from "@/lib/composer";
 import { Icon } from "@/components/ui/icons";
+import { PasteCard, useComposer } from "./useComposer";
 
 export const COMPOSER_PLACEHOLDER = "Ask why, pick a period, or paste something you're reading";
 
 export function Composer({ id = "composer", autoFocus = false, onFocus }: { id?: string; autoFocus?: boolean; onFocus?: () => void }) {
-  const [text, setText] = useState("");
   const streaming = useWorkspace((s) => s.streaming);
   const ref = useRef<HTMLTextAreaElement>(null);
-
-  const submit = () => {
-    const t = text.trim();
-    if (!t) return;
-    setText("");
-    void sendTurn({ message: t });
-  };
-
-  const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      submit();
-    } else if (e.key === "Escape" && streaming) {
-      e.preventDefault();
-      abortTurn();
-    }
-  };
+  const c = useComposer({
+    ref,
+    streaming,
+    onStop: abortTurn,
+    onSubmit: ({ text, card }) =>
+      sendTurn({
+        message: text || DEFAULT_SOURCE_PROMPT,
+        sourceText: card?.text,
+        attachmentWords: card?.words,
+      }),
+  });
 
   return (
     <div className="rounded-md border border-rule bg-surface focus-within:border-rule-strong">
+      {c.card && <PasteCard card={c.card} onRemove={() => c.setCard(null)} />}
       <label htmlFor={id} className="sr-only">Message Chronicle</label>
       <textarea
         id={id}
@@ -39,12 +35,13 @@ export function Composer({ id = "composer", autoFocus = false, onFocus }: { id?:
         autoFocus={autoFocus}
         rows={2}
         maxLength={1000}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={onKey}
+        value={c.text}
+        onChange={(e) => c.setText(e.target.value)}
+        onKeyDown={c.onKeyDown}
+        onPaste={c.onPaste}
         onFocus={onFocus}
-        placeholder={COMPOSER_PLACEHOLDER}
-        className="block max-h-40 min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-[14px] leading-snug text-text outline-none placeholder:text-muted"
+        placeholder={c.card ? "What do you want from this? (optional)" : COMPOSER_PLACEHOLDER}
+        className="block min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-[14px] leading-5 text-text outline-none placeholder:text-muted"
       />
       <div className="flex items-center justify-between px-2 pb-2">
         <span className="pl-1 text-[11.5px] text-muted">
@@ -62,8 +59,8 @@ export function Composer({ id = "composer", autoFocus = false, onFocus }: { id?:
         ) : (
           <button
             type="button"
-            onClick={submit}
-            disabled={!text.trim()}
+            onClick={() => void c.submit()}
+            disabled={!c.canSend}
             className="grid h-8 w-8 place-items-center rounded-md bg-accent text-surface disabled:bg-rule disabled:text-muted"
             aria-label="Send"
           >

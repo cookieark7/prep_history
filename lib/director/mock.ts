@@ -60,8 +60,14 @@ function pickFixture(req: TurnRequest): { file?: string; say?: string } {
   if (topic && wantsQuiz) return { file: `mock/${topic}.quiz.ndjson` };
   if (topic && wantsDeeper) return { file: `mock/${topic}.deeper.ndjson` };
 
-  const match = TOPIC_FIXTURES.find((f) => f.keywords.some((k) => msg.includes(k)));
+  // topics can be recognised from pasted reading too (quiz/deeper intent only from the message)
+  const source = (req.source_text ?? "").toLowerCase();
+  const match = TOPIC_FIXTURES.find((f) => f.keywords.some((k) => msg.includes(k) || source.includes(k)));
   if (match) return { file: match.file };
+  if (source) {
+    const words = source.trim().split(/\s+/).length;
+    return { say: `Mock mode cannot read pasted text (${words} words) unless it mentions one of its three lessons. With a live model, the lesson anchors to what you pasted.` };
+  }
   if (!req.workspace.blocks.length) return { file: "punic-wars.ndjson" };
   return {
     say: "Mock mode knows three lessons (the Second Punic War, the fall of Rome, the Mughal succession) plus quiz and go-deeper turns for each. Set MOCK_LLM=0 with an API key for anything else.",

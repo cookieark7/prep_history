@@ -30,6 +30,10 @@ export function buildContext(req: TurnRequest): string {
     input = `learner message: ${JSON.stringify(req.message ?? "")}`;
   }
 
+  const source = req.source_text?.trim()
+    ? ["<source_text>", req.source_text.trim(), "</source_text>", ""]
+    : [];
+
   return [
     "<context>",
     `learner_level: ${workspace.level}`,
@@ -39,6 +43,7 @@ export function buildContext(req: TurnRequest): string {
     `lowest_mastery: ${lowest || "(none)"}`,
     "</context>",
     "",
+    ...source,
     "<input>",
     input,
     "</input>",

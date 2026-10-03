@@ -51,5 +51,7 @@ export const TurnRequest = z.object({
   // Extra context for ask_why / expand_node (e.g. the node's incident edges). Not in the
   // original pack's contract; Part 4 asks for it, so it travels here.
   detail: z.string().max(2000).nullable().optional(),
+  // v0.1 (E1): long pasted text the learner is reading. Additive, optional.
+  source_text: z.string().max(8000).nullable().optional(),
 });
 export type TurnRequest = z.infer<typeof TurnRequest>;
