@@ -2,7 +2,7 @@
  * M1: run the Director prompt on the five test turns from the build pack and check the
  * output. Needs ANTHROPIC_API_KEY and CHRONICLE_MODEL.
  *
- *   npx tsx scripts/m1-director-test.ts            # all five turns
+ *   npx tsx scripts/m1-director-test.ts            # the five M1 turns + the v0.1 source_text turn
  *   npx tsx scripts/m1-director-test.ts 3          # just turn 3
  *
  * Raw outputs are written to scripts/m1-output/turn-N.ndjson for eyeballing against the
@@ -85,6 +85,12 @@ function commonChecks(lines: StreamLine[], invalid: string[], stage: Summary[]):
       name: "no re-add of a block already on stage",
       pass: adds.every((b) => !stage.some((s) => s.type === b.type && s.title === b.title)),
     },
+    {
+      name: "E5: articles add with the brief only; other sections arrive as one-section patches",
+      pass: adds.every((b) => b.type !== "article" || b.sections.length === 1) &&
+        lines.every((l) => l.t !== "op" || l.op.op !== "patch" || !adds.some((b) => b.id === (l.op as { id: string }).id) ||
+          ((l.op as { set: { sections?: unknown[] } }).set.sections?.length === 1)),
+    },
   ];
 }
 
@@ -100,11 +106,24 @@ function apply(stage: Summary[], lines: StreamLine[]): Summary[] {
 
 const addsOf = (lines: StreamLine[]): Block[] =>
   lines.flatMap((l) => (l.t === "op" && l.op.op === "add" ? [l.op.block] : []));
-const req = (stage: Summary[], message: string | null, event: TurnRequest["event"] = null): TurnRequest => ({
-  message, event, workspace: { blocks: stage, level: "some", mastery: [] },
+const req = (stage: Summary[], message: string | null, event: TurnRequest["event"] = null, source_text?: string): TurnRequest => ({
+  message, event, workspace: { blocks: stage, level: "some", mastery: [] }, source_text,
 });
 
+// v0.1 re-test turn 3: a long pasted source_text
+const PASTED = `In 218 BC Hannibal left Iberia with an army that included war elephants, crossed the Pyrenees and then the Alps, and descended into northern Italy. Over the next two years he destroyed Roman armies at the Trebia, at Lake Trasimene and, most famously, at Cannae in 216 BC, where a much larger Roman force was encircled. Yet Rome did not sue for peace. Most of its allies in central Italy stayed loyal, Rome kept raising new legions, and generals such as Fabius Maximus avoided further pitched battles. `.repeat(4);
+
 const turns: Record<number, () => Promise<Check[]>> = {
+  6: async () => {
+    const { lines, invalid } = await runTurn(6, req([], "Help me understand what I'm reading.", null, PASTED));
+    const say = lines.find((l) => l.t === "say");
+    const articleText = JSON.stringify(addsOf(lines));
+    return [
+      ...commonChecks(lines, invalid, []),
+      { name: "anchors to the pasted text (mentions Cannae or Hannibal)", pass: /Cannae|Hannibal/.test(articleText) },
+      { name: "does not echo the paste verbatim", pass: !articleText.includes(PASTED.slice(0, 120)), note: say?.t === "say" ? say.text : undefined },
+    ];
+  },
   1: async () => {
     const { lines, invalid } = await runTurn(1, req(romeStage, "I want to understand the fall of the Western Roman Empire."));
     const adds = addsOf(lines);
@@ -179,7 +198,7 @@ const turns: Record<number, () => Promise<Check[]>> = {
 };
 
 async function main() {
-  const only = process.argv[2] ? [Number(process.argv[2])] : [1, 2, 3, 4, 5];
+  const only = process.argv[2] ? [Number(process.argv[2])] : [1, 2, 3, 4, 5, 6];
   let failed = 0;
   for (const n of only) {
     process.stdout.write(`\nTurn ${n}\n`);

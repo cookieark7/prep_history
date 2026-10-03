@@ -33,7 +33,7 @@ describe("readNdjson", () => {
       const body = new ReadableStream<Uint8Array>({ start(c) { chunks.forEach((x) => c.enqueue(x)); c.close(); } });
       const r = await readNdjson(body, (l) => lines.push(l));
       expect(r.sawDone).toBe(true);
-      expect(lines).toHaveLength(10);
+      expect(lines).toHaveLength(12);
       expect(lines.at(-1)).toEqual({ t: "say", text: "Zama — 202 BCE" });
     }
   });

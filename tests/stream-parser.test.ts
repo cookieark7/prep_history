@@ -27,7 +27,7 @@ describe("ObjectStreamParser", () => {
       for (let i = 0; i < text.length; i += size) chunks.push(text.slice(i, i + size));
       expect(feed(chunks)).toEqual(expected);
     }
-    expect(expected).toHaveLength(9);
+    expect(expected).toHaveLength(11);
   });
 
   it("ignores braces and escaped quotes inside strings", () => {

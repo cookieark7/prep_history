@@ -1,4 +1,6 @@
-import { Block, blockProblem, type Mode, type Op } from "@/lib/contracts";
+import { Block, blockProblem, type ArticleBlock, type Mode, type Op } from "@/lib/contracts";
+
+type ArticleSection = ArticleBlock["sections"][number];
 
 /** The part of the workspace that Director ops act on. */
 export interface StageState {
@@ -13,6 +15,8 @@ export type Inverse =
   | { kind: "remove"; id: string }
   | { kind: "restore"; block: Block; index: number }
   | { kind: "replace"; block: Block }
+  /** undo one article-section patch: drop the headings it appended, restore the ones it replaced */
+  | { kind: "sections"; id: string; remove: string[]; restore: ArticleSection[] }
   | { kind: "view"; mode: Mode; focusId: string | null; fullscreen: boolean };
 
 export interface HistoryEntry {
@@ -98,6 +102,32 @@ function describe(b: Block) {
   return `${TYPE_LABEL[b.type]}: ${b.title}`;
 }
 
+const onlySections = (set: Record<string, unknown>) =>
+  Object.keys(set).every((k) => k === "sections" || k === "id" || k === "type") && Array.isArray(set.sections);
+
+/**
+ * Article patches that only touch sections get a section-level inverse, so undoing one
+ * streamed section removes just that section (not the ones that arrived after it).
+ */
+function patchInverse(old: Block, set: Record<string, unknown>): Inverse {
+  if (old.type !== "article" || !onlySections(set)) return { kind: "replace", block: old };
+  const heads = (set.sections as { h?: unknown }[]).map((x) => String(x.h));
+  return {
+    kind: "sections",
+    id: old.id,
+    remove: heads.filter((h) => !old.sections.some((x) => x.h === h)),
+    restore: old.sections.filter((x) => heads.includes(x.h)),
+  };
+}
+
+function patchLabel(old: Block, set: Record<string, unknown>): string {
+  if (old.type === "article" && onlySections(set)) {
+    const heads = (set.sections as { h?: unknown }[]).map((x) => `“${String(x.h)}”`).join(", ");
+    return `Updated ${describe(old)}: ${heads}`;
+  }
+  return `Updated ${describe(old)}`;
+}
+
 /** Pure: apply one Director op. Never throws; an unusable op becomes a no-op with a history note. */
 export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnContext()): OpResult {
   const at = Date.now();
@@ -145,7 +175,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       blocks[idx] = parsed.data;
       return {
         state: { ...state, blocks },
-        entry: { id: entryId(), op: "patch", at, blockId: id, label: `Updated ${describe(old)}`, inverse: { kind: "replace", block: old } },
+        entry: { id: entryId(), op: "patch", at, blockId: id, label: patchLabel(old, op.set), inverse: patchInverse(old, op.set) },
         landed: id,
       };
     }
@@ -205,6 +235,17 @@ export function applyInverse(state: StageState, inv: Inverse): StageState {
       blocks.splice(Math.min(inv.index, blocks.length), 0, inv.block);
       return { ...state, blocks };
     }
+    case "sections":
+      return {
+        ...state,
+        blocks: state.blocks.map((b) => {
+          if (b.id !== inv.id || b.type !== "article") return b;
+          const sections = b.sections
+            .filter((x) => !inv.remove.includes(x.h))
+            .map((x) => inv.restore.find((r) => r.h === x.h) ?? x);
+          return sections.length ? { ...b, sections } : b;
+        }),
+      };
     case "replace":
       return { ...state, blocks: state.blocks.map((b) => (b.id === inv.block.id ? inv.block : b)) };
     case "view":

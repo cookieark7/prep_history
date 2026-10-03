@@ -10,7 +10,7 @@ import { useWorkspace } from "@/lib/store/workspace";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 
 export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: Block; blurred?: boolean }) {
-  const fresh = useWorkspace((s) => !!s.arrivals[block.id]);
+  const arrivedAt = useWorkspace((s) => s.arrivals[block.id]);
   const patchedEntry = useWorkspace((s) => s.patched[block.id]);
   const pinned = useWorkspace((s) => s.pinned.includes(block.id));
   const flash = useWorkspace((s) => (s.flash?.id === block.id ? s.flash.nonce : null));
@@ -25,8 +25,10 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: 
       tabIndex={-1}
       data-block={block.id}
       aria-label={`${TYPE_LABEL[block.type]}: ${block.title}`}
-      className={`group/block relative scroll-mt-20 rounded-[2px] outline-none ${fresh ? "arrive" : ""}`}
+      className="group/block relative scroll-mt-20 rounded-[2px] outline-none"
     >
+      {/* soft ochre edge on arrival; keyed so each streamed section re-runs it */}
+      {arrivedAt && <span key={arrivedAt} aria-hidden className="arrive pointer-events-none absolute -inset-x-3 -inset-y-2 rounded-[2px]" />}
       {patchedEntry && <span aria-hidden className="absolute -left-4 top-1 bottom-1 w-[3px] rounded-full bg-ochre" />}
       <header className="mb-3 flex items-start gap-3">
         <span className="mt-[3px] text-muted"><TypeIcon size={16} /></span>

@@ -48,10 +48,13 @@ describe("mockLines", () => {
 
   it("renumbers fixture ids from next_block_id and keeps internal references", () => {
     const lines = mockLines(req("why did rome beat carthage", [{ id: "b4", type: "callout", title: "x" }]));
-    const adds = lines.map((l) => JSON.parse(l)).filter((o) => o.t === "op").map((o) => o.op);
+    const ops = lines.map((l) => JSON.parse(l)).filter((o) => o.t === "op").map((o) => o.op);
+    const adds = ops.filter((o) => o.op === "add");
     expect(adds.map((o) => o.block.id)).toEqual(["b5", "b6", "b7", "b8"]);
     expect(adds[1].after).toBe("b5");
     expect(adds[2].block.reveals).toBe("b8");
+    // E5: section patches follow the article to its new id
+    expect(ops.filter((o) => o.op === "patch").map((o) => o.id)).toEqual(["b5", "b5"]);
   });
 
   it("resolves quiz source_refs to stage ids by title", () => {

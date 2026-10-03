@@ -60,6 +60,8 @@ function pickFixture(req: TurnRequest): { file?: string; say?: string } {
   if (topic && wantsQuiz) return { file: `mock/${topic}.quiz.ndjson` };
   if (topic && wantsDeeper) return { file: `mock/${topic}.deeper.ndjson` };
 
+  if (/\bdecline|declined|decay|fall\b/.test(msg) && /mughal|aurangzeb/.test(msg)) return { file: "mughal-decline.ndjson" };
+
   // topics can be recognised from pasted reading too (quiz/deeper intent only from the message)
   const source = (req.source_text ?? "").toLowerCase();
   const match = TOPIC_FIXTURES.find((f) => f.keywords.some((k) => msg.includes(k) || source.includes(k)));
@@ -96,6 +98,10 @@ function renumberAndResolve(lines: string[], req: TurnRequest): string[] {
       obj.op.after = mapId(obj.op.after);
       if (b.type === "predict_gate") b.reveals = mapId(b.reveals);
       if (b.type === "quiz") for (const it of b.items) it.source_ref.block = mapId(it.source_ref.block);
+    }
+    // patches (E5: article sections stream as patches) target blocks added earlier in the same turn
+    if (obj.t === "op" && (obj.op.op === "patch" || obj.op.op === "remove" || obj.op.op === "focus")) {
+      obj.op.id = mapId(obj.op.id);
     }
     let text = JSON.stringify(obj);
     let unresolved = false;

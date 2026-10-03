@@ -206,7 +206,9 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       }),
       applyDirectorOp: (entryId, op, turn) => {
         const s0 = get();
+        const sameTurn = op.op === "patch" && turn.addedIds.includes(turn.renames[op.id] ?? op.id);
         const r = applyOp({ blocks: s0.blocks, mode: s0.mode, focusId: s0.focusId, fullscreen: s0.fullscreen }, op, turn);
+        const stamp = Date.now();
         set((s) => {
           s.blocks = r.state.blocks as Block[];
           s.mode = r.state.mode;
@@ -216,10 +218,12 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
           if (r.landed) {
             const e = s.chat.find((c) => c.id === entryId);
             if (e && !e.landed.includes(r.landed)) e.landed.push(r.landed);
-            s.arrivals[r.landed] = Date.now();
+            s.arrivals[r.landed] = stamp;
           }
           if (op.op === "patch" && r.landed && r.entry) {
-            s.patched[r.landed] = r.entry.id;
+            // E5: a section streamed into a block added earlier in this same turn just gets the
+            // soft arrival edge; "updated / Undo" is for changes to blocks from earlier turns
+            if (!sameTurn) s.patched[r.landed] = r.entry.id;
             // a Director patch that adds deep sections should be visible right away
             const set_ = op.set as { sections?: { depth?: string }[] };
             if (set_.sections?.some((x) => x.depth === "deep")) s.depth = "deep";
@@ -229,7 +233,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         // the arrival highlight fades in 1.5s; drop the marker afterwards
         if (r.landed) {
           const id = r.landed;
-          setTimeout(() => set((s) => { delete s.arrivals[id]; }), 1600);
+          setTimeout(() => set((s) => { if (s.arrivals[id] === stamp) delete s.arrivals[id]; }), 1600);
         }
       },
       followup: (entryId, f) => set((s) => {

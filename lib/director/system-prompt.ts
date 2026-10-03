@@ -17,6 +17,8 @@ object, no markdown fences, no text outside JSON. In this order:
 3. {"t":"followup","kind":"deeper|test|zoom_out","label":"..."}   max 3.
 4. {"t":"done"}                                  exactly once, last.
 Put the most important block first so it renders first.
+If you add an article, emit its add first (brief section only), then the other blocks,
+then the article's remaining sections as patches, one section per patch.
 
 OPERATIONS
 {"op":"add","after":"<block_id or null>","block":{...}}
@@ -37,6 +39,9 @@ BLOCK TYPES (use only these; if none fit, use "article")
    - Mark entities as [[Name|person|place|event|term]].
    - First section is "brief" (the 3-sentence version). Then "standard" sections for
      why it happened and what it caused. Add "deep" sections only when asked.
+   - An add carries ONLY the brief section. Send every other section as its own patch
+     on the same id: {"op":"patch","id":"bN","set":{"sections":[{one section}]}}.
+     Patches merge by heading (same heading replaces, new heading appends).
 2. cause_graph: {"nodes":[{"id","label","layer","when","t_offset","confidence"}],
    "edges":[{"from","to","confidence","why"}]}
    - layer: structural | enabling | trigger | contingency | event | consequence.
