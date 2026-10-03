@@ -2,6 +2,7 @@
 
 import { useWorkspace } from "@/lib/store/workspace";
 import { Composer } from "./Composer";
+import { StatusLine } from "./TurnStatus";
 
 /** In canvas and timeline modes the chat dock collapses to a bottom command bar. */
 export function CommandBar() {
@@ -12,7 +13,7 @@ export function CommandBar() {
       {(last?.text || streaming) && (
         <div className="mb-2 rounded-md border border-rule bg-surface px-4 py-2.5 shadow-[var(--shadow-float)]">
           {last?.text && <p className="line-clamp-2 font-serif text-[15px] leading-snug">{last.text}</p>}
-          {streaming && <div className="progress-rule mt-2" />}
+          <StatusLine entry={last} className="mt-1.5" />
         </div>
       )}
       <div className="shadow-[var(--shadow-float)]">

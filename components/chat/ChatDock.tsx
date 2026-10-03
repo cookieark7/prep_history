@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/icons";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 import { scrollToBlock } from "@/components/blocks/Markdown";
 import { Composer } from "./Composer";
+import { StatusLine } from "./TurnStatus";
 
 export function ChatLog({ compact = false }: { compact?: boolean }) {
   const chat = useWorkspace((s) => s.chat);
@@ -54,7 +55,7 @@ function DirectorRow({ entry }: { entry: ChatEntry }) {
       ) : streaming ? (
         <p className="sr-only">Working on it</p>
       ) : null}
-      {streaming && <div className="progress-rule mt-2.5" role="progressbar" aria-label="Reply in progress" />}
+      <StatusLine entry={entry} className="mt-2" />
 
       {entry.landed.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">

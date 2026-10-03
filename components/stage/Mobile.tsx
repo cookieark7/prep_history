@@ -6,6 +6,7 @@ import { useWorkspace } from "@/lib/store/workspace";
 import { Icon, type IconName } from "@/components/ui/icons";
 import { ChatLog } from "@/components/chat/ChatDock";
 import { Composer } from "@/components/chat/Composer";
+import { StatusLine } from "@/components/chat/TurnStatus";
 
 const TABS: { id: Mode; label: string; icon: IconName }[] = [
   { id: "reader", label: "Reader", icon: "article" },
@@ -33,7 +34,7 @@ export function MobileChrome() {
           aria-label={open ? "Collapse conversation" : "Show conversation"}
         >
           <span className="h-1 w-9 rounded-full bg-rule-strong" />
-          {!open && count > 0 && <span>{streaming ? "Working…" : "Conversation"}</span>}
+          {!open && count > 0 && !streaming && <span>Conversation</span>}
         </button>
         {open ? (
           <div className="scroll-thin max-h-[55vh] overflow-y-auto border-t border-rule">
@@ -44,7 +45,7 @@ export function MobileChrome() {
             <p className="line-clamp-2 px-4 pb-2 font-serif text-[14px] leading-snug text-text">{last.text}</p>
           )
         )}
-        {streaming && !open && <div className="progress-rule mx-4 mb-2" />}
+        {!open && <StatusLine entry={last} className="mx-4 mb-2" />}
         <div className="px-3 pb-2">
           <Composer id="composer-mobile" />
         </div>

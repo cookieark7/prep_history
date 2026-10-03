@@ -5,6 +5,7 @@ import { useWorkspace } from "@/lib/store/workspace";
 import { BlockBody } from "@/components/blocks/registry";
 import { Icon } from "@/components/ui/icons";
 import { Composer } from "@/components/chat/Composer";
+import { StatusLine } from "@/components/chat/TurnStatus";
 import { NotesMargin } from "@/components/notes/NotesMargin";
 import { Segmented } from "./TopBar";
 import { TYPE_LABEL } from "@/lib/store/reducer";
@@ -23,7 +24,8 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
   const lineHeight = useWorkspace((s) => s.lineHeight);
   const focusPara = useWorkspace((s) => s.focusParagraph);
   const notes = useWorkspace((s) => s.notes.filter((n) => n.blockId === s.focusId).length);
-  const lastSay = useWorkspace((s) => [...s.chat].reverse().find((c) => c.role === "director")?.text);
+  const lastReply = useWorkspace((s) => [...s.chat].reverse().find((c) => c.role === "director"));
+  const lastSay = lastReply?.text;
   const scroller = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
 
@@ -107,7 +109,12 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
 
       {/* the conversation collapses to a centred command bar */}
       <div className="fixed bottom-4 left-1/2 z-10 w-[min(600px,calc(100vw-24px))] -translate-x-1/2">
-        {lastSay && <p className="mb-2 line-clamp-2 rounded-md border border-rule bg-surface px-4 py-2 font-serif text-[14.5px] shadow-[var(--shadow-float)]">{lastSay}</p>}
+        {(lastSay || lastReply?.status === "streaming") && (
+          <div className="mb-2 rounded-md border border-rule bg-surface px-4 py-2 shadow-[var(--shadow-float)]">
+            {lastSay && <p className="line-clamp-2 font-serif text-[14.5px]">{lastSay}</p>}
+            <StatusLine entry={lastReply} className="mt-1" />
+          </div>
+        )}
         <div className="shadow-[var(--shadow-float)]"><Composer id="composer-fs" /></div>
       </div>
     </div>
