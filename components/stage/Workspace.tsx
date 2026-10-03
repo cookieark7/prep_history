@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/lib/store/workspace";
 import { useHydrated, ThemeSync } from "@/components/ui/hydration";
 import { ChatDock } from "@/components/chat/ChatDock";
@@ -38,7 +39,14 @@ export function Workspace() {
   // each mode starts at the top, with the top bar visible
   useEffect(() => { window.scrollTo(0, 0); }, [mode]);
   const anyDialogOpen = historyOpen || paletteOpen || shortcutsOpen || notesOpen;
-  useShortcuts(useMemo(() => ({ palette: openPalette, shortcuts: openShortcuts, anyDialogOpen, copyBlock: (id: string) => void copyBlock(id) }), [openPalette, openShortcuts, anyDialogOpen]));
+  const router = useRouter();
+  useShortcuts(useMemo(() => ({
+    palette: openPalette,
+    shortcuts: openShortcuts,
+    anyDialogOpen,
+    copyBlock: (id: string) => void copyBlock(id),
+    newLesson: () => router.push("/"),
+  }), [openPalette, openShortcuts, anyDialogOpen, router]));
 
   useNoteHighlights();
 

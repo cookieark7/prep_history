@@ -72,6 +72,19 @@ function GraphCanvas({ graph, graphs }: { graph: CauseGraphBlock; graphs: CauseG
 
   const stopRipple = () => { if (timer.current) clearInterval(timer.current); timer.current = null; };
   useEffect(() => stopRipple, []);
+  // tool keys (the toolbar advertises them): v select, n note, p highlight path
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (e.metaKey || e.ctrlKey || e.altKey || (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))) return;
+      const tool = ({ v: "select", n: "note", p: "path" } as const)[e.key as "v" | "n" | "p"];
+      if (!tool) return;
+      e.preventDefault();
+      useCanvas.getState().set({ tool, pathEnds: [], ...(tool === "path" ? { lit: null } : {}) });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   useEffect(() => {
     if (!flash) return;
     set({ selected: flash });

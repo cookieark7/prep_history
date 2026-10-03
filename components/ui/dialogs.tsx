@@ -7,6 +7,7 @@ import { useWorkspace, type Theme } from "@/lib/store/workspace";
 import { sendTurn } from "@/lib/stream-client";
 import { Icon, type IconName } from "./icons";
 import { exportMarkdown } from "@/lib/export";
+import { copyLesson } from "@/lib/copy-actions";
 import type { Level } from "@/lib/contracts";
 
 const overlay = "fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]";
@@ -75,9 +76,11 @@ export function CommandPalette({
       ...themes.map(([t, name]): Cmd => ({ id: `theme-${t}`, label: `Switch theme: ${name}`, icon: "theme", hint: t === theme ? "current" : undefined, run: () => st.setTheme(t) })),
       { id: "history", label: "Lesson history", icon: "clock", run: onHistory },
       { id: "notes", label: "Notes", icon: "note", run: onNotes },
+      { id: "copy", label: "Copy lesson", icon: "article", run: () => void copyLesson() },
       { id: "export", label: "Export as Markdown", icon: "download", run: () => exportMarkdown(useWorkspace.getState()) },
+      { id: "dock", label: "Toggle dock", icon: "sidebar", hint: "⌘\\", run: () => st.setChatOpen(!useWorkspace.getState().chatOpen) },
       { id: "shortcuts", label: "Keyboard shortcuts", icon: "keyboard", hint: "?", run: onShortcuts },
-      { id: "new", label: "New lesson", icon: "back", run: () => router.push("/") },
+      { id: "new", label: "New lesson", icon: "back", hint: "N", run: () => router.push("/") },
     ];
   }, [level, theme, onHistory, onNotes, onShortcuts, router]);
 
@@ -141,14 +144,27 @@ export function CommandPalette({
 }
 
 /* ---------------- shortcuts ---------------- */
-const SHORTCUTS: [string, string][] = [
-  ["j / k", "Next / previous block"],
-  ["f", "Fullscreen the current block"],
-  ["Esc", "Exit fullscreen or focus; stop a reply"],
-  ["⌘K", "Command palette"],
-  ["⌘\\", "Show or hide the chat"],
-  ["/", "Jump to the composer"],
-  ["?", "This sheet"],
+// Exactly what components/stage/useShortcuts.ts (and the canvas, rail, composer, quiz) wire up.
+const SHORTCUTS: { group: string; keys: [string, string][] }[] = [
+  { group: "Lesson", keys: [
+    ["j / k", "Next / previous block"],
+    ["f", "Fullscreen the current block"],
+    ["c", "Copy the current block"],
+    ["p", "Pin or unpin the current block"],
+    ["u", "Undo the last change to the current block"],
+    ["N", "New lesson"],
+    ["Esc", "Exit fullscreen, focus or canvas; stop a reply"],
+  ] },
+  { group: "Anywhere", keys: [
+    ["/", "Jump to the composer"],
+    ["⌘K", "Command palette"],
+    ["⌘\\", "Show or hide the chat"],
+    ["?", "This sheet"],
+  ] },
+  { group: "Composer", keys: [["Enter", "Send"], ["Shift Enter", "New line"]] },
+  { group: "Canvas", keys: [["v / n / p", "Select / Note / Highlight path"]] },
+  { group: "Lesson rail", keys: [["↑ / ↓", "Move between blocks"], ["Enter", "Jump to the block"]] },
+  { group: "Quiz", keys: [["1-5", "Choose an option"], ["Enter", "Check, then next"]] },
 ];
 
 export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -158,14 +174,21 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
         <Dialog.Overlay className={overlay} />
         <Dialog.Content className="fade-up fixed left-1/2 top-[18vh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
           <Dialog.Title className="mb-3 font-serif text-[18px] font-semibold">Keyboard shortcuts</Dialog.Title>
-          <dl className="space-y-2 text-[13.5px]">
-            {SHORTCUTS.map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between gap-4">
-                <dt className="text-muted">{v}</dt>
-                <dd><kbd className="rounded border border-rule px-1.5 py-0.5 font-mono text-[12px]">{k}</kbd></dd>
-              </div>
+          <div className="scroll-thin max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+            {SHORTCUTS.map((g) => (
+              <section key={g.group}>
+                <h3 className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">{g.group}</h3>
+                <dl className="space-y-1.5 text-[13.5px]">
+                  {g.keys.map(([k, v]) => (
+                    <div key={k + v} className="flex items-center justify-between gap-4">
+                      <dt className="text-muted">{v}</dt>
+                      <dd><kbd className="whitespace-nowrap rounded border border-rule px-1.5 py-0.5 font-mono text-[12px]">{k}</kbd></dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
             ))}
-          </dl>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

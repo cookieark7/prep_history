@@ -15,6 +15,7 @@ import { StatusLine } from "./TurnStatus";
 
 export function ChatLog({ compact = false }: { compact?: boolean }) {
   const chat = useWorkspace((s) => s.chat);
+  const latestReply = [...chat].reverse().find((c) => c.role === "director")?.id;
 
   if (!chat.length) {
     return <p className="px-5 py-6 font-serif text-[15px] italic text-muted">The conversation shows up here. The lesson builds on the Stage.</p>;
@@ -33,7 +34,7 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
               )}
             </>
           ) : (
-            <DirectorRow entry={c} />
+            <DirectorRow entry={c} latest={c.id === latestReply} />
           )}
         </li>
       ))}
@@ -42,7 +43,7 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function DirectorRow({ entry }: { entry: ChatEntry }) {
+function DirectorRow({ entry, latest }: { entry: ChatEntry; latest: boolean }) {
   const blocks = useWorkspace((s) => s.blocks);
   const history = useWorkspace((s) => s.history);
   const flashBlock = useWorkspace((s) => s.flashBlock);
@@ -80,7 +81,8 @@ function DirectorRow({ entry }: { entry: ChatEntry }) {
         </div>
       )}
 
-      {entry.followups.length > 0 && (
+      {/* follow-ups only under the latest reply: once one is used, the next reply replaces them */}
+      {latest && entry.followups.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1.5">
           {entry.followups.map((f) => {
             const I = Icon[f.kind];

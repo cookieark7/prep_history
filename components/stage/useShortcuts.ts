@@ -8,14 +8,20 @@ import { scrollToEl } from "@/lib/scroll";
 const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
-/** j/k between blocks, f fullscreen, Esc exit, ? shortcuts, Cmd+K palette, Cmd+\ chat, / composer. */
+/** The keyboard layer. The cheat sheet (components/ui/dialogs.tsx SHORTCUTS) must match this. */
 function currentBlockId(): string | undefined {
   const el = document.activeElement?.closest<HTMLElement>("[data-block]")
     ?? [...document.querySelectorAll<HTMLElement>("main [data-block]")].find((x) => x.getBoundingClientRect().bottom > 120);
   return el?.dataset.block;
 }
 
-export function useShortcuts(h: { palette: () => void; shortcuts: () => void; anyDialogOpen: boolean; copyBlock?: (id: string) => void }) {
+export function useShortcuts(h: {
+  palette: () => void;
+  shortcuts: () => void;
+  anyDialogOpen: boolean;
+  copyBlock?: (id: string) => void;
+  newLesson?: () => void;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = useWorkspace.getState();
@@ -31,6 +37,7 @@ export function useShortcuts(h: { palette: () => void; shortcuts: () => void; an
       }
       if (isTyping(e.target) || mod || e.altKey) return;
       if (e.key === "?") { e.preventDefault(); h.shortcuts(); return; }
+      if (e.key === "N" && e.shiftKey) { e.preventDefault(); h.newLesson?.(); return; }
       if (e.key === "/") {
         e.preventDefault();
         [...document.querySelectorAll<HTMLTextAreaElement>("[data-composer]")].find((el) => el.offsetParent !== null)?.focus();
