@@ -5,6 +5,7 @@ import type { Block } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { BlockFrame } from "./BlockFrame";
 import { TimeSpine } from "./TimeSpine";
+import { LandingChips } from "./LandingChips";
 
 /** Ids of blocks still hidden behind an unanswered prediction gate. */
 export function useBlurred(): Set<string> {
@@ -76,6 +77,7 @@ export function ReaderStage({ margin }: { margin?: React.ReactNode }) {
           ))}
         </div>
         {streaming && list.length > 0 && <div className="progress-rule mt-12 w-24" aria-hidden />}
+        <LandingChips />
       </div>
       {margin && <div className="relative hidden w-[280px] shrink-0 xl:block">{margin}</div>}
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { scrollToEl } from "@/lib/scroll";
 import Link from "next/link";
 import { useWorkspace, type ChatEntry } from "@/lib/store/workspace";
 import { retryTurn, sendTurn } from "@/lib/stream-client";
@@ -12,11 +13,6 @@ import { StatusLine } from "./TurnStatus";
 
 export function ChatLog({ compact = false }: { compact?: boolean }) {
   const chat = useWorkspace((s) => s.chat);
-  const endRef = useRef<HTMLDivElement>(null);
-  const last = chat.at(-1);
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [chat.length, last?.text, last?.landed.length, last?.followups.length, last?.status]);
 
   if (!chat.length) {
     return <p className="px-5 py-6 font-serif text-[15px] italic text-muted">The conversation shows up here. The lesson builds on the Stage.</p>;
@@ -39,7 +35,7 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
           )}
         </li>
       ))}
-      <div ref={endRef} />
+      <div data-chat-end />
     </ol>
   );
 }
@@ -133,12 +129,54 @@ export function ChatDock() {
           <Icon.sidebar />
         </button>
       </div>
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
+      <ChatScroller className="min-h-0 flex-1">
         <ChatLog />
-      </div>
+      </ChatScroller>
       <div className="border-t border-rule p-3">
         <Composer />
       </div>
     </aside>
+  );
+}
+
+/**
+ * Stick-to-bottom for the conversation only: follows new content while the learner is
+ * within 80px of the bottom; once they scroll up it stops and offers "Jump to latest".
+ */
+export function ChatScroller({ className = "", innerClassName = "", children }: { className?: string; innerClassName?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(true);
+  // a cheap signature of "the conversation changed"
+  const sig = useWorkspace((s) => {
+    const l = s.chat.at(-1);
+    return `${s.chat.length}|${l?.text.length}|${l?.landed.length}|${l?.followups.length}|${l?.status}`;
+  });
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (pinned && el) el.scrollTop = el.scrollHeight;
+  }, [sig, pinned]);
+
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        ref={ref}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setPinned(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
+        }}
+        className={`scroll-thin h-full overflow-y-auto ${innerClassName}`}
+      >
+        {children}
+      </div>
+      {!pinned && (
+        <button
+          type="button"
+          onClick={() => { scrollToEl(ref.current?.querySelector("[data-chat-end]"), "end"); setPinned(true); }}
+          className="fade-up absolute bottom-3 left-1/2 inline-flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-full border border-rule bg-surface px-3 text-[12px] shadow-[var(--shadow-float)] hover:border-rule-strong"
+        >
+          <Icon.chevronDown size={12} /> Jump to latest
+        </button>
+      )}
+    </div>
   );
 }

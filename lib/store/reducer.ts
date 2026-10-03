@@ -17,6 +17,8 @@ export type Inverse =
 
 export interface HistoryEntry {
   id: string;
+  /** which Director op produced this entry (optional on entries saved before v0.1) */
+  op?: Op["op"];
   label: string;
   at: number;
   blockId: string | null;
@@ -119,7 +121,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       turn.addedIds.push(block.id);
       return {
         state: { ...state, blocks },
-        entry: { id: entryId(), at, blockId: block.id, label: `Added ${describe(block)}`, inverse: { kind: "remove", id: block.id } },
+        entry: { id: entryId(), op: "add", at, blockId: block.id, label: `Added ${describe(block)}`, inverse: { kind: "remove", id: block.id } },
         landed: block.id,
       };
     }
@@ -128,7 +130,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       const id = mapId(op.id);
       const idx = state.blocks.findIndex((b) => b.id === id);
       if (idx < 0) {
-        return { state, landed: null, entry: { id: entryId(), at, blockId: id, label: `Update skipped: no block ${id}`, inverse: null } };
+        return { state, landed: null, entry: { id: entryId(), op: "patch", at, blockId: id, label: `Update skipped: no block ${id}`, inverse: null } };
       }
       const old = state.blocks[idx];
       const parsed = Block.safeParse(mergePatch(old, op.set));
@@ -136,14 +138,14 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       if (!parsed.success || problem) {
         return {
           state, landed: null,
-          entry: { id: entryId(), at, blockId: id, label: `Update skipped for ${describe(old)} (${problem ?? "invalid"})`, inverse: null },
+          entry: { id: entryId(), op: "patch", at, blockId: id, label: `Update skipped for ${describe(old)} (${problem ?? "invalid"})`, inverse: null },
         };
       }
       const blocks = [...state.blocks];
       blocks[idx] = parsed.data;
       return {
         state: { ...state, blocks },
-        entry: { id: entryId(), at, blockId: id, label: `Updated ${describe(old)}`, inverse: { kind: "replace", block: old } },
+        entry: { id: entryId(), op: "patch", at, blockId: id, label: `Updated ${describe(old)}`, inverse: { kind: "replace", block: old } },
         landed: id,
       };
     }
@@ -159,7 +161,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
           blocks: state.blocks.filter((b) => b.id !== id),
           focusId: state.focusId === id ? null : state.focusId,
         },
-        entry: { id: entryId(), at, blockId: id, label: `Removed ${describe(block)}`, inverse: { kind: "restore", block, index } },
+        entry: { id: entryId(), op: "remove", at, blockId: id, label: `Removed ${describe(block)}`, inverse: { kind: "restore", block, index } },
         landed: null,
       };
     }
@@ -169,7 +171,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       return {
         state: { ...state, mode: op.mode },
         entry: {
-          id: entryId(), at, blockId: null, label: `Switched to ${op.mode}`,
+          id: entryId(), op: "layout", at, blockId: null, label: `Switched to ${op.mode}`,
           inverse: { kind: "view", mode: state.mode, focusId: state.focusId, fullscreen: state.fullscreen },
         },
         landed: null,
@@ -183,7 +185,7 @@ export function applyOp(state: StageState, op: Op, turn: TurnContext = newTurnCo
       return {
         state: { ...state, focusId: id, fullscreen: op.fullscreen },
         entry: {
-          id: entryId(), at, blockId: id, label: `Focused ${describe(block)}${op.fullscreen ? " (fullscreen)" : ""}`,
+          id: entryId(), op: "focus", at, blockId: id, label: `Focused ${describe(block)}${op.fullscreen ? " (fullscreen)" : ""}`,
           inverse: { kind: "view", mode: state.mode, focusId: state.focusId, fullscreen: state.fullscreen },
         },
         landed: null,

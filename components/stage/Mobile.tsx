@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Mode } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { Icon, type IconName } from "@/components/ui/icons";
-import { ChatLog } from "@/components/chat/ChatDock";
+import { ChatLog, ChatScroller } from "@/components/chat/ChatDock";
 import { Composer } from "@/components/chat/Composer";
 import { StatusLine } from "@/components/chat/TurnStatus";
 
@@ -37,9 +37,9 @@ export function MobileChrome() {
           {!open && count > 0 && !streaming && <span>Conversation</span>}
         </button>
         {open ? (
-          <div className="scroll-thin max-h-[55vh] overflow-y-auto border-t border-rule">
+          <ChatScroller className="h-[55vh] border-t border-rule">
             <ChatLog compact />
-          </div>
+          </ChatScroller>
         ) : (
           last?.text && !streaming && (
             <p className="line-clamp-2 px-4 pb-2 font-serif text-[14px] leading-snug text-text">{last.text}</p>
