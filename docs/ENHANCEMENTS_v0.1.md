@@ -39,6 +39,9 @@ constraints) > code (what exists, as fact).
 | E8 | Audit: chips, empty state, Cmd+K, keys | extend | Follow-up chips render under every reply, never dim. Empty state (`components/Home.tsx`) matches. Cmd+K (`components/ui/dialogs.tsx`) lacks Copy lesson and Toggle dock. Keys: `/`, Cmd+\, j/k, f, Esc, ? exist; no "new lesson" key; canvas tool titles advertise v/n/p but no handlers. |
 
 Baseline: 7 test files, 53 tests passing; typecheck and lint clean.
+**After v0.1:** every item is implemented (none was already fully `verified`; the E8 empty
+state was). 13 test files, 121 tests passing; typecheck, lint and production build clean.
+See the build record below section 8.
 
 ## 3. Delta
 
@@ -162,6 +165,19 @@ pasted `source_text`). Real mode only if a key is configured (it is not, at time
    cause graph + section patches), routed when the message mentions decline and Mughal.
 4. **Calibration sample location.** The v0 pack text is not edited; this spec and the fixture carry
    the updated sample.
+5. **Quiz completion (E3).** Derived from the persisted quiz run (every item attempted) rather than
+   a separate "finished" flag, so it needs no extra state and survives reload. Gates likewise
+   derive from the persisted gate answer; only passive-block dwell is stored in `completed`.
+6. **Top bar width (E6).** With the dock at 520px the Stage can be ~500px wide, which overflowed
+   the top bar at `lg` viewports. The bar now uses a container query: the Mode switch shows when
+   the bar itself is at least 700px wide (it stays reachable from Cmd+K and the mobile tab bar).
+7. **`u` key (E6/E8).** Undo acts like the menu's "Undo last change": for a block whose only
+   step is its add, that removes the block (recoverable only by asking again). Kept for
+   consistency with the v0 menu; flagged here in case it should be limited to patches.
+8. **Hidden composers (E1).** The dock composer is `display:none` on phones; auto-grow now skips
+   hidden boxes instead of pinning them at 0px (found in the browser check).
+9. **`quiz_result` and graph quizzes** keep their v0 behaviour (misses only; graph quizzes never
+   call the Director).
 
 ## 8. Parked
 
@@ -169,6 +185,30 @@ Everything in section 4 of the guide: thinking block, code block with copy, full
 composer tool row, real citation cards, edit-and-branch, plan-then-run, projects and memory.
 Also parked: real-mode prompt re-test (no API key configured); multiple paste cards per message
 (one card replaces the previous — simpler, and `source_text` is a single field).
+
+## Build record
+
+| ID | Commit | Verified (mock mode, browser + tests) |
+|---|---|---|
+| — | `868dbe2` | v0 baseline committed on branch `chronicle-v0.1` so each item is reviewable |
+| — | `158bffb` | this spec |
+| E1 | `db48864` | 1 / 8 / 30 lines → 52 / 170 / 170px (scrolls inside); 5,000-char paste → card, sent as `source_text`; Stop keeps landed blocks, "Stopped" row, composer usable; failed send restores the draft; IME guard unit-tested |
+| E2 | `f37ad9c` | status at ~100ms, verbs rotate every 2.5s, switches to "Prediction added · …" on the first op, clears on done |
+| E4 | `1e694b9` | scroll stays at 0 while 4 blocks land below; chip collapses to "4 blocks added, below", sits 20px above the bottom, click jumps + highlights; chat dock follows only near the bottom, "Jump to latest" otherwise |
+| E5 | `e24361c` | article first paints with 1 section, grows to 4 in place, scroll unchanged, no "updated" tag; per-section history entries; undo of one patch removes only that section (unit); 3 re-test turns valid |
+| E3 | `849cdae` | real v1 save (22 blocks) migrated to v2; 22 ticks; chips rebuilt from history; gate skip fills its tick; dwell fills passive ticks; active tick follows scroll; roving tabindex; mobile progress bar + "Jump to" sheet; completion survives reload |
+| E6 | `8d22c95` | dock 280-520 by keyboard, pointer drag and Home/End; double-click resets; width persists; no horizontal scroll at min/max at 1024 and 1440 |
+| E7 | `090b1d8` | Copy writes `text/plain` + `text/html`; label flips to "Copied" for 1.5s; Copy lesson writes all blocks; one serializer test per block type |
+| E8 | `9312a8b` | no shortcut fires while typing; j/k, p, c, ?, ⌘K, N, canvas v/n/p work; chips only under the latest reply; palette complete; cheat sheet matches |
+
+Prompt re-test (`npx tsx scripts/retest-mock.ts`, mock mode): Rome, Mughal decline on an existing
+stage, and a long `source_text` — all valid JSON lines, brief-only article adds, section patches
+after the other blocks, no restarts or duplicates. Real mode: not run (no API key configured);
+`scripts/m1-director-test.ts` now also checks the E5 shape and a `source_text` turn.
+
+Manual items not fully covered in this environment: screen-reader output (only the aria wiring was
+checked), 200% text size, and reduced-motion visuals (the CSS and JS paths exist; the browser pane
+could not emulate the media query).
 
 ## Change log
 
@@ -178,4 +218,9 @@ Also parked: real-mode prompt re-test (no API key configured); multiple paste ca
 | `<source_text>` context block | prompt context | `lib/director/context.ts` |
 | source_text rule; brief-first article + one patch per section; ordering | prompt | `lib/director/system-prompt.ts` |
 | Article fixtures re-cut into brief add + section patches; new `mughal-decline.ndjson` | fixtures | `lib/fixtures/` |
-| Storage v1 → v2: `HistoryEntry` gains `op`, `status`, `turn` (replaces `undone`); `ChatEntry.landed` removed (chips derive from history); new `completed`, `dockWidth` | persisted shape, migrated | `lib/store/workspace.ts` |
+| Storage v1 → v2: `HistoryEntry` gains `op`, `status`, `turn` (replaces `undone`); `ChatEntry.landed` removed (chips derive from history); new `completed`, `dockWidth` | persisted shape, migrated | `lib/store/workspace.ts`, `lib/store/migrate.ts` |
+| Archived lessons (Continue list) migrate v1 → v2 on load | persisted shape | `lib/store/lessons.ts` |
+| `ChatEntry.attachment?`, `ChatEntry.retry.sourceText?` (pasted-text chip, Retry keeps the paste) | persisted, additive optional | `lib/store/workspace.ts` |
+| `Inverse` gains `{ kind: "sections" }` (undo one streamed section) | persisted, additive | `lib/store/reducer.ts` |
+| `toast` | transient, not persisted | `lib/store/workspace.ts` |
+| Markdown export: confidence tags now read "(established)" etc.; graph lines "cause → effect: why"; timeline as a table; lineage by generation | export format | `lib/export.ts` |
