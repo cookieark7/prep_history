@@ -10,6 +10,7 @@ import {
 import { applyInverse, applyOp, type HistoryEntry, type StageState, type TurnContext } from "./reducer";
 import { archiveLesson } from "./lessons";
 import { migrateV1toV2 } from "./migrate";
+import { clampDock, DOCK_DEFAULT } from "@/lib/dock";
 
 export type Theme = "paper" | "sepia" | "ink";
 
@@ -69,6 +70,8 @@ export interface WorkspaceState extends StageState {
   flash: { id: string; node: string | null; nonce: number } | null;
   arrivals: Record<string, number>;
   chatOpen: boolean;
+  /** chat dock width in px (E6, persisted) */
+  dockWidth: number;
 }
 
 interface Actions {
@@ -80,6 +83,7 @@ interface Actions {
   setLevel: (level: Level) => void;
   setTheme: (theme: Theme) => void;
   setChatOpen: (open: boolean) => void;
+  setDockWidth: (w: number) => void;
   setReading: (p: { lineHeight?: number; focusParagraph?: boolean }) => void;
   focusBlock: (id: string | null, fullscreen: boolean) => void;
   exitFocus: () => void;
@@ -107,7 +111,7 @@ interface Actions {
 
 const uid = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" | "lineHeight" | "focusParagraph"> => ({
+const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" | "lineHeight" | "focusParagraph" | "dockWidth"> => ({
   lessonId: uid("l"),
   topic: "",
   blocks: [],
@@ -159,6 +163,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       chatOpen: true,
       lineHeight: 1.7,
       focusParagraph: false,
+      dockWidth: DOCK_DEFAULT,
 
       startLesson: (topic, level) => {
         const cur = get();
@@ -179,6 +184,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       setLevel: (level) => set((s) => { s.level = level; }),
       setTheme: (theme) => set((s) => { s.theme = theme; }),
       setChatOpen: (open) => set((s) => { s.chatOpen = open; }),
+      setDockWidth: (w) => set((s) => { s.dockWidth = clampDock(w); }),
       setReading: (p) => set((s) => {
         if (p.lineHeight != null) s.lineHeight = Math.min(2.2, Math.max(1.4, p.lineHeight));
         if (p.focusParagraph != null) s.focusParagraph = p.focusParagraph;

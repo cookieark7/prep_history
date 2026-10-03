@@ -21,6 +21,7 @@ import "@/components/blocks/all";
 export function Workspace() {
   const hydrated = useHydrated();
   const chatOpen = useWorkspace((s) => s.chatOpen);
+  const dockWidth = useWorkspace((s) => s.dockWidth);
   const mode = useWorkspace((s) => s.mode);
   const wide = mode === "canvas" || mode === "timeline";
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -45,7 +46,10 @@ export function Workspace() {
     <>
       <ThemeSync />
       {wide ? <CommandBar /> : <ChatDock />}
-      <main className={`min-h-screen ${chatOpen && !wide ? "md:pl-[340px]" : ""} pb-44 md:pb-0`}>
+      <main
+        style={{ "--dock-w": `${dockWidth}px` } as React.CSSProperties}
+        className={`min-h-screen ${chatOpen && !wide ? "md:pl-[var(--dock-w)]" : ""} pb-44 md:pb-0`}
+      >
         <TopBar onHistory={openHistory} onPalette={openPalette} />
         {mode === "reader" || mode === "focus" ? <ReaderStage margin={<NotesMargin />} /> : <ModeView mode={mode} />}
       </main>

@@ -9,7 +9,13 @@ const isTyping = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 /** j/k between blocks, f fullscreen, Esc exit, ? shortcuts, Cmd+K palette, Cmd+\ chat, / composer. */
-export function useShortcuts(h: { palette: () => void; shortcuts: () => void; anyDialogOpen: boolean }) {
+function currentBlockId(): string | undefined {
+  const el = document.activeElement?.closest<HTMLElement>("[data-block]")
+    ?? [...document.querySelectorAll<HTMLElement>("main [data-block]")].find((x) => x.getBoundingClientRect().bottom > 120);
+  return el?.dataset.block;
+}
+
+export function useShortcuts(h: { palette: () => void; shortcuts: () => void; anyDialogOpen: boolean; copyBlock?: (id: string) => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const s = useWorkspace.getState();
@@ -41,10 +47,15 @@ export function useShortcuts(h: { palette: () => void; shortcuts: () => void; an
         scrollToEl(next);
         return;
       }
-      if (e.key === "f") {
-        const active = document.activeElement?.closest<HTMLElement>("[data-block]")
-          ?? [...document.querySelectorAll<HTMLElement>("[data-block]")].find((el) => el.getBoundingClientRect().bottom > 120);
-        if (active?.dataset.block) s.focusBlock(active.dataset.block, true);
+      // block actions act on the focused block, else the topmost one in view (reader only)
+      if (s.mode === "reader" && (e.key === "f" || e.key === "p" || e.key === "u" || e.key === "c")) {
+        const id = currentBlockId();
+        if (!id) return;
+        e.preventDefault();
+        if (e.key === "f") s.focusBlock(id, true);
+        if (e.key === "p") s.togglePin(id);
+        if (e.key === "u") s.undoLatestFor(id);
+        if (e.key === "c") h.copyBlock?.(id);
       }
     };
     window.addEventListener("keydown", onKey);

@@ -52,11 +52,11 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
 
   return (
     <header
-      className={`sticky top-0 z-20 border-b border-rule bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-[2px] transition-transform duration-200 ${
+      className={`@container sticky top-0 z-20 border-b border-rule bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-[2px] transition-transform duration-200 ${
         hidden ? "-translate-y-full" : ""
       }`}
     >
-      <div className="flex h-14 items-center gap-3 px-4 md:px-6">
+      <div className="flex h-14 min-w-0 items-center gap-3 px-4 md:px-6">
         {!chatOpen && (
           <button
             type="button"
@@ -78,7 +78,7 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
           className="hidden min-w-0 flex-1 truncate rounded-md bg-transparent px-1.5 py-1 font-serif text-[17px] text-text outline-none hover:bg-hover focus:bg-hover sm:block"
         />
         <div className="ml-auto flex items-center gap-2">
-          <div className="hidden lg:block">
+          <div className="hidden @[700px]:block">
             <Segmented label="Mode" value={mode} options={MODES} onChange={(m) => useWorkspace.getState().setMode(m)} />
           </div>
           <Segmented label="Depth" size="sm" value={depth} options={DEPTHS} onChange={(d) => useWorkspace.getState().setDepth(d)} />

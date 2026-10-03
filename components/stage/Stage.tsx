@@ -74,7 +74,7 @@ export function ReaderStage({ margin }: { margin?: React.ReactNode }) {
         )}
         <div className="space-y-14">
           {list.map((b) => (
-            <BlockFrame key={b.id} block={b} blurred={blurred.has(b.id)} />
+            <BlockFrame key={b.id} block={b} blurred={blurred.has(b.id)} current={b.id === current} />
           ))}
         </div>
         {streaming && list.length > 0 && <div className="progress-rule mt-12 w-24" aria-hidden />}

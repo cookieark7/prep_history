@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { landedFor } from "@/lib/rail";
+import { clampDock, dockKeyStep, DOCK_DEFAULT, DOCK_MAX, DOCK_MIN } from "@/lib/dock";
 import { scrollToEl } from "@/lib/scroll";
 import Link from "next/link";
 import { useWorkspace, type ChatEntry } from "@/lib/store/workspace";
@@ -115,12 +116,15 @@ function DirectorRow({ entry }: { entry: ChatEntry }) {
 
 export function ChatDock() {
   const open = useWorkspace((s) => s.chatOpen);
+  const width = useWorkspace((s) => s.dockWidth);
   if (!open) return null;
   return (
     <aside
       aria-label="Chat"
-      className="fixed inset-y-0 left-0 z-30 hidden w-[340px] flex-col border-r border-rule bg-bg md:flex"
+      style={{ width }}
+      className="fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-rule bg-bg md:flex"
     >
+      <DockResizer width={width} />
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-rule px-5">
         <Link href="/" className="font-serif text-[19px] font-semibold tracking-tight">Chronicle</Link>
         <button
@@ -181,6 +185,53 @@ export function ChatScroller({ className = "", innerClassName = "", children }: 
           <Icon.chevronDown size={12} /> Jump to latest
         </button>
       )}
+    </div>
+  );
+}
+
+/**
+ * Drag handle between the dock and the Stage (E6): a keyboard-operable separator.
+ * Mouse, touch and pen via pointer events; arrows ±16 (Shift ±48); Home/End to the limits;
+ * double-click resets. The width persists.
+ */
+function DockResizer({ width }: { width: number }) {
+  const set = (w: number) => useWorkspace.getState().setDockWidth(w);
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize chat"
+      aria-valuenow={width}
+      aria-valuemin={DOCK_MIN}
+      aria-valuemax={DOCK_MAX}
+      tabIndex={0}
+      title="Drag to resize · double-click to reset"
+      onPointerDown={(e) => {
+        e.preventDefault();
+        const el = e.currentTarget;
+        el.setPointerCapture(e.pointerId);
+        const startX = e.clientX;
+        const startW = width;
+        document.body.style.userSelect = "none";
+        const move = (ev: PointerEvent) => set(clampDock(startW + ev.clientX - startX));
+        const up = () => {
+          document.body.style.userSelect = "";
+          el.removeEventListener("pointermove", move);
+          el.removeEventListener("pointerup", up);
+          el.removeEventListener("pointercancel", up);
+        };
+        el.addEventListener("pointermove", move);
+        el.addEventListener("pointerup", up);
+        el.addEventListener("pointercancel", up);
+      }}
+      onDoubleClick={() => set(DOCK_DEFAULT)}
+      onKeyDown={(e) => {
+        const next = dockKeyStep(e.key, e.shiftKey, width);
+        if (next != null) { e.preventDefault(); set(next); }
+      }}
+      className="group absolute inset-y-0 -right-[5px] z-10 w-[10px] cursor-col-resize touch-none outline-none"
+    >
+      <span className="absolute inset-y-0 left-1/2 w-[2px] -translate-x-1/2 bg-transparent transition-colors duration-150 group-hover:bg-rule-strong group-focus-visible:bg-accent group-active:bg-accent" />
     </div>
   );
 }

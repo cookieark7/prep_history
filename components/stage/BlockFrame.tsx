@@ -9,7 +9,7 @@ import { confidenceSummary } from "@/lib/confidence";
 import { useWorkspace } from "@/lib/store/workspace";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 
-export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: Block; blurred?: boolean }) {
+export const BlockFrame = memo(function BlockFrame({ block, blurred, current = false }: { block: Block; blurred?: boolean; current?: boolean }) {
   const arrivedAt = useWorkspace((s) => s.arrivals[block.id]);
   const patchedEntry = useWorkspace((s) => s.patched[block.id]);
   const pinned = useWorkspace((s) => s.pinned.includes(block.id));
@@ -59,7 +59,7 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: 
             {summary && <span className="mono-tab ml-2 whitespace-nowrap text-[11px]">· {summary}</span>}
           </p>
         </div>
-        <BlockMenu block={block} pinned={pinned} />
+        <BlockMenu block={block} pinned={pinned} current={current} />
       </header>
       <div
         className={blurred ? "pointer-events-none select-none blur-[6px] transition-[filter] duration-200" : "transition-[filter] duration-200"}
@@ -73,7 +73,11 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred }: { block: 
   );
 });
 
-function BlockMenu({ block, pinned }: { block: Block; pinned: boolean }) {
+/**
+ * Block actions, always in this order: Copy (c), Fullscreen (f), Pin (p), Undo (u).
+ * Desktop: the button shows on hover and focus. Mobile / touch: only on the block in view.
+ */
+function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; current: boolean }) {
   const canUndo = useWorkspace((s) => s.history.some((h) => h.blockId === block.id && h.status !== "undone" && h.inverse));
   const item = "flex h-9 w-full items-center gap-2 rounded px-2 text-left text-[13px] hover:bg-hover disabled:opacity-40";
   return (
@@ -82,7 +86,9 @@ function BlockMenu({ block, pinned }: { block: Block; pinned: boolean }) {
         <button
           type="button"
           aria-label="Block menu"
-          className="-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted opacity-60 hover:bg-hover hover:text-text group-hover/block:opacity-100 focus-visible:opacity-100"
+          className={`-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted opacity-0 hover:bg-hover hover:text-text focus-visible:opacity-100 group-hover/block:opacity-100 group-focus-within/block:opacity-100 data-[state=open]:opacity-100 pointer-coarse:h-11 pointer-coarse:w-11 ${
+            current ? "max-md:opacity-100 pointer-coarse:opacity-100" : "max-md:invisible pointer-coarse:invisible"
+          }`}
         >
           <Icon.more />
         </button>
@@ -96,12 +102,12 @@ function BlockMenu({ block, pinned }: { block: Block; pinned: boolean }) {
           </Popover.Close>
           <Popover.Close asChild>
             <button type="button" className={item} onClick={() => useWorkspace.getState().togglePin(block.id)}>
-              <Icon.pin size={14} /> {pinned ? "Unpin" : "Pin to top"}
+              <Icon.pin size={14} /> {pinned ? "Unpin" : "Pin to top"} <kbd className="ml-auto font-mono text-[11px] text-muted">p</kbd>
             </button>
           </Popover.Close>
           <Popover.Close asChild>
             <button type="button" className={item} disabled={!canUndo} onClick={() => useWorkspace.getState().undoLatestFor(block.id)}>
-              <Icon.undo size={14} /> Undo last change
+              <Icon.undo size={14} /> Undo last change <kbd className="ml-auto font-mono text-[11px] text-muted">u</kbd>
             </button>
           </Popover.Close>
         </Popover.Content>
