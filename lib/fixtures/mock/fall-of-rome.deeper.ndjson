@@ -1,0 +1,4 @@
+{"t":"say","text":"I added a deep section on why the Eastern Empire survived. The depth switch is now on Deep."}
+{"t":"op","op":{"op":"patch","id":"{{title:How the Western Roman Empire fell}}","set":{"sections":[{"h":"Why the East survived","depth":"deep","md":"The East had a larger tax base in Egypt, Syria and Anatolia [E] and a capital protected by the sea and the [[Theodosian Walls|place]] [E]. Its emperors could also pay off invaders or steer them westward [L]. Some historians add that the East was simply luckier in where the largest invasions fell [C]."}]}}}
+{"t":"followup","kind":"test","label":"Test me on this"}
+{"t":"done"}

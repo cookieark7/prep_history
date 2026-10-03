@@ -1,0 +1,4 @@
+{"t":"say","text":"I added a deep section on the Italian alliance system to the article. The depth switch is now on Deep."}
+{"t":"op","op":{"op":"patch","id":"{{title:Why Rome beat Carthage}}","set":{"sections":[{"h":"Why the allies stayed loyal","depth":"deep","md":"Rome bound most Italian communities to itself through treaties, grants of citizenship and Latin colonies planted across the peninsula [E]. After [[Cannae|event]], several southern communities, including [[Capua|place]], went over to Hannibal [E], but the colonies and most of central Italy stayed loyal [E]. Historians debate how far this reflected real attachment to Rome rather than Roman garrisons and fear of reprisals [C]."}]}}}
+{"t":"followup","kind":"test","label":"Test me on this"}
+{"t":"done"}

@@ -1,0 +1,3 @@
+{"t":"say","text":"You have a point: invasions alone do not explain why the West fell and the East did not. I added the debate next to the article."}
+{"t":"op","op":{"op":"add","after":"{{event.block_id}}","block":{"id":"b1","type":"callout","title":"Invasions or internal failure?","because":"You disagreed that invasions were the main cause","kind":"debate","md":"Many historians agree invasions alone cannot explain the fall, since the East survived similar pressure [L]. [[Peter Heather|person]] still gives the Huns and the peoples they displaced a central role, while others stress civil wars, usurpations and fiscal strain inside the West [C]."}}}
+{"t":"done"}

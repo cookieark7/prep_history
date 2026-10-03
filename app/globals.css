@@ -1,26 +1,259 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------- design tokens (Part 7) ---------- */
+:root,
+:root[data-theme="paper"] {
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --text: #1f1b16;
+  --muted: #6b645a;
+  --rule: #e6dfd3;
+  --rule-strong: #d5ccbc;
+  --hover: rgba(31, 27, 22, 0.045);
+  --accent: #8c2f2b;
+  --accent-soft: rgba(140, 47, 43, 0.09);
+  --ochre: #c08a2b;
+  --brick: #b5482f;
+  --violet: #7a5ba8;
+  --ok: #4f7a4a;
+  --l-structural: #4c6a92;
+  --l-enabling: #7a8b5a;
+  --l-trigger: #b5482f;
+  --l-contingency: #8a6ba8;
+  --l-consequence: #c08a2b;
+  --shadow-float: 0 1px 2px rgba(31, 27, 22, 0.06), 0 8px 24px rgba(31, 27, 22, 0.1);
+  color-scheme: light;
+}
+
+:root[data-theme="sepia"] {
+  --bg: #f1e7d3;
+  --surface: #f7eedc;
+  --text: #3b2f20;
+  --muted: #76664f;
+  --rule: #ddcdb0;
+  --rule-strong: #cbb894;
+  --hover: rgba(59, 47, 32, 0.06);
+  --accent-soft: rgba(140, 47, 43, 0.1);
+}
+
+:root[data-theme="ink"] {
+  --bg: #14120f;
+  --surface: #1c1915;
+  --text: #e9e3d8;
+  --muted: #a1988a;
+  --rule: #2f2a23;
+  --rule-strong: #443d33;
+  --hover: rgba(233, 227, 216, 0.06);
+  --accent: #d0716a;
+  --accent-soft: rgba(208, 113, 106, 0.14);
+  --ochre: #d9a648;
+  --brick: #d9735a;
+  --violet: #a68ad1;
+  --ok: #8cb784;
+  --l-structural: #7f9cc4;
+  --l-enabling: #a5b884;
+  --l-trigger: #dc7a5f;
+  --l-contingency: #b49ad0;
+  --l-consequence: #d9a648;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ochre: var(--ochre);
+  --color-brick: var(--brick);
+  --color-violet: var(--violet);
+  --color-ok: var(--ok);
+  --font-serif: var(--font-source-serif), Charter, Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --font-hand: var(--font-caveat), "Comic Sans MS", cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ---------- base ---------- */
+html {
+  background: var(--bg);
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+::selection {
+  background: color-mix(in srgb, var(--ochre) 30%, transparent);
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+
+/* reading measure */
+.reading {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: var(--reading-lh, 1.7);
+}
+@media (max-width: 767px) {
+  .reading {
+    font-size: 18px;
+    line-height: 1.65;
+  }
+}
+.reading p + p {
+  margin-top: 0.9em;
+}
+.reading strong {
+  font-weight: 600;
+}
+.reading em {
+  font-style: italic;
+}
+.reading ul {
+  list-style: disc;
+  padding-left: 1.2em;
+}
+
+.mono-tab {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+/* ---------- motion ---------- */
+@keyframes arrive {
+  0% {
+    box-shadow: inset 3px 0 0 var(--ochre), 0 0 0 1px color-mix(in srgb, var(--ochre) 60%, transparent);
+  }
+  100% {
+    box-shadow: inset 3px 0 0 transparent, 0 0 0 1px transparent;
+  }
+}
+.arrive {
+  animation: arrive 1.5s ease-out both;
+}
+@keyframes flash {
+  0%,
+  30% {
+    background: color-mix(in srgb, var(--ochre) 12%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+.flash {
+  animation: flash 1.6s ease-out both;
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 180ms ease-out both;
+}
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+.progress-rule {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  background: var(--rule);
+}
+.progress-rule::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: var(--accent);
+  animation: progress-slide 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .progress-rule::after {
+    width: 100%;
+    opacity: 0.5;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* note underlines: colour is never the only signal (see .note-* below for the samples).
+   The ::highlight() rules live inline in app/layout.tsx: the CSS build drops them. */
+/* focus paragraph: dim everything but the paragraph being read */
+.focus-para .reading p,
+.focus-para .reading h3 {
+  opacity: 0.3;
+  transition: opacity 180ms ease-out;
+}
+.focus-para .reading p.is-active,
+.focus-para .reading p:hover {
+  opacity: 1;
+}
+
+.note-remember {
+  text-decoration: underline solid var(--ochre) 2px;
+  text-underline-offset: 4px;
+}
+.note-question {
+  text-decoration: underline dotted var(--brick) 2px;
+  text-underline-offset: 4px;
+}
+.note-disagree {
+  text-decoration: underline wavy var(--violet) 1.5px;
+  text-underline-offset: 4px;
+}
+
+/* react-flow theming */
+.react-flow {
+  --xy-background-color: transparent;
+  --xy-edge-stroke: var(--muted);
+  --xy-node-border-radius: 2px;
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-color: var(--text);
+  --xy-controls-button-border-color: var(--rule);
+  --xy-minimap-background-color: var(--surface);
+}
+.react-flow__attribution {
+  display: none;
+}
+
+/* thin scrollbars on panels */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
 }

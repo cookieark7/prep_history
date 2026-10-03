@@ -1,0 +1,6 @@
+{"t":"say","text":"Test fixture: the graph below has an edge to a missing node and must be dropped."}
+{"t":"op","op":{"op":"add","after":null,"block":{"id":"b1","type":"callout","title":"This block is valid","because":"Acceptance test for dropped lines","kind":"anchor","md":"This callout should arrive."}}}
+{"t":"op","op":{"op":"add","after":"b1","block":{"id":"b2","type":"cause_graph","title":"Broken graph","because":"Acceptance test for dropped lines","nodes":[{"id":"n1","label":"Cause","layer":"structural","when":-300,"t_offset":null,"confidence":"E"},{"id":"n2","label":"Event","layer":"event","when":-200,"t_offset":null,"confidence":"E"},{"id":"n3","label":"Result","layer":"consequence","when":null,"t_offset":10,"confidence":"E"}],"edges":[{"from":"n1","to":"n2","confidence":"E","why":"Fine."},{"from":"n2","to":"n99","confidence":"E","why":"Points at a node that does not exist."}]}}}
+{"t":"op","op":{"op":"add","after":"b1","block":{"id":"b3","type":"timeline","title":"Year zero timeline","because":"Acceptance test for dropped lines","range":{"from":-10,"to":10},"tracks":[{"id":"t1","label":"Track"}],"events":[{"id":"e1","track":"t1","start":0,"end":null,"label":"Year zero","importance":1,"confidence":"E"}]}}}
+{"t":"followup","kind":"test","label":"This followup should arrive"}
+{"t":"done"}
