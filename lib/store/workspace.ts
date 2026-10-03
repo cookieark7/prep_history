@@ -72,6 +72,8 @@ export interface WorkspaceState extends StageState {
   chatOpen: boolean;
   /** chat dock width in px (E6, persisted) */
   dockWidth: number;
+  /** transient confirmation (not persisted) */
+  toast: { text: string; nonce: number } | null;
 }
 
 interface Actions {
@@ -84,6 +86,7 @@ interface Actions {
   setTheme: (theme: Theme) => void;
   setChatOpen: (open: boolean) => void;
   setDockWidth: (w: number) => void;
+  showToast: (text: string | null) => void;
   setReading: (p: { lineHeight?: number; focusParagraph?: boolean }) => void;
   focusBlock: (id: string | null, fullscreen: boolean) => void;
   exitFocus: () => void;
@@ -131,9 +134,10 @@ const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" 
   streaming: false,
   flash: null,
   arrivals: {},
+  toast: null,
 });
 
-const TRANSIENT = ["streaming", "flash", "arrivals"] as const;
+const TRANSIENT = ["streaming", "flash", "arrivals", "toast"] as const;
 export type PersistedWorkspace = Omit<WorkspaceState, (typeof TRANSIENT)[number]>;
 
 export const STORAGE_KEY = "chronicle:workspace";
@@ -185,6 +189,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       setTheme: (theme) => set((s) => { s.theme = theme; }),
       setChatOpen: (open) => set((s) => { s.chatOpen = open; }),
       setDockWidth: (w) => set((s) => { s.dockWidth = clampDock(w); }),
+      showToast: (text) => set((s) => { s.toast = text ? { text, nonce: Date.now() } : null; }),
       setReading: (p) => set((s) => {
         if (p.lineHeight != null) s.lineHeight = Math.min(2.2, Math.max(1.4, p.lineHeight));
         if (p.focusParagraph != null) s.focusParagraph = p.focusParagraph;

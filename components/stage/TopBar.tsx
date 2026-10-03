@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useWorkspace } from "@/lib/store/workspace";
 import { Icon } from "@/components/ui/icons";
 import { JumpToSheet, LessonProgress } from "./LessonRail";
+import { copyLesson } from "@/lib/copy-actions";
 
 export const MODES: { id: Mode; label: string }[] = [
   { id: "reader", label: "Reader" },
@@ -92,6 +93,7 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
             <Icon.clock />
           </button>
           <JumpToSheet />
+          <CopyLessonButton />
           <button
             type="button"
             onClick={onPalette}
@@ -129,4 +131,26 @@ function useScrollChrome() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return { hidden, progress };
+}
+
+function CopyLessonButton() {
+  const [copied, setCopied] = useState(false);
+  const has = useWorkspace((s) => s.blocks.length > 0);
+  if (!has) return null;
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        if (await copyLesson()) {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        }
+      }}
+      className="hidden h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover hover:text-text sm:grid"
+      aria-label={copied ? "Copied" : "Copy lesson"}
+      title={copied ? "Copied" : "Copy lesson"}
+    >
+      {copied ? <Icon.check className="text-ok" /> : <Icon.article />}
+    </button>
+  );
 }

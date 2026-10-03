@@ -1,6 +1,7 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
+import { copyBlock } from "@/lib/copy-actions";
 import * as Popover from "@radix-ui/react-popover";
 import type { Block } from "@/lib/contracts";
 import { Icon } from "@/components/ui/icons";
@@ -80,6 +81,7 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred, current = f
 function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; current: boolean }) {
   const canUndo = useWorkspace((s) => s.history.some((h) => h.blockId === block.id && h.status !== "undone" && h.inverse));
   const item = "flex h-9 w-full items-center gap-2 rounded px-2 text-left text-[13px] hover:bg-hover disabled:opacity-40";
+  const [copied, setCopied] = useState(false);
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
@@ -94,7 +96,22 @@ function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; 
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-44 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-48 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+          {/* stays open so the label can flip to "Copied" */}
+          <button
+            type="button"
+            className={item}
+            onClick={async () => {
+              if (await copyBlock(block.id)) {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }
+            }}
+          >
+            {copied ? <Icon.check size={14} className="text-ok" /> : <Icon.article size={14} />}
+            <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
+            <kbd className="ml-auto font-mono text-[11px] text-muted">c</kbd>
+          </button>
           <Popover.Close asChild>
             <button type="button" className={item} onClick={() => useWorkspace.getState().focusBlock(block.id, true)}>
               <Icon.expand size={14} /> Fullscreen <kbd className="ml-auto font-mono text-[11px] text-muted">f</kbd>

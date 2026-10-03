@@ -16,6 +16,8 @@ import { ModeView } from "./ModeView";
 import { FocusView } from "@/components/quiz/FocusView";
 import { NotesMargin, NotesPanel } from "@/components/notes/NotesMargin";
 import { SelectionToolbar, useNoteHighlights } from "@/components/notes/NotesLayer";
+import { Toast } from "@/components/ui/Toast";
+import { copyBlock } from "@/lib/copy-actions";
 import "@/components/blocks/all";
 
 export function Workspace() {
@@ -36,7 +38,7 @@ export function Workspace() {
   // each mode starts at the top, with the top bar visible
   useEffect(() => { window.scrollTo(0, 0); }, [mode]);
   const anyDialogOpen = historyOpen || paletteOpen || shortcutsOpen || notesOpen;
-  useShortcuts(useMemo(() => ({ palette: openPalette, shortcuts: openShortcuts, anyDialogOpen }), [openPalette, openShortcuts, anyDialogOpen]));
+  useShortcuts(useMemo(() => ({ palette: openPalette, shortcuts: openShortcuts, anyDialogOpen, copyBlock: (id: string) => void copyBlock(id) }), [openPalette, openShortcuts, anyDialogOpen]));
 
   useNoteHighlights();
 
@@ -58,6 +60,7 @@ export function Workspace() {
       <FullscreenOverlay onNotes={openNotes} />
       <SelectionToolbar />
       <Announcer />
+      <Toast />
       <HistoryDrawer open={historyOpen} onOpenChange={setHistoryOpen} />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} onHistory={openHistory} onNotes={openNotes} onShortcuts={openShortcuts} />
       <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />

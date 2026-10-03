@@ -45,11 +45,3 @@ export function preprocessMarkdown(md: string): string {
     .replace(/\[\[([^\]|]+)\]\]/g, (_, name: string) => `[${name}](entity:term)`)
     .replace(/\[(E|L|C)\](?!\()/g, (_, c: string) => `[${c}](conf:${c})`);
 }
-
-/** Plain text version of article markdown (for exports and note matching). */
-export function plainText(md: string): string {
-  return md
-    .replace(/\[\[([^\]|]+)\|[a-z]+\]\]/g, "$1")
-    .replace(/\s?\[(E|L|C)\]/g, "")
-    .replace(/[*_`]/g, "");
-}
