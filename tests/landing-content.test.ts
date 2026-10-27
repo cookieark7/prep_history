@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { BEATS } from "@/content/landing/beats";
-import { EVENTS, LINKS } from "@/content/landing/timeline";
-import { PROMPT_KINDS, SUPPORTED_KINDS } from "@/content/landing/prompt-kinds";
-import { Beat, CauseLink, PromptKind, PromptKindInfo, TimelineEvent, type Glyph } from "@/lib/landing/types";
+import { Beat, type Glyph } from "@/lib/landing/types";
 
 describe("film beats (L1)", () => {
   it("all 35 pass the schema and have unique ids", () => {
@@ -48,46 +46,5 @@ describe("film beats (L1)", () => {
       globe: ["B33"],
     };
     for (const b of BEATS) expect(table[b.glyph], b.id).toContain(b.id);
-  });
-});
-
-describe("starting points (L1)", () => {
-  it("all 20 events pass the schema and have unique ids", () => {
-    expect(EVENTS).toHaveLength(20);
-    for (const e of EVENTS) expect(TimelineEvent.safeParse(e).success, e.id).toBe(true);
-    expect(new Set(EVENTS.map((e) => e.id)).size).toBe(20);
-  });
-
-  it("gives every event 3 prompts of 3 different kinds, each at most 120 characters", () => {
-    for (const e of EVENTS) {
-      expect(new Set(e.prompts.map((p) => p.kind)).size, e.id).toBe(3);
-      for (const p of e.prompts) expect(p.text.length, p.text).toBeLessThanOrEqual(120);
-    }
-  });
-
-  it("lists events in time order", () => {
-    for (let i = 1; i < EVENTS.length; i++) expect(EVENTS[i].year).toBeGreaterThanOrEqual(EVENTS[i - 1].year);
-  });
-
-  it("only links events that exist, forward in time", () => {
-    const byId = new Map(EVENTS.map((e) => [e.id, e]));
-    for (const l of LINKS) {
-      expect(CauseLink.safeParse(l).success).toBe(true);
-      expect(byId.has(l.from), l.from).toBe(true);
-      expect(byId.has(l.to), l.to).toBe(true);
-      expect(byId.get(l.to)!.year).toBeGreaterThan(byId.get(l.from)!.year);
-    }
-    expect(new Set(LINKS.map((l) => l.confidence))).toEqual(new Set(["established", "likely", "contested"]));
-  });
-});
-
-describe("prompt kinds (L1)", () => {
-  it("describes every kind, and supports only kinds that exist", () => {
-    for (const k of PromptKind.options) expect(PromptKindInfo.safeParse(PROMPT_KINDS[k]).success, k).toBe(true);
-    for (const k of SUPPORTED_KINDS) expect(PromptKind.options).toContain(k);
-  });
-
-  it("uses only defined kinds in event prompts", () => {
-    for (const e of EVENTS) for (const p of e.prompts) expect(Object.keys(PROMPT_KINDS)).toContain(p.kind);
   });
 });

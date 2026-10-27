@@ -165,6 +165,29 @@ async function main() {
       return `${await pb.locator("[data-block]").count()} blocks on the phone`;
     });
 
+    // ------------------------------------------------------------ a first-time visitor on the homepage
+    const c = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, colorScheme: "light", reducedMotion: "reduce" });
+    const pc = await c.newPage();
+    await step("a question asked on the homepage starts its lesson at once, as a guest", async () => {
+      await pc.goto(`${BASE}/`, { waitUntil: "networkidle" });
+      await pc.getByLabel("Ask about any topic, person, place or year").fill(QUESTION);
+      await pc.getByRole("button", { name: /^Ask/ }).click();
+      await pc.waitForURL("**/study");
+      await pc.locator("[data-block]").first().waitFor({ timeout: 30_000 });
+      expect((await pc.getByRole("dialog").count()) === 0, "a sign-in card is in the way");
+      const s = await session(pc);
+      expect(s.guest, "no guest session");
+      // exactly one lesson, even though React may run the start effect twice
+      let lessons = 0;
+      for (let i = 0; i < 20 && lessons === 0; i++) {
+        lessons = (await pc.evaluate(() => fetch("/api/lessons").then((r) => r.json()))).lessons?.length ?? 0;
+        if (!lessons) await pc.waitForTimeout(500);
+      }
+      expect(lessons === 1, `${lessons} lessons started`);
+      return `${await pc.locator("[data-block]").count()} blocks, as a guest, 1 lesson`;
+    });
+    await c.close();
+
     // ------------------------------------------------------------ screenshots: 3 widths × 2 themes
     if (shotsDir) {
       await step("screenshots at 1440, 768 and 390 px, light and dark", async () => {

@@ -12,8 +12,10 @@ import { LANDING_THEME } from "../theme";
 const DONE_MS = 300;
 
 /**
- * The login card (prompt section 5): a calm white card over a slowly drifting wall of plates.
- * Sign-in is a placeholder (TODO(auth)); after it, the waiting question carries on to /study.
+ * The sign-in card, opened from the header: a calm white card over a slowly drifting wall of
+ * plates. Real accounts when the server has a database (lib/auth/better.ts: email link, Google
+ * when configured, guest), the localStorage placeholder otherwise. Questions asked on the
+ * homepage don't come through here any more; they start as a guest (lib/landing/start.ts).
  */
 export function LoginCard() {
   const open = useLoginCard((s) => s.open);

@@ -113,12 +113,10 @@ Each item: what exists, then what's missing.
   - Three Nano Banana images (point, galaxy, young Sun) were tested and fit, but aren't swapped in.
   - Two more are needed: molten Earth, and the cloud eye. Their prompts are written.
   - The critique notes only about 6 of the 35 plates fit Indian eras.
-- [ ] **Leftovers from earlier homepage versions:**
-  - `StartingPoints.tsx`, `TreeTimeline.tsx` and `starting-points.css` (the vertical tree) are no longer used anywhere.
-  - Decide whether the 24 events join the route line or retire (open in `.impeccable/surfaces/app-page-tsx.md`), then delete or reuse them.
-- [ ] **Stale wording:**
-  - `docs/LANDING.md` still describes the Verdigris and arched-window versions;
-  - `LoginCard.tsx` still calls sign-in a placeholder, though real accounts are on.
+- [x] **Leftovers from earlier homepage versions** (28 Oct): the vertical tree is retired.
+  - Removed: its code, styles, layout, tests and the 20-event file, plus the old landing question box, the event icons and the prompt-kind data.
+  - Questions moved: 16 example questions went into the 8 syllabus stations that cover those events (`content/syllabus.ts`, now tested).
+- [x] **Stale wording** (28 Oct): `docs/LANDING.md` opens with "The homepage today" and marks the rest as history; the `LoginCard.tsx` comment is corrected.
 
 ### Redesign
 - [ ] **Critique P1 issues**, each partly addressed:
@@ -141,10 +139,10 @@ Each item: what exists, then what's missing.
 
 ### Design
 - [ ] **Onboarding (critique P2):**
-  - let guests start without the sign-in card;
-  - decide whether the handed-off question sends itself;
-  - fill the 8–30 s wait with the era plate and due cards;
-  - show the daily quota.
+  - [x] guests start without the sign-in card (28 Oct);
+  - [x] the question asked on the homepage sends itself, exactly once (28 Oct; end-to-end step 9);
+  - [ ] fill the 8–30 s wait with the era plate and due cards;
+  - [ ] show the daily quota.
 - [ ] **Finishing the redesign:** a final independent design review, then `DESIGN.md` with the design rules.
 - [ ] **Animation pass beyond the slideshow:** find what should move (`find-animation-opportunities`), build it (`animate`), then review it (`review-animations`).
 - [ ] **Small fixes from the critique:**
@@ -181,8 +179,8 @@ Each item: what exists, then what's missing.
    - one exam mode, or Prelims and Mains separately;
    - whether the goal replaces the level picker;
    - what exam prep does when sources are thin.
-3. **Handoff:** should a question typed on the homepage send itself in `/study` (the critique says yes; the original build prompt said never auto-send)? Should guests skip the sign-in card?
-4. **The 24 timeline events:** join the route line, or retire?
+3. ~~**Handoff**~~ Decided 28 Oct: guests go straight in and the question sends itself.
+4. ~~**The timeline events**~~ Decided 28 Oct: retired, with their questions moved into matching stations.
 5. **Plates:**
    - finish the Nano Banana deep-time set (2 more images);
    - make new plates for Indian eras, or keep the current set.
@@ -197,10 +195,8 @@ Each item: what exists, then what's missing.
 1. ~~**Commit** what exists, so the work is safe.~~ Done 27 Oct.
 2. ~~**Real phone pass** on the LAN build, and fix what shows up.~~ Done 27 Oct.
 3. **Close the redesign:**
-   - onboarding fixes (decisions 3 and 4);
-   - remove or reuse the dead tree code;
-   - update `docs/LANDING.md`;
-   - the final design review and `DESIGN.md`.
+   - ~~onboarding decisions, the dead tree code, `docs/LANDING.md`~~ done 28 Oct;
+   - **next:** the final design review and `DESIGN.md`, then the rest of onboarding (the wait, the quota).
 4. **Sources for one syllabus unit** (the Marathas), then the full eval, to measure lesson quality on the free chain.
 5. **Exam prep, first version** per `docs/MODES_PLAN.md` §10, after the decisions in point 2 of section 4.
 6. **Deploy and invite five testers.**

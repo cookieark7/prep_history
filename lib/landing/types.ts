@@ -1,8 +1,7 @@
 import { z } from "zod";
-import type { Confidence } from "@/lib/contracts";
 
-// Shapes for the landing page's content (docs/chronicle-landing-build-prompt.md, section 8).
-// The content modules are typed with these; tests parse them with the schemas.
+// The shape of the homepage slideshow's 35 moments (content/landing/beats.ts); tests parse them
+// with the schema. (The event, link and prompt-kind shapes went with the old timeline, 28 Oct 2026.)
 
 export const Glyph = z.enum([
   "point", "star", "disc", "ring", "concentric", "spiral", "cell", "rose", "orbits", "wheel", "dial", "globe",
@@ -26,49 +25,3 @@ export const Beat = z.object({
   caption: z.string().min(1),
 });
 export type Beat = z.infer<typeof Beat>;
-
-export const PromptKind = z.enum(["why", "when", "who", "whatif", "quiz"]);
-export type PromptKind = z.infer<typeof PromptKind>;
-
-export const EventPrompt = z.object({
-  kind: PromptKind,
-  text: z.string().min(1).max(120),
-});
-export type EventPrompt = z.infer<typeof EventPrompt>;
-
-export const TimelineEvent = z.object({
-  id: z.string().regex(/^E\d{2}$/),
-  date: z.string().min(1),
-  year: z.number().int().refine((n) => n !== 0, "there is no year zero"),
-  title: z.string().min(1),
-  glyph: Glyph,
-  blurb: z.string().min(1),
-  prompts: z.array(EventPrompt).length(3),
-});
-export type TimelineEvent = z.infer<typeof TimelineEvent>;
-
-export const LinkConfidence = z.enum(["established", "likely", "contested"]);
-export type LinkConfidence = z.infer<typeof LinkConfidence>;
-
-export const CauseLink = z.object({
-  from: z.string().regex(/^E\d{2}$/),
-  to: z.string().regex(/^E\d{2}$/),
-  confidence: LinkConfidence,
-  label: z.string().min(1),
-});
-export type CauseLink = z.infer<typeof CauseLink>;
-
-/** The app's own confidence codes, so arcs share the cause graph's visual language. */
-export const LINK_CONFIDENCE: Record<LinkConfidence, Confidence> = {
-  established: "E",
-  likely: "L",
-  contested: "C",
-};
-
-export const PromptKindInfo = z.object({
-  label: z.string().min(1),
-  example: z.string().min(1),
-  youGet: z.string().min(1),
-  mark: z.enum(["diamond", "ticks", "fork", "half-circle", "check"]),
-});
-export type PromptKindInfo = z.infer<typeof PromptKindInfo>;

@@ -62,9 +62,3 @@ export function clearPending(): void {
     // ignore
   }
 }
-
-/** The one-line hint above /study's composer while a handed-off question waits. */
-export function handoffHint(h: Handoff): string {
-  const from = h.ref?.startsWith("E") ? "From Starting points" : h.ref?.startsWith("B") ? "From the film" : "From the home page";
-  return `${from} · press Enter to begin`;
-}

@@ -20,7 +20,11 @@ export interface Station {
   mark?: string;
   /** an opening plate (content/landing/beats.ts) that shows this period */
   plate?: string;
-  questions: [string, string, string];
+  /**
+   * Starter questions, three or more. The first three are the starters; later ones came from the
+   * retired homepage timeline (28 Oct 2026), where the station covers the same event.
+   */
+  questions: [string, string, string, ...string[]];
 }
 
 export const PARTS: { id: PartId; label: string }[] = [
@@ -35,13 +39,13 @@ export const STATIONS: Station[] = [
   { id: "stone-age", part: "ancient", name: "Stone Age India", short: "Stone Age", from: -10000, to: -3300, dates: "to c. 3300 BCE", mark: "to 3300 BCE", plate: "B15",
     questions: ["What changed in India between the Palaeolithic and the Neolithic?", "What do the rock paintings at Bhimbetka show?", "Why does Mehrgarh matter for the story of farming?"] },
   { id: "harappan", part: "ancient", name: "Harappan civilisation", short: "Harappan", from: -2600, to: -1900, dates: "c. 2600 – 1900 BCE", plate: "B16",
-    questions: ["How were Harappan towns planned, and why the drains?", "What do Harappan seals tell us about trade with Mesopotamia?", "Why did the Harappan cities decline after 1900 BCE?"] },
+    questions: ["How were Harappan towns planned, and why the drains?", "What do Harappan seals tell us about trade with Mesopotamia?", "Why did the Harappan cities decline after 1900 BCE?", "Show the rise and fall of the Indus civilisation.", "Test me on Harappa and Mohenjo-daro."] },
   { id: "vedic", part: "ancient", name: "Vedic age", short: "Vedic age", from: -1500, to: -600, dates: "c. 1500 – 600 BCE",
     questions: ["How did society change from the early to the later Vedic age?", "What were the sabha and the samiti?", "Where did the varna order come from?"] },
   { id: "magadha", part: "ancient", name: "Mahajanapadas and Magadha", short: "Magadha", from: -600, to: -321, dates: "c. 600 – 321 BCE", plate: "B19",
     questions: ["Why did Magadha become the strongest of the Mahajanapadas?", "What did the Buddha and Mahavira teach, and why did it spread?", "What were the sixteen Mahajanapadas?"] },
   { id: "mauryan", part: "ancient", name: "Mauryan empire", short: "Mauryan", from: -322, to: -185, dates: "322 – 185 BCE",
-    questions: ["Why did Ashoka turn to dhamma after Kalinga?", "How was the Mauryan state run?", "Where are Ashoka's edicts found, and what do they say?"] },
+    questions: ["Why did Ashoka turn to dhamma after Kalinga?", "How was the Mauryan state run?", "Where are Ashoka's edicts found, and what do they say?", "Who came before and after Ashoka?", "What if the Mauryan empire had held together after Ashoka?"] },
   { id: "post-mauryan", part: "ancient", name: "After the Mauryas", short: "Post-Mauryan", from: -185, to: 320, dates: "c. 185 BCE – 320 CE", plate: "B20",
     questions: ["Who were the Kushanas, and why does Kanishka matter?", "What do the Sangam poems tell us about the south?", "How did trade with Rome shape south India?"] },
   { id: "gupta", part: "ancient", name: "Gupta age", short: "Gupta", from: 320, to: 550, dates: "c. 320 – 550 CE",
@@ -57,7 +61,7 @@ export const STATIONS: Station[] = [
   { id: "bhakti-sufi", part: "medieval", name: "Bhakti and Sufi movements", short: "Bhakti and Sufi", from: 1400, to: 1600, dates: "c. 1400 – 1600",
     questions: ["What did Kabir and Guru Nanak teach?", "How did the Chishti Sufis spread in India?", "How were the bhakti saints of the south different from those of the north?"] },
   { id: "mughal", part: "medieval", name: "Mughal empire", short: "Mughal", from: 1526, to: 1707, dates: "1526 – 1707",
-    questions: ["How did Akbar's mansabdari system work?", "What was Akbar's policy of sulh-i kul?", "Why did the empire weaken after Aurangzeb?"] },
+    questions: ["How did Akbar's mansabdari system work?", "What was Akbar's policy of sulh-i kul?", "Why did the empire weaken after Aurangzeb?", "Map the Mughal succession from Babur to Aurangzeb.", "Test me on the great Mughals."] },
   { id: "marathas", part: "medieval", name: "The Marathas", short: "Marathas", from: 1674, to: 1818, dates: "1674 – 1818",
     questions: ["How did Shivaji organise his state?", "What were chauth and sardeshmukhi?", "Why did the Marathas lose at Panipat in 1761?"] },
 
@@ -73,23 +77,23 @@ export const STATIONS: Station[] = [
   { id: "gandhian", part: "modern", name: "Gandhi and the mass movements", short: "Gandhian era", from: 1919, to: 1942, dates: "1919 – 1942",
     questions: ["Why did Gandhi call off Non-cooperation in 1922?", "What was the Salt March meant to achieve?", "What happened in the Quit India movement?"] },
   { id: "independence", part: "modern", name: "Independence and Partition", short: "Independence", from: 1942, to: 1947, dates: "1942 – 1947", plate: "B31",
-    questions: ["Why was India partitioned?", "What did the Cabinet Mission propose?", "How did the princely states join India?"] },
+    questions: ["Why was India partitioned?", "What did the Cabinet Mission propose?", "How did the princely states join India?", "From the Quit India movement to independence, step by step.", "Test me on the Indian independence movement."] },
 
   // World history
   { id: "industrial", part: "world", name: "Industrial Revolution", short: "Industry", from: 1760, to: 1840, dates: "c. 1760 – 1840", plate: "B29",
-    questions: ["Why did the Industrial Revolution start in Britain?", "How did it change work and cities?", "What did it mean for Indian textiles?"] },
+    questions: ["Why did the Industrial Revolution start in Britain?", "How did it change work and cities?", "What did it mean for Indian textiles?", "What if Britain had had no easy coal?", "Show the key inventions of the Industrial Revolution in order."] },
   { id: "revolutions", part: "world", name: "Age of revolutions", short: "Revolutions", from: 1776, to: 1815, dates: "1776 – 1815", plate: "B28",
-    questions: ["What caused the French Revolution?", "What did the American Revolution change?", "What did Napoleon keep from the Revolution?"] },
+    questions: ["What caused the French Revolution?", "What did the American Revolution change?", "What did Napoleon keep from the Revolution?", "From the Estates-General to Napoleon, step by step.", "Quiz me on the French Revolution."] },
   { id: "imperialism", part: "world", name: "Colonialism and imperialism", short: "Imperialism", from: 1870, to: 1914, dates: "c. 1870 – 1914",
     questions: ["What was the scramble for Africa?", "Why did industrial powers want colonies?", "How did Japan modernise after 1868?"] },
   { id: "world-war-1", part: "world", name: "First World War", short: "World War I", from: 1914, to: 1918, dates: "1914 – 1918", plate: "B30",
-    questions: ["What caused the First World War?", "What did the Treaty of Versailles decide?", "How did the war affect India?"] },
+    questions: ["What caused the First World War?", "What did the Treaty of Versailles decide?", "How did the war affect India?", "Map the July Crisis of 1914 day by day.", "What if the US had stayed out of the First World War?"] },
   { id: "interwar", part: "world", name: "Between the wars", short: "Interwar", from: 1917, to: 1939, dates: "1917 – 1939",
     questions: ["What happened in the Russian Revolution of 1917?", "Why did fascism rise in Italy and Germany?", "What was the Great Depression, and how did it spread?"] },
   { id: "world-war-2", part: "world", name: "Second World War", short: "World War II", from: 1939, to: 1945, dates: "1939 – 1945",
     questions: ["Why did the Second World War begin in 1939?", "Why did the Allies win?", "How did the war speed up the end of empires?"] },
   { id: "decolonisation", part: "world", name: "Decolonisation and the Cold War", short: "Decolonisation", from: 1945, to: 1991, dates: "1945 – 1991",
-    questions: ["Why did the European empires end after 1945?", "What was the Non-Aligned Movement?", "How did the Cold War end?"] },
+    questions: ["Why did the European empires end after 1945?", "What was the Non-Aligned Movement?", "How did the Cold War end?", "Why did the US and the USSR race to the Moon?", "Show the space race from Sputnik to Apollo 11."] },
 ];
 
 export const stationsOf = (part: PartId) => STATIONS.filter((s) => s.part === part);

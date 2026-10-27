@@ -1,15 +1,15 @@
-import { getAuthClient } from "@/lib/auth";
 import { buildStudyHref, clean, clearPending, savePending, type Handoff } from "./handoff";
-import { useLoginCard } from "./login-store";
 
-// requestStart: the one entry point for every prompt chip, composer and "Ask about this" link
-// (prompt section 7). Signed in, it goes straight to /study; signed out, it opens the login card
-// with the question waiting, and finishSignIn carries it on afterwards.
+// requestStart: the one entry point for every question asked on the homepage (the question box,
+// its lenses, the syllabus questions). It goes straight to /study, signed in or not, and the
+// lesson starts there at once with the question, as a guest when needed (owner decision,
+// 28 Oct 2026: no sign-in card in the way, and the question sends itself). Signing in stays
+// on offer in the header; finishSignIn below is for that card.
 
 export interface StartDeps {
-  signedIn: () => boolean;
   navigate: (href: string) => void;
-  openLogin: (h: Handoff) => void;
+  /** a fresh token per question, so /study starts each one exactly once */
+  token: () => string;
 }
 
 let navigator: ((href: string) => void) | null = null;
@@ -26,17 +26,15 @@ export function navigate(href: string): void {
 }
 
 const defaultDeps: StartDeps = {
-  signedIn: () => !!getAuthClient().getSession(),
   navigate,
-  openLogin: (h) => useLoginCard.getState().openLogin(h),
+  token: () => Date.now().toString(36),
 };
 
 export function requestStart(h: Handoff, deps: StartDeps = defaultDeps): void {
   const c = clean(h);
   if (!c) return;
-  savePending(c); // survives a real OAuth redirect later
-  if (deps.signedIn()) deps.navigate(buildStudyHref(c));
-  else deps.openLogin(c);
+  savePending(c); // the URL carries it too; this copy survives if the URL is lost on the way
+  deps.navigate(`${buildStudyHref(c)}&t=${deps.token()}`);
 }
 
 /** After signing in on the card: the waiting question, or /study with an empty composer. */
