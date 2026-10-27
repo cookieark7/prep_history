@@ -1,0 +1,158 @@
+/* The homepage in the app's look (.impeccable/surfaces/app-page-tsx.md). The --lp-* names the
+   homepage parts use are the app's tokens (app/globals.css), so the dark theme comes for free.
+   `.lp` sits on the landing root and on everything it portals out (see theme.ts). */
+
+.lp {
+  --lp-bg: var(--bg);
+  --lp-card: var(--surface);
+  --lp-ink: var(--text);
+  --lp-muted: var(--muted);
+  --lp-rule: var(--rule);
+  --lp-rule-strong: var(--rule-strong);
+  --lp-accent: var(--accent);
+  --lp-accent-ink: var(--accent-ink);
+  --lp-accent-soft: var(--accent-soft);
+  --lp-on-accent: var(--bg);
+  --lp-ochre: var(--ochre);
+  --lp-debated: var(--brick);
+  --lp-stage: #0e0e0d; /* inside the slideshow box, in both themes */
+
+  /* the root layout's faces (next/font sets these on <html>) */
+  --lp-display: var(--font-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --lp-text: var(--font-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --lp-board: var(--font-archivo), "Arial Narrow", sans-serif;
+  --font-serif: var(--lp-display);
+  --font-mono: var(--lp-text);
+
+  color: var(--lp-ink);
+  font-family: var(--lp-text);
+}
+.lp.lp-page {
+  min-height: 100vh;
+  background: var(--lp-bg);
+}
+
+/* ---- header */
+.lp-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--lp-bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--lp-rule);
+}
+.lp-header-in {
+  max-width: 1240px;
+  margin: 0 auto;
+  height: 64px;
+  padding: 0 clamp(16px, 4vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lp-logo {
+  font-family: var(--lp-board);
+  font-stretch: 75%;
+  font-weight: 800;
+  font-size: 23px;
+  line-height: 1;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--lp-ink);
+}
+.lp-nav {
+  display: flex;
+  align-items: center;
+}
+.lp-nav {
+  gap: 2px;
+}
+.lp-nav a,
+.lp-nav button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  font: 500 15px/1 var(--lp-text);
+  color: var(--lp-muted);
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+.lp-nav a:hover,
+.lp-nav button:hover {
+  color: var(--lp-ink);
+  text-decoration: underline;
+}
+.lp-nav .lp-nav-strong {
+  color: var(--lp-ink);
+  font-weight: 700;
+}
+.lp-nav .lp-cta {
+  margin-left: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: var(--lp-accent);
+  color: var(--lp-on-accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 150ms ease-out, transform 150ms var(--ease-out);
+}
+.lp-nav .lp-cta:hover {
+  background: var(--lp-accent-ink);
+  color: var(--lp-on-accent);
+  text-decoration: none;
+}
+.lp-nav .lp-cta:active {
+  transform: scale(0.97);
+}
+.lp-nav .lp-icon {
+  width: 44px;
+  justify-content: center;
+  padding: 0;
+}
+
+.lp-nav a,
+.lp-nav button {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .lp-nav .lp-nav-wide {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .lp-header-in {
+    gap: 8px;
+  }
+  .lp-logo {
+    font-size: 20px;
+  }
+  .lp-nav a,
+  .lp-nav button {
+    padding: 0 7px;
+    font-size: 14.5px;
+  }
+  .lp-nav .lp-cta {
+    margin-left: 4px;
+    padding: 0 12px;
+  }
+}
+
+/* ---- footer */
+.lp-footer {
+  border-top: 1px solid var(--lp-rule);
+}
+.lp-footer-in {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px clamp(16px, 4vw, 40px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--lp-muted);
+}

@@ -1,0 +1,244 @@
+/* The opening's rounded box on the homepage (OpeningWindow.tsx), and the sign-in card's backdrop.
+   The box is landscape on wide screens and 4:5 on tall ones (the same query that picks the tall
+   plate crops); inside it is always dark. JS sets each plate's opacity and transform. */
+
+.ow {
+  margin: 0;
+  width: 100%;
+  display: grid;
+  gap: 12px;
+}
+.ow-frame {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  max-height: 66vh;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--lp-stage);
+  border-radius: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 30px 60px -36px rgba(0, 0, 0, 0.55);
+}
+@media (max-aspect-ratio: 4/5) {
+  .ow-frame {
+    aspect-ratio: 4 / 5;
+    border-radius: 18px;
+  }
+}
+.ow-plates,
+.ow-bloom {
+  position: absolute;
+  inset: 0;
+}
+.ow-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+/* a layer for each plate on screen or about to be (render() adds is-on a cut ahead), and for the
+   deep-time levels in flight, so their raster scale stays put while they zoom */
+.ow-plate.is-on,
+.ow-zoom.is-live {
+  will-change: transform, opacity;
+}
+/* the bloom's light: an opacity fade over the first plate (no animated filter) */
+.ow-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 250, 235, 0.95), rgba(255, 240, 210, 0.35) 45%, transparent 75%);
+}
+/* Act I's nested zoom: the next level waits at the centre behind a soft circle */
+.ow-zoom.is-masked {
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 50%, transparent 74%);
+  mask-image: radial-gradient(ellipse at center, #000 50%, transparent 74%);
+}
+.ow-white,
+.ow-fade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.ow-white {
+  z-index: 3;
+  background: #ffffff;
+}
+.ow-fade {
+  z-index: 4;
+  background: var(--lp-stage);
+}
+/* light shade top and bottom so the board, the button and the ruler read on any plate */
+.ow-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.48), transparent 28%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.25) 26%, transparent 42%);
+}
+
+/* the moment: its date on a station board, its title beside it */
+.ow-over {
+  position: absolute;
+  z-index: 6;
+  left: clamp(14px, 2.2vw, 26px);
+  top: clamp(14px, 2.2vw, 24px);
+  right: 84px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.ow-date {
+  margin: 0;
+  padding: 5px 9px 4px;
+  border: 2px solid #1d1d1b;
+  background: var(--board);
+  color: var(--board-ink);
+  font-family: var(--lp-board);
+  font-stretch: 75%;
+  font-weight: 800;
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.ow-title {
+  margin: 0;
+  color: #fff;
+  font: 600 clamp(16px, 1.5vw, 20px)/1.2 var(--lp-display);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+}
+.ow-play {
+  position: absolute;
+  z-index: 6;
+  right: clamp(12px, 2vw, 22px);
+  top: clamp(12px, 2vw, 20px);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1d1d1b;
+  transition: transform 150ms var(--ease-out), background-color 150ms ease-out;
+}
+.ow-play:hover {
+  background: #fff;
+}
+.ow-play:active {
+  transform: scale(0.95);
+}
+
+/* the row under the box: whatever the page adds, at the right */
+.ow-label {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 4px;
+}
+/* the cause, at key moments, inside the box above the ruler */
+.ow-cap {
+  position: absolute;
+  z-index: 6;
+  left: clamp(16px, 3vw, 32px);
+  right: clamp(16px, 3vw, 32px);
+  bottom: clamp(64px, 6.4vw, 80px);
+  margin: 0;
+  max-width: 60ch;
+  font: 500 clamp(15px, 1.25vw, 17.5px)/1.45 var(--lp-text);
+  color: #fff;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+}
+
+/* the ruler, drawn as the route line along the bottom of the box */
+.ow-ruler {
+  position: absolute;
+  z-index: 6;
+  left: clamp(16px, 3vw, 32px);
+  right: clamp(16px, 3vw, 32px);
+  bottom: clamp(30px, 3.4vw, 40px);
+  height: 3px;
+}
+.ow-line {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+}
+.ow-tick {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 11px;
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.ow-tick.is-key {
+  top: -6px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.9);
+}
+/* the needle rides a full-width track moved with transform (a percentage of the track is a
+   percentage of the ruler), never with left */
+.ow-needle-track {
+  position: absolute;
+  inset: 0;
+}
+.ow-needle {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 19px;
+  height: 19px;
+  margin-left: -9.5px;
+  border-radius: 50%;
+  border: 3px solid #1d1d1b;
+  background: var(--board);
+}
+.ow-ends {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 14px;
+  display: flex;
+  justify-content: space-between;
+  font: 500 12.5px/1 var(--lp-text);
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- login card backdrop: four plates crossfading, each pushing in slightly */
+.plate-wall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--lp-bg);
+}
+.plate-wall-plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  animation: wall-cycle var(--wall-cycle) linear infinite both;
+}
+/* For four plates: fade in over 5% of the cycle, hold to 25%, fade out by 30%. */
+@keyframes wall-cycle {
+  0% { opacity: 0; transform: scale(1); }
+  5% { opacity: 1; }
+  25% { opacity: 1; }
+  30% { opacity: 0; transform: scale(var(--wall-push)); }
+  100% { opacity: 0; transform: scale(var(--wall-push)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plate-wall-plate { animation: none; }
+  .plate-wall > picture:first-child .plate-wall-plate { opacity: 1; }
+}
