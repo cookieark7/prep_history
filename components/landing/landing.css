@@ -28,7 +28,7 @@
   font-family: var(--lp-text);
 }
 .lp.lp-page {
-  min-height: 100vh;
+  min-height: 100svh;
   background: var(--lp-bg);
 }
 
@@ -52,6 +52,9 @@
   gap: 16px;
 }
 .lp-logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* a thumb-sized target; the wordmark itself stays 23px */
   font-family: var(--lp-board);
   font-stretch: 75%;
   font-weight: 800;
@@ -79,10 +82,12 @@
   text-decoration: none;
   text-underline-offset: 4px;
 }
-.lp-nav a:hover,
-.lp-nav button:hover {
-  color: var(--lp-ink);
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .lp-nav a:hover,
+  .lp-nav button:hover {
+    color: var(--lp-ink);
+    text-decoration: underline;
+  }
 }
 .lp-nav .lp-nav-strong {
   color: var(--lp-ink);
@@ -99,10 +104,12 @@
   text-decoration: none;
   transition: background-color 150ms ease-out, transform 150ms var(--ease-out);
 }
-.lp-nav .lp-cta:hover {
-  background: var(--lp-accent-ink);
-  color: var(--lp-on-accent);
-  text-decoration: none;
+@media (hover: hover) and (pointer: fine) {
+  .lp-nav .lp-cta:hover {
+    background: var(--lp-accent-ink);
+    color: var(--lp-on-accent);
+    text-decoration: none;
+  }
 }
 .lp-nav .lp-cta:active {
   transform: scale(0.97);

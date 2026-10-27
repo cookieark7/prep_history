@@ -24,7 +24,7 @@ export default async function TurnLog() {
   const rows = await latestTurns(db, 100);
 
   return (
-    <main className="min-h-screen bg-bg px-4 py-8 md:px-8">
+    <main className="min-h-dvh bg-bg px-4 py-8 md:px-8">
       <h1 className="font-heading text-[28px] font-semibold">Turn log</h1>
       <p className="mt-1 text-[13px] text-muted">The latest {rows.length} Director turns, newest first.</p>
       <div className="mt-6 overflow-x-auto rounded-md border border-rule bg-surface">

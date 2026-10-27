@@ -92,7 +92,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
         </button>
       </div>
 
-      <div ref={scroller} tabIndex={-1} className="scroll-thin h-full overflow-y-auto outline-none" onScroll={(e) => onScroll(e.currentTarget)}>
+      <div ref={scroller} tabIndex={-1} className="scroll-thin h-full overflow-y-auto overscroll-contain outline-none" onScroll={(e) => onScroll(e.currentTarget)}>
         <div className={`relative mx-auto px-5 pb-56 pt-24 ${reading ? "max-w-[680px]" : "max-w-[1400px]"} ${focusPara ? "focus-para" : ""}`}>
           <p className="mb-2 text-[12px] uppercase tracking-wide text-muted">{TYPE_LABEL[block.type]}</p>
           <h1 className="mb-8 font-heading text-[32px] font-semibold leading-[1.15] md:text-[40px]">{block.title}</h1>

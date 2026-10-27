@@ -143,7 +143,7 @@ function CardBody() {
           onChange={(e) => { setEmail(e.target.value); setError(null); }}
           aria-invalid={!!error}
           aria-describedby={error ? "login-error" : undefined}
-          className="h-11 w-full rounded-[6px] border border-[color:var(--lp-rule)] bg-white px-3 font-sans text-[14px] text-[color:var(--lp-ink)] outline-none placeholder:text-[color:var(--lp-muted)] focus:border-[color:var(--lp-rule-strong)]"
+          className="h-11 w-full rounded-[6px] border border-[color:var(--lp-rule)] bg-white px-3 font-sans text-[14px] pointer-coarse:text-[16px] text-[color:var(--lp-ink)] outline-none placeholder:text-[color:var(--lp-muted)] focus:border-[color:var(--lp-rule-strong)]"
         />
         <button
           type="submit"

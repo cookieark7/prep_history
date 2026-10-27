@@ -118,6 +118,35 @@ input,
 textarea {
   caret-color: var(--accent);
 }
+
+/* ---------- phones: what makes it feel installed rather than a page in a browser ---------- */
+html {
+  -webkit-tap-highlight-color: transparent; /* no grey flash on tap; controls give their own feedback */
+  -webkit-text-size-adjust: 100%; /* no font inflation in landscape */
+  overscroll-behavior: none; /* the app doesn't rubber-band or pull-to-refresh as a whole page */
+}
+html:has(.lp-page) {
+  overscroll-behavior: auto; /* the homepage is a document: the browser's own bounce is welcome there */
+}
+body {
+  /* viewport-fit=cover lets the page run under the notch; keep content clear of it in landscape */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+:where(button, a, [role="button"], [role="tab"], label, summary, select, input, textarea) {
+  touch-action: manipulation; /* no double-tap-zoom wait before a tap counts */
+}
+:where(button, [role="button"], [role="tab"]) {
+  -webkit-user-select: none; /* a long press on a control doesn't select its label */
+  user-select: none;
+}
+@media (pointer: coarse) {
+  /* Press feedback the moment a finger lands. :where keeps it the weakest rule, so any control
+     with its own :active look keeps it. */
+  :where(button, [role="button"], [role="tab"], a):not(:disabled, [aria-disabled="true"]):active {
+    opacity: 0.6;
+  }
+}
 html {
   scrollbar-color: var(--rule-strong) transparent;
 }
@@ -256,9 +285,13 @@ button:disabled {
   opacity: 0.3;
   transition: opacity 180ms ease-out;
 }
-.focus-para .reading p.is-active,
-.focus-para .reading p:hover {
+.focus-para .reading p.is-active {
   opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .focus-para .reading p:hover {
+    opacity: 1;
+  }
 }
 
 .note-remember {

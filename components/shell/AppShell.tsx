@@ -109,7 +109,7 @@ function PlaceIcon({ name, size }: { name: IconName; size: number }) {
 
 function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <Link href="/start" className={`board-type text-[21px] text-text ${className}`}>
+    <Link href="/start" className={`board-type inline-flex min-h-[44px] items-center text-[21px] text-text ${className}`}>
       Chronicle
     </Link>
   );
@@ -129,7 +129,7 @@ function RecentLessons({ hydrated }: { hydrated: boolean }) {
   const recent = useLessonList(hydrated).slice(0, 6);
   if (!recent.length) return null;
   return (
-    <section className="mt-7 min-h-0 overflow-y-auto scroll-thin">
+    <section className="mt-7 min-h-0 overflow-y-auto overscroll-contain scroll-thin">
       <h2 className="px-2.5 pb-1 text-[12.5px] font-semibold text-muted">Recent lessons</h2>
       <ul className="space-y-px">
         {recent.map((r) => (

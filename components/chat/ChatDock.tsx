@@ -179,7 +179,7 @@ export function ChatScroller({ className = "", innerClassName = "", children }: 
           const el = e.currentTarget;
           setPinned(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
-        className={`scroll-thin h-full overflow-y-auto ${innerClassName}`}
+        className={`scroll-thin h-full overflow-y-auto overscroll-contain ${innerClassName}`}
       >
         {children}
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { useWorkspace } from "@/lib/store/workspace";
 import { startSync } from "@/lib/store/sync";
+import { syncThemeColor } from "@/lib/theme-colors";
 
 /** Rehydrates the persisted store once on the client; renders children only after. */
 export function useHydrated() {
@@ -23,6 +24,7 @@ export function ThemeSync() {
   const lineHeight = useWorkspace((s) => s.lineHeight);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    syncThemeColor(theme);
   }, [theme]);
   useEffect(() => {
     document.documentElement.style.setProperty("--reading-lh", String(lineHeight));

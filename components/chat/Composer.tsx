@@ -73,7 +73,7 @@ function ComposerBox({ id = "composer", autoFocus = false, onFocus }: ComposerPr
         onFocus={onFocus}
         placeholder={c.card ? "What do you want from this? (optional)" : COMPOSER_PLACEHOLDER}
         // the whole box shows focus (focus-within above), so no second ring on the textarea
-        className="block min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-[14px] leading-5 text-text outline-none! placeholder:text-muted"
+        className="block min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-[14px] pointer-coarse:text-[16px] leading-5 text-text outline-none! placeholder:text-muted"
       />
       <div className="flex items-center justify-between px-2 pb-2">
         <span className="pl-1 text-[11.5px] text-muted pointer-coarse:invisible">

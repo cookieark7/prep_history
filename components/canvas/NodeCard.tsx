@@ -40,7 +40,7 @@ export function NodeCard({
           <Icon.close size={14} />
         </button>
       </div>
-      <div className="scroll-thin flex-1 overflow-y-auto p-4 text-[13.5px] leading-snug">
+      <div className="scroll-thin flex-1 overflow-y-auto overscroll-contain p-4 text-[13.5px] leading-snug">
         {incoming.length > 0 && (
           <>
             <p className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">Caused by</p>

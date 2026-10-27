@@ -122,7 +122,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
         </span>
       </div>
 
-      <div className="mx-auto max-w-[680px] px-5 pb-24 pt-[16vh]">
+      <div className="mx-auto max-w-[680px] px-5 pb-24 pt-[16dvh]">
         {finished ? (
           <EndScreen quiz={quiz} results={results} onRestart={() => { setIdx(0); setResults({}); }} onExit={onExit} />
         ) : item ? (

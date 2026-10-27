@@ -41,7 +41,7 @@ export function CanvasView() {
 
   if (!graph) {
     return (
-      <div className="grid h-[calc(100vh-57px)] place-items-center px-6 text-center">
+      <div className="grid h-[calc(100dvh-57px)] place-items-center px-6 text-center">
         <div>
           <svg width="160" height="90" viewBox="0 0 160 90" aria-hidden className="mx-auto mb-4 text-rule-strong">
             <rect x="8" y="10" width="34" height="22" fill="none" stroke="currentColor" strokeDasharray="4 4" />
@@ -151,7 +151,7 @@ function GraphCanvas({ graph, graphs }: { graph: CauseGraphBlock; graphs: CauseG
   ];
 
   return (
-    <div className="relative h-[calc(100vh-57px)] w-full overflow-hidden" style={{ backgroundImage: "radial-gradient(var(--rule) 1px, transparent 1px)", backgroundSize: "22px 22px" }}>
+    <div className="relative h-[calc(100dvh-57px)] w-full overflow-hidden" style={{ backgroundImage: "radial-gradient(var(--rule) 1px, transparent 1px)", backgroundSize: "22px 22px" }}>
       <svg width="0" height="0" className="absolute"><ArrowDefs /></svg>
       <ReactFlow
         nodes={nodes}
@@ -196,7 +196,7 @@ function GraphCanvas({ graph, graphs }: { graph: CauseGraphBlock; graphs: CauseG
       {graphs.length > 1 && (
         <label className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-md border border-rule bg-surface px-2 text-[12.5px] shadow-[var(--shadow-float)]">
           <span className="sr-only">Graph</span>
-          <select value={graph.id} onChange={(e) => useCanvas.getState().open(e.target.value)} className="h-9 max-w-56 bg-transparent outline-none">
+          <select value={graph.id} onChange={(e) => useCanvas.getState().open(e.target.value)} className="h-9 max-w-56 bg-transparent outline-none pointer-coarse:text-[16px]">
             {graphs.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}
           </select>
         </label>

@@ -134,7 +134,7 @@ export function NotesPanel({ open, onOpenChange }: { open: boolean; onOpenChange
               <Icon.download size={13} /> Export as Markdown
             </button>
           </div>
-          <div className="scroll-thin flex-1 space-y-4 overflow-y-auto px-5 py-4">
+          <div className="scroll-thin flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
             {!list.length && <p className="text-[13.5px] text-muted">Select text in an article to add a note: Remember, Question, or Disagree.</p>}
             {list.map((n) => (
               <div key={n.id}>

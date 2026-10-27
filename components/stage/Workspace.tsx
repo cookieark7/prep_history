@@ -50,7 +50,7 @@ export function Workspace() {
 
   useNoteHighlights();
 
-  if (!hydrated) return <div className="min-h-screen bg-bg" />;
+  if (!hydrated) return <div className="min-h-dvh bg-bg" />;
 
   return (
     <>
@@ -59,7 +59,7 @@ export function Workspace() {
       {wide ? <CommandBar /> : <ChatDock />}
       <main
         style={{ "--dock-w": `${dockWidth}px` } as React.CSSProperties}
-        className={`min-h-screen ${chatOpen && !wide ? "md:pl-[var(--dock-w)]" : ""} pb-36 md:pb-0`}
+        className={`min-h-dvh ${chatOpen && !wide ? "md:pl-[var(--dock-w)]" : ""} pb-36 md:pb-0`}
       >
         <TopBar onHistory={openHistory} onPalette={openPalette} />
         {mode === "reader" || mode === "focus" ? <ReaderStage margin={<NotesMargin />} /> : <ModeView mode={mode} />}

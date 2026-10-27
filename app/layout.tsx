@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Atkinson_Hyperlegible_Mono, Atkinson_Hyperlegible_Next } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { THEME_COLORS } from "@/lib/theme-colors";
 
 // Atkinson Hyperlegible Next for reading, UI and headings (with italics, for emphasis in lessons);
 // Archivo, with its width axis, for the narrow heavy lettering on station boards and the wordmark;
@@ -18,9 +19,18 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "Chronicle", statusBarStyle: "default" },
 };
 
+// Phones: the page runs edge to edge (bars pad themselves with env(safe-area-inset-*)), the
+// keyboard shrinks the layout on Android as it does on iOS, and the status bar takes the page's
+// colour. The theme switch overrides these two colours at runtime (see THEME_COLORS).
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+  ],
 };
 
 // CSS Custom Highlight API rules for note underlines. Inline because the CSS build pipeline
@@ -29,7 +39,7 @@ const highlightCss = `::highlight(note-remember){text-decoration:underline solid
 
 // Apply the saved theme before first paint so there is no flash. Older saves say "paper" or
 // "sepia" (now light) or "ink" (now dark); see normalizeTheme in lib/store/workspace.ts.
-const themeScript = `try{var s=JSON.parse(localStorage.getItem("chronicle:workspace")||"null");var t=s&&s.state&&s.state.theme;t=t?(t==="dark"||t==="ink"?"dark":"light"):(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="light"}`;
+const themeScript = `try{var s=JSON.parse(localStorage.getItem("chronicle:workspace")||"null");var t=s&&s.state&&s.state.theme;t=t?(t==="dark"||t==="ink"?"dark":"light"):(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t;var c=t==="dark"?"${THEME_COLORS.dark}":"${THEME_COLORS.light}";document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.setAttribute("content",c)})}catch(e){document.documentElement.dataset.theme="light"}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

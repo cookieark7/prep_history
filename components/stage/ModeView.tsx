@@ -17,7 +17,7 @@ function TimelineView() {
   const timelines = useMemo(() => blocks.filter((b): b is TimelineT => b.type === "timeline"), [blocks]);
   if (!timelines.length) {
     return (
-      <div className="grid h-[calc(100vh-57px)] place-items-center px-6 text-center">
+      <div className="grid h-[calc(100dvh-57px)] place-items-center px-6 text-center">
         <div>
           <p className="font-heading text-[20px]">No timeline in this lesson yet.</p>
           <p className="mt-1 text-[13.5px] text-muted">Ask about a sequence of events, or “what happened at the same time?”</p>

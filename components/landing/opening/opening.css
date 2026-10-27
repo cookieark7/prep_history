@@ -11,7 +11,7 @@
 .ow-frame {
   position: relative;
   aspect-ratio: 16 / 7;
-  max-height: 66vh;
+  max-height: 66svh;
   overflow: hidden;
   isolation: isolate;
   background: var(--lp-stage);
@@ -130,8 +130,10 @@
   color: #1d1d1b;
   transition: transform 150ms var(--ease-out), background-color 150ms ease-out;
 }
-.ow-play:hover {
-  background: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .ow-play:hover {
+    background: #fff;
+  }
 }
 .ow-play:active {
   transform: scale(0.95);

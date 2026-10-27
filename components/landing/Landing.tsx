@@ -80,7 +80,7 @@ export function Landing() {
           <h2 id="moments-h" className="sr-only">From the Big Bang to now, in 35 moments</h2>
           <OpeningWindow
             aside={
-              <button type="button" onClick={() => setReadOpen(true)} className="ml-auto shrink-0 text-[15px] font-medium text-accent underline-offset-4 hover:underline">
+              <button type="button" onClick={() => setReadOpen(true)} className="ml-auto inline-flex min-h-[44px] shrink-0 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline">
                 Read all 35 moments as text
               </button>
             }

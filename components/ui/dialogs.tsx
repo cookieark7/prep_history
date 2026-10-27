@@ -27,7 +27,7 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
             <Dialog.Close className="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>
           </div>
           <Dialog.Description className="px-5 pt-3 text-[13px] text-muted">Every change made to this lesson, newest first. Undo any of them.</Dialog.Description>
-          <ol className="scroll-thin mt-2 flex-1 overflow-y-auto px-2 pb-6">
+          <ol className="scroll-thin mt-2 flex-1 overflow-y-auto overscroll-contain px-2 pb-6">
             {list.length === 0 && <li className="px-3 py-6 text-[13px] text-muted">No changes yet.</li>}
             {list.map((h) => (
               <li key={h.id} className="flex items-start gap-3 border-b border-rule px-3 py-2.5 last:border-0">
@@ -99,7 +99,7 @@ export function CommandPalette({
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
         <Dialog.Content
-          className="fade-up fixed left-1/2 top-[14vh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-md border border-rule bg-surface shadow-[var(--shadow-float)] outline-none"
+          className="fade-up fixed left-1/2 top-[14dvh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-md border border-rule bg-surface shadow-[var(--shadow-float)] outline-none"
           aria-describedby={undefined}
         >
           <Dialog.Title className="sr-only">Command palette</Dialog.Title>
@@ -116,10 +116,10 @@ export function CommandPalette({
               }}
               placeholder="Type a command"
               aria-label="Command"
-              className="h-12 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted"
+              className="h-12 flex-1 bg-transparent text-[14px] pointer-coarse:text-[16px] outline-none placeholder:text-muted"
             />
           </div>
-          <ul className="scroll-thin max-h-[50vh] overflow-y-auto p-1.5" role="listbox">
+          <ul className="scroll-thin max-h-[50dvh] overflow-y-auto overscroll-contain p-1.5" role="listbox">
             {filtered.map((c, i) => {
               const I = Icon[c.icon];
               return (
@@ -174,9 +174,9 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
-        <Dialog.Content className="fade-up fixed left-1/2 top-[18vh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
+        <Dialog.Content className="fade-up fixed left-1/2 top-[18dvh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
           <Dialog.Title className="mb-3 font-heading text-[18px] font-semibold">Keyboard shortcuts</Dialog.Title>
-          <div className="scroll-thin max-h-[60vh] space-y-4 overflow-y-auto pr-1">
+          <div className="scroll-thin max-h-[60dvh] space-y-4 overflow-y-auto overscroll-contain pr-1">
             {SHORTCUTS.map((g) => (
               <section key={g.group}>
                 <h3 className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">{g.group}</h3>

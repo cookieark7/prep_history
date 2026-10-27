@@ -158,7 +158,17 @@ Each item: what exists, then what's missing.
 
 ### Shipping
 - [x] Commit the work, in logical chunks (27 Oct; not pushed).
-- [ ] Test on a real phone (homepage, lesson, review).
+- [x] Test on a real phone (homepage, lesson, review). Passed on the owner's phone, 27 Oct.
+  - **Done 27 Oct:** the phone-feel fixes are in, and checked on a phone profile. All 9 end-to-end steps pass with them.
+    - 16 px text fields, so iOS no longer zooms in;
+    - no tap flash, and press feedback on every control;
+    - hover only applies with a mouse;
+    - `dvh`/`svh` heights instead of `100vh`;
+    - no page rubber-banding inside the app;
+    - `viewport-fit=cover` with safe areas;
+    - status-bar colours for light and dark;
+    - 44 px tap targets.
+  - **Real hardware:** checked on the LAN build (`http://<this Mac's IP>:3100`); everything worked.
 - [ ] Deploy (Vercel + Neon in the plan): set `DATABASE_URL` and `BETTER_AUTH_URL`, and run the ingest against it.
 - [ ] Five testers for a week, then the first retention-by-interval table from `review_logs`.
 
@@ -185,7 +195,7 @@ Each item: what exists, then what's missing.
 ## 5. Suggested order from here
 
 1. ~~**Commit** what exists, so the work is safe.~~ Done 27 Oct.
-2. **Real phone pass** on the LAN build, and fix what shows up.
+2. ~~**Real phone pass** on the LAN build, and fix what shows up.~~ Done 27 Oct.
 3. **Close the redesign:**
    - onboarding fixes (decisions 3 and 4);
    - remove or reuse the dead tree code;

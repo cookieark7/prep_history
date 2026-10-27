@@ -76,7 +76,7 @@ export function NoteForm({
           if (e.key === "Escape") { e.stopPropagation(); onDone(); }
         }}
         placeholder={kind === "remember" ? "Why it matters (optional)" : kind === "question" ? "What do you want to know?" : "What do you think instead?"}
-        className="block w-full resize-none rounded-md border border-rule bg-bg px-2 py-1.5 outline-none focus:border-rule-strong"
+        className="block w-full resize-none pointer-coarse:text-[16px] rounded-md border border-rule bg-bg px-2 py-1.5 outline-none focus:border-rule-strong"
         aria-label="Note text"
       />
       <div className="mt-2 flex justify-end gap-1.5">
