@@ -1,0 +1,96 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Station Board · /start</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Atkinson+Hyperlegible+Next:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--board:#F2C230;--maroon:#5E1A17;--ink:#141414;--ground:#F4F4F1;--rule:#CFCFC8;--muted:#5C5C57;--go:#1F7A3A;--stop:#C0281E}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--ground);color:var(--ink);font:16px/1.45 "Atkinson Hyperlegible Next",system-ui,sans-serif}
+.disp{font-family:Archivo,sans-serif;font-stretch:72%;font-weight:850;text-transform:uppercase;letter-spacing:.01em}
+.num{font-family:Archivo,sans-serif;font-variant-numeric:tabular-nums;font-stretch:88%}
+header{height:60px;background:var(--maroon);color:#fff;display:flex;align-items:center;gap:40px;padding:0 40px}
+header .mark{font-size:26px}
+nav{display:flex;gap:28px;height:100%}
+nav a{display:flex;align-items:center;gap:8px;color:#f0dcd9;text-decoration:none;font-weight:500;border-bottom:4px solid transparent;padding-top:4px}
+nav a.on{color:#fff;border-color:var(--board)}
+nav .badge{background:var(--board);color:var(--ink);font:700 13px/1 Archivo,sans-serif;padding:4px 7px;border-radius:2px}
+header .who{margin-left:auto;font-size:15px;color:#f0dcd9}
+.route{padding:28px 40px 0}
+.route .top{display:flex;align-items:baseline;gap:24px}
+.route h1{font-size:30px}
+.seg{display:flex;margin-left:auto;border:2px solid var(--ink)}
+.seg span{padding:6px 16px;font-weight:700;font-size:15px}
+.seg span.on{background:var(--ink);color:#fff}
+.line{position:relative;height:150px;margin-top:18px}
+.line:before{content:"";position:absolute;left:0;right:0;top:92px;height:6px;background:var(--ink)}
+.stn{position:absolute;top:84px;width:22px;height:22px;border-radius:50%;background:var(--ground);border:5px solid var(--ink)}
+.stn.done{background:var(--ink)}
+.stn.here{width:30px;height:30px;top:80px;background:var(--board);border-width:6px}
+.lbl{position:absolute;top:118px;transform:translateX(-35%);font-size:14px;font-weight:700;white-space:nowrap}
+.lbl small{display:block;font-weight:400;color:var(--muted)}
+.board{position:absolute;left:290px;top:0;background:var(--board);border:4px solid var(--ink);padding:8px 18px 7px;min-width:330px}
+.board b{display:block;font-size:34px;line-height:1}
+.board span{font-size:16px;font-weight:700}
+.board:after{content:"";position:absolute;left:28px;top:100%;width:6px;height:16px;background:var(--ink)}
+main{display:grid;grid-template-columns:1fr 430px;gap:40px;padding:34px 40px 0}
+.stop{display:grid;grid-template-columns:300px 1fr;gap:28px}
+.plate{width:300px;height:169px;object-fit:cover;display:block;filter:sepia(.25)}
+.cap{font-size:13px;color:var(--muted);margin-top:6px}
+.stop h2{font-size:22px;margin-bottom:6px}
+.qs a{display:block;padding:11px 0;border-top:1px solid var(--rule);color:var(--ink);text-decoration:none;font-weight:500}
+.qs a:after{content:"→";float:right;color:var(--maroon);font-weight:700}
+.lenses{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+.lenses span{font-size:14px;font-weight:700;padding:6px 12px;background:#E6E6E0}
+.ask{margin-top:26px;display:flex;border:3px solid var(--ink);background:#fff;height:60px}
+.ask input{flex:1;border:0;padding:0 18px;font:inherit;font-size:18px;background:transparent}
+.ask button{background:var(--maroon);color:#fff;border:0;padding:0 24px;font:800 17px Archivo,sans-serif;font-stretch:80%;text-transform:uppercase;letter-spacing:.03em}
+aside .due{background:var(--ink);color:#fff;padding:20px 22px}
+aside .due .k{font-size:14px;color:#c9c9c3}
+aside .due b{display:block;font-size:44px;line-height:1.05;margin:4px 0}
+aside .due .row{display:flex;align-items:center;justify-content:space-between}
+aside .due button{background:var(--board);color:var(--ink);border:0;padding:12px 20px;font:800 17px Archivo,sans-serif;font-stretch:80%;text-transform:uppercase}
+.marks{display:flex;gap:14px;margin-top:12px;font-size:13px;color:#c9c9c3}
+.marks i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+table{width:100%;border-collapse:collapse;margin-top:22px;font-size:15px}
+caption{text-align:left;font-size:20px;padding-bottom:8px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:3px solid var(--ink);padding:6px 8px 6px 0}
+td{border-bottom:1px solid var(--rule);padding:10px 8px 10px 0;vertical-align:top}
+td.num{white-space:nowrap}
+td .e{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--go);margin-right:6px}
+</style></head><body>
+<header><span class="disp mark">Chronicle</span>
+<nav><a class="on" href="#">Learn</a><a href="#">Review <span class="badge">8</span></a><a href="#">Progress</a></nav>
+<span class="who">Signed in as guest · Sync across devices</span></header>
+<section class="route">
+<div class="top"><h1 class="disp">GS Paper I · History</h1><span style="color:var(--muted)">15 stations · you have studied 3</span>
+<div class="seg"><span class="on">Ancient</span><span>Medieval</span><span>Modern</span><span>World</span></div></div>
+<div class="line">
+<div class="board"><b class="disp">Harappan civilisation</b><span class="num">c. 2600 – 1900 BCE</span></div>
+<i class="stn done" style="left:4%"></i><span class="lbl" style="left:4%">Prehistory<small class="num">to 3300 BCE</small></span>
+<i class="stn here" style="left:22%"></i><span class="lbl" style="left:22%">Harappan<small class="num">2600 BCE</small></span>
+<i class="stn done" style="left:38%"></i><span class="lbl" style="left:38%">Vedic age<small class="num">1500 BCE</small></span>
+<i class="stn done" style="left:52%"></i><span class="lbl" style="left:52%">Magadha<small class="num">600 BCE</small></span>
+<i class="stn" style="left:65%"></i><span class="lbl" style="left:65%">Mauryan<small class="num">322 BCE</small></span>
+<i class="stn" style="left:78%"></i><span class="lbl" style="left:78%">Post-Mauryan<small class="num">185 BCE</small></span>
+<i class="stn" style="left:92%"></i><span class="lbl" style="left:92%">Gupta<small class="num">320 CE</small></span>
+</div></section>
+<main>
+<section>
+<div class="stop">
+<figure><img class="plate" src="data:image/jpeg;base64,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" alt="Engraving of a planned city with a grid of streets"><figcaption class="cap">Plate 16 · The first cities</figcaption></figure>
+<div><h2>Start at this station</h2>
+<div class="qs"><a href="#">How were Harappan towns planned, and why the drains?</a><a href="#">What do the seals tell us about trade with Mesopotamia?</a><a href="#">Why did the Harappan cities decline after 1900 BCE?</a></div>
+<div class="lenses"><span>Story</span><span>Timeline</span><span>People</span><span>Places</span><span>Cause and effect</span></div></div>
+</div>
+<div class="ask"><input value="" placeholder="Ask about any topic, person, place or year"><button>Start lesson</button></div>
+</section>
+<aside>
+<div class="due"><span class="k">Daily review</span><div class="row"><b class="num">8 cards</b><button>Start review</button></div><span>About 5 minutes · 3 from the Vedic age</span>
+<div class="marks"><span><i style="background:var(--stop)"></i>2 overdue</span><span><i style="background:var(--board)"></i>6 due today</span><span><i style="background:var(--go)"></i>41 settled</span></div></div>
+<table><caption class="disp">Recent lessons</caption>
+<tr><th>Date</th><th>Lesson</th><th>Era</th><th>Cards</th></tr>
+<tr><td class="num">21 Oct</td><td>The Mughal succession after Aurangzeb</td><td class="num">1707</td><td class="num"><span class="e"></span>6</td></tr>
+<tr><td class="num">20 Oct</td><td>Rise of Magadha among the Mahajanapadas</td><td class="num">600 BCE</td><td class="num"><span class="e"></span>5</td></tr>
+<tr><td class="num">18 Oct</td><td>The Vedic age: from Rigveda to later Vedic</td><td class="num">1500 BCE</td><td class="num"><span class="e" style="background:var(--board)"></span>7</td></tr>
+</table></aside>
+</main>
+</body></html>

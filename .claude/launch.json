@@ -4,7 +4,21 @@
     {
       "name": "chronicle",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "chronicle-mock",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "MOCK_LLM=1",
+        "npm",
+        "run",
+        "dev"
+      ],
       "port": 3000
     }
   ]

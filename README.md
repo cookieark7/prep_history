@@ -11,16 +11,26 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-`.env.local` ships with `MOCK_LLM=1`, so the app runs on hand-written fixtures with no API key.
-For the real Director, set (see `.env.example`):
+With `MOCK_LLM=1` in `.env.local` the app runs on hand-written fixtures with no keys and no database.
 
-```
-ANTHROPIC_API_KEY=...
-CHRONICLE_MODEL=claude-sonnet-5
-MOCK_LLM=0
+### The full prototype (free tiers)
+
+The working prototype ([`docs/PROTOTYPE_PLAN.md`](docs/PROTOTYPE_PLAN.md)) adds a free LLM chain, a Postgres knowledge base with citations, accounts on every device, and a spaced-repetition review loop. Every setting is described in [`.env.example`](.env.example).
+
+```bash
+docker compose up -d db          # Postgres 16 + pgvector on port 5433
+cp .env.example .env.local       # then fill in the Cloudflare and OpenRouter keys and BETTER_AUTH_SECRET
+npm run ingest                   # Wikipedia corpus → passages → embeddings (about 550 neurons, resumable)
+npm run dev                      # migrations run at startup
 ```
 
-The server refuses to start in real mode without both variables.
+- **LLM** (`lib/llm/`): `LLM_CHAIN` lists providers in order; any OpenAI-compatible API works. The default is Cloudflare Workers AI (`gpt-oss-120b`, free 10,000 neurons a day, about 250-350 a lesson), with OpenRouter's free models as the fallback. The fallback is used only while nothing has reached the learner.
+- **Knowledge base** (`lib/rag/`): 43 Wikipedia articles (CC BY-SA), cut into about 2,500 passages and embedded with `bge-m3`. Each turn retrieves passages by vector plus keyword search. The Director cites them, and the reader shows each citation as a numbered link to its passage.
+- **Accounts and sync** (`lib/auth/`, `lib/store/sync.ts`): everyone starts as a guest. Signing in with an email link (in development the link is printed in the server log), or with Google once configured, keeps the guest's lessons and cards and opens them on any device.
+- **Retention** (`lib/review/`): each new lesson saves 3–6 cards: the Director's key ideas, plus ordering, quiz and cause-map cards. FSRS (`ts-fsrs`) schedules them. `/review` is the daily review, `/stats` shows the streak and how much is remembered by interval, and `/start` shows what is due.
+- **Turn log**: `/admin/turns` lists every turn: provider, timings, sources, citations, and repaired or dropped lines.
+
+The server refuses to start when the LLM chain is incomplete and names the missing variables.
 
 ### What mock mode knows
 
@@ -39,10 +49,12 @@ The server refuses to start in real mode without both variables.
 ## Checks
 
 ```bash
-npm test             # vitest: contracts, fixtures, layout, parser, pipeline, mock, reducer, stream client, quiz, export
+npm test             # vitest: contracts, LLM layer, router, repair, prompt, database (PGlite), accounts, RAG, review, UI logic
 npm run typecheck
 npm run lint
-npx tsx scripts/m1-director-test.ts   # M1 turns + the v0.1 source_text turn, against the real model
+npm run build && npm run e2e -- --shots docs/screens/prototype   # the demo script, mock Director, 2 devices, 24 screenshots
+npm run eval                          # 16 golden turns through LLM_CHAIN with retrieval; report in docs/evals/
+npx tsx scripts/m1-director-test.ts   # M1 turns + the v0.1 source_text turn, against Anthropic
 npx tsx scripts/retest-mock.ts        # v0.1 prompt re-test (3 turns) against the running dev server
 ```
 
