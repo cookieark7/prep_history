@@ -16,10 +16,37 @@ export type Op = z.infer<typeof Op>;
 export const FollowupKind = z.enum(["deeper", "test", "zoom_out"]);
 export type FollowupKind = z.infer<typeof FollowupKind>;
 
+/** A cited passage (docs/PROTOTYPE_PLAN.md, 5.3). `id` is the chunk id used in [S:id] markers. */
+export const SourceItem = z.object({
+  id: z.string().max(32),
+  title: z.string().max(200),
+  heading: z.string().max(400),
+  url: z.string().max(600),
+  license: z.string().max(60),
+  excerpt: z.string().max(600),
+});
+export type SourceItem = z.infer<typeof SourceItem>;
+
+/** Memory cards (docs/PROTOTYPE_PLAN.md, section 7.2): the ideas from a lesson worth remembering. */
+export const CardKind = z.enum(["why", "consequence", "sequence", "anchor", "significance"]);
+export type CardKind = z.infer<typeof CardKind>;
+export const MemoryCard = z.object({
+  id: z.string().max(16),
+  kind: CardKind,
+  front: z.string().min(8).max(160), // a question that needs reasoning
+  back: z.string().min(2).max(280), // the answer, at most two sentences
+  source_ref: z.object({ block: z.string(), node: z.string().nullable() }),
+  cites: z.array(z.string().max(16)).max(4).optional(), // S1… from <sources>; the server maps them
+});
+export type MemoryCard = z.infer<typeof MemoryCard>;
+
 export const StreamLine = z.discriminatedUnion("t", [
   z.object({ t: z.literal("say"), text: z.string().max(280) }),
   z.object({ t: z.literal("op"), op: Op }),
   z.object({ t: z.literal("followup"), kind: FollowupKind, label: z.string().max(60) }),
+  z.object({ t: z.literal("card"), card: MemoryCard }),
+  // sent by the server after retrieval, never by the model (the pipeline drops model copies)
+  z.object({ t: z.literal("sources"), items: z.array(SourceItem).max(20) }),
   z.object({ t: z.literal("done") }),
 ]);
 export type StreamLine = z.infer<typeof StreamLine>;
@@ -53,5 +80,10 @@ export const TurnRequest = z.object({
   detail: z.string().max(2000).nullable().optional(),
   // v0.1 (E1): long pasted text the learner is reading. Additive, optional.
   source_text: z.string().max(8000).nullable().optional(),
+  // prototype (docs/PROTOTYPE_PLAN.md, 5.3): which lesson, a unique id per turn (double-submit
+  // guard and the turn log), and the lesson's topic. Additive, optional.
+  lesson_id: z.string().max(64).nullable().optional(),
+  turn_id: z.string().max(64).nullable().optional(),
+  topic: z.string().max(400).nullable().optional(),
 });
 export type TurnRequest = z.infer<typeof TurnRequest>;

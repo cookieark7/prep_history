@@ -5,14 +5,22 @@ import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { z } from "zod";
 import {
-  Block, type Depth, type FollowupKind, type Level, type Mode, type NoteKind, type Op, type QuizBlock,
+  Block, type Depth, type FollowupKind, type Level, type Mode, type NoteKind, type Op, type QuizBlock, type SourceItem,
 } from "@/lib/contracts";
 import { applyInverse, applyOp, type HistoryEntry, type StageState, type TurnContext } from "./reducer";
 import { archiveLesson } from "./lessons";
 import { migrateV1toV2 } from "./migrate";
 import { clampDock, DOCK_DEFAULT } from "@/lib/dock";
 
-export type Theme = "paper" | "sepia" | "ink";
+export type Theme = "light" | "dark";
+
+/** Saves from before the Verdigris look say "paper" or "sepia" (now light) or "ink" (now dark). */
+export function normalizeTheme(t: unknown): Theme {
+  return t === "dark" || t === "ink" ? "dark" : "light";
+}
+
+/** Until the save loads, follow what the theme script in app/layout.tsx already put on <html>. */
+const initialTheme = (): Theme => (typeof document === "undefined" ? "light" : normalizeTheme(document.documentElement.dataset.theme));
 
 export interface ChatEntry {
   id: string;
@@ -24,6 +32,8 @@ export interface ChatEntry {
   retry?: { message: string | null; eventJson: string | null; sourceText?: string | null };
   /** learner line sent with a pasted-text card */
   attachment?: { words: number };
+  /** the ideas this reply asked the learner to remember (card fronts; saved for review with accounts) */
+  remember?: string[];
 }
 
 export interface Note {
@@ -55,6 +65,8 @@ export interface WorkspaceState extends StageState {
   history: HistoryEntry[];
   mastery: Record<string, number>;
   notes: Note[];
+  /** passages the lesson cites, in the order they first arrived; [S:id] markers point here */
+  sources: SourceItem[];
   pinned: string[];
   gates: Record<string, GateState>;
   /** block id -> history entry id of the latest Director patch (shows "updated" + Undo) */
@@ -95,6 +107,7 @@ interface Actions {
   say: (entryId: string, text: string) => void;
   applyDirectorOp: (entryId: string, op: Op, turn: TurnContext) => void;
   followup: (entryId: string, f: { kind: FollowupKind; label: string }) => void;
+  remember: (entryId: string, front: string) => void;
   finishTurn: (entryId: string, status: "done" | "error" | "aborted") => void;
 
   undo: (historyId: string) => void;
@@ -109,6 +122,7 @@ interface Actions {
   markComplete: (blockId: string) => void;
   updateMastery: (ref: string, correct: boolean) => void;
   addNote: (n: Omit<Note, "id" | "at">) => Note;
+  addSources: (items: SourceItem[]) => void;
   removeNote: (id: string) => void;
 }
 
@@ -125,6 +139,7 @@ const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" 
   history: [],
   mastery: {},
   notes: [],
+  sources: [],
   pinned: [],
   gates: {},
   patched: {},
@@ -163,7 +178,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       ...fresh(),
       depth: "standard",
       level: "some",
-      theme: "paper",
+      theme: initialTheme(),
       chatOpen: true,
       lineHeight: 1.7,
       focusParagraph: false,
@@ -177,7 +192,9 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       loadSnapshot: (snap) => {
         const cur = get();
         if (cur.blocks.length && cur.lessonId !== snap.lessonId) archiveLesson(snapshot(cur));
-        set(() => ({ ...snap, streaming: false, flash: null, arrivals: {} }));
+        // a lesson (perhaps from another device) never changes this device's own settings
+        const device = { theme: cur.theme, lineHeight: cur.lineHeight, focusParagraph: cur.focusParagraph, chatOpen: cur.chatOpen, dockWidth: cur.dockWidth };
+        set(() => ({ ...snap, sources: snap.sources ?? [], ...device, streaming: false, flash: null, arrivals: {} }));
       },
       setTopic: (topic) => set((s) => { s.topic = topic; }),
       setMode: (mode) => set((s) => {
@@ -253,6 +270,10 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         const e = s.chat.find((c) => c.id === entryId);
         if (e && e.followups.length < 3) e.followups.push(f);
       }),
+      remember: (entryId, front) => set((s) => {
+        const e = s.chat.find((c) => c.id === entryId);
+        if (e && !(e.remember ??= []).includes(front) && e.remember.length < 8) e.remember.push(front);
+      }),
       finishTurn: (entryId, status) => set((s) => {
         const e = s.chat.find((c) => c.id === entryId);
         if (e) {
@@ -304,6 +325,10 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
         const cur = s.mastery[ref] ?? 0.5;
         s.mastery[ref] = Math.min(1, Math.max(0, cur + (correct ? 0.25 : -0.35)));
       }),
+      addSources: (items) => set((s) => {
+        s.sources ??= [];
+        for (const it of items) if (!s.sources.some((x) => x.id === it.id)) s.sources.push(it);
+      }),
       addNote: (n) => {
         const note: Note = { ...n, id: uid("n"), at: Date.now() };
         set((s) => { s.notes.push(note); });
@@ -326,7 +351,8 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
           if (persisted) console.warn("[chronicle] discarded saved workspace:", ok.error.issues[0]);
           return current;
         }
-        return { ...current, ...(persisted as Partial<WorkspaceState>), streaming: false };
+        const saved = persisted as Partial<WorkspaceState>;
+        return { ...current, ...saved, sources: saved.sources ?? [], theme: saved.theme ? normalizeTheme(saved.theme) : current.theme, streaming: false };
       },
     },
   ),
@@ -339,6 +365,11 @@ function persistable(s: WorkspaceState & Partial<Actions>): PersistedWorkspace {
     out[k] = v;
   }
   return out as unknown as PersistedWorkspace;
+}
+
+/** A lesson snapshot from elsewhere (the server), if it has the shape this client can load. */
+export function parseSnapshot(raw: unknown): PersistedWorkspace | null {
+  return PersistedShape.safeParse(raw).success ? (raw as PersistedWorkspace) : null;
 }
 
 export function snapshot(s: WorkspaceState): PersistedWorkspace {

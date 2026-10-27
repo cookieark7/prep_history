@@ -10,8 +10,15 @@ export function nextBlockId(blocks: { id: string }[]): number {
   return max + 1;
 }
 
+export interface ContextExtras {
+  /** the lesson's last few exchanges, oldest first (lib/turns/log.ts) */
+  recent?: { input: string; say: string }[];
+  /** the <sources> block of retrieved passages (lib/rag/citations.ts formatSources) */
+  sources?: string;
+}
+
 /** The dynamic part of each turn (Part 4 context template). The system prompt stays static. */
-export function buildContext(req: TurnRequest): string {
+export function buildContext(req: TurnRequest, extras: ContextExtras = {}): string {
   const { workspace } = req;
   const stage = workspace.blocks.length
     ? workspace.blocks.map((b) => `- ${b.id} | ${b.type} | ${b.title}`).join("\n")
@@ -34,15 +41,22 @@ export function buildContext(req: TurnRequest): string {
     ? ["<source_text>", req.source_text.trim(), "</source_text>", ""]
     : [];
 
+  const recent = extras.recent?.filter((r) => r.input || r.say) ?? [];
+
   return [
     "<context>",
     `learner_level: ${workspace.level}`,
+    ...(req.topic ? [`lesson_topic: ${JSON.stringify(req.topic)}`] : []),
     "stage_blocks:",
     stage,
     `next_block_id: b${nextBlockId(workspace.blocks)}`,
     `lowest_mastery: ${lowest || "(none)"}`,
+    ...(recent.length
+      ? ["recent_exchanges (oldest first):", ...recent.map((r) => `- ${r.input} → you said: ${JSON.stringify(r.say)}`)]
+      : []),
     "</context>",
     "",
+    ...(extras.sources ? [extras.sources, ""] : []),
     ...source,
     "<input>",
     input,

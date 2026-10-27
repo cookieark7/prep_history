@@ -56,4 +56,8 @@ describe("yearsInText", () => {
     expect(yearsInText("Rome won the Second Punic War (218-201 BCE) [E] even after Cannae (216 BCE)")).toEqual([-218, -201]);
     expect(yearsInText("The conventional end date is 476")).toEqual([476, 476]);
   });
+  it("gives a year with no era the passage's era", () => {
+    expect(yearsInText("War broke out in 264 over Messana. Carthage lost Sicily by 241 BC.")).toEqual([-264, -241]);
+    expect(yearsInText("Ashoka ruled from 268 BCE; the Gupta age began about 320 CE")).toEqual([-268, 320]);
+  });
 });

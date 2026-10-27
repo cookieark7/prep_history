@@ -1,0 +1,65 @@
+# Wikipedia articles in Chronicle's knowledge base (scripts/ingest.ts). One title per line.
+# Licence: CC BY-SA 4.0; every passage keeps its article, revision and attribution.
+# Starter set: the fixture and eval topics, then a spine of world history. Add freely; re-running
+# the ingest only embeds what is new or changed.
+
+# Rome and Carthage
+Punic Wars
+First Punic War
+Second Punic War
+Third Punic War
+Hannibal
+Battle of Cannae
+Scipio Africanus
+Ancient Carthage
+Roman Republic
+
+# The end of the Western Roman Empire
+Fall of the Western Roman Empire
+Crisis of the Third Century
+Migration Period
+Odoacer
+Roman Empire
+
+# Byzantium and the Ottomans
+Fall of Constantinople
+Mehmed II
+Walls of Constantinople
+Byzantine Empire
+Ottoman Empire
+
+# The Mughals
+Mughal Empire
+Akbar
+Jahangir
+Shah Jahan
+Aurangzeb
+Babur
+
+# The Mauryas
+Maurya Empire
+Ashoka
+Chandragupta Maurya
+Bindusara
+
+# The French Revolution
+French Revolution
+Causes of the French Revolution
+Estates General of 1789
+Storming of the Bastille
+Reign of Terror
+Napoleon
+
+# The Industrial Revolution
+Industrial Revolution
+British Agricultural Revolution
+
+# The Late Bronze Age
+Late Bronze Age collapse
+Sea Peoples
+
+# Early imperial China
+Warring States period
+Qin dynasty
+Qin Shi Huang
+Han dynasty

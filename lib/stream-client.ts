@@ -80,12 +80,16 @@ export async function sendTurn(input: {
     input.attachmentWords,
   );
 
+  const now = useWorkspace.getState();
   const req: TurnRequest = {
     message,
     event,
-    workspace: workspaceSummary(useWorkspace.getState()),
+    workspace: workspaceSummary(now),
     detail: input.detail ?? null,
     source_text: sourceText,
+    lesson_id: now.lessonId,
+    turn_id: crypto.randomUUID(),
+    topic: now.topic || null,
   };
 
   const ctrl = new AbortController();
@@ -106,6 +110,8 @@ export async function sendTurn(input: {
         case "say": return s().say(entryId, line.text);
         case "op": return s().applyDirectorOp(entryId, line.op, turn);
         case "followup": return s().followup(entryId, { kind: line.kind, label: line.label });
+        case "sources": return s().addSources(line.items);
+        case "card": return s().remember(entryId, line.card.front);
         case "done": return;
       }
     }, (raw) => console.warn("[chronicle] ignored invalid line", raw.slice(0, 160)));

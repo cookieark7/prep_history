@@ -43,3 +43,12 @@ next-env.d.ts
 
 # M1 harness output
 /scripts/m1-output/
+/scripts/eval-output/
+
+# image generation: raw outputs and Python caches (regenerable; public/opening holds the shipped plates)
+/image_gen/out/
+__pycache__/
+/image_gen/.venv/
+
+# screen recordings are large; screenshots stay in docs/
+/docs/**/*.mp4

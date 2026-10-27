@@ -64,3 +64,46 @@ describe("buildContext", () => {
     expect(nextBlockId([])).toBe(1);
   });
 });
+
+describe("ObjectStreamParser resync", () => {
+  it("closes an object whose closing brace the model forgot, and keeps the next lines", () => {
+    const p = new ObjectStreamParser();
+    const text = [
+      '{"t":"say","text":"hi"}',
+      '{"t":"op","op":{"op":"patch","id":"b1","set":{"sections":[{"h":"Why","md":"x","depth":"standard"}]}}', // one } short
+      '{"t":"op","op":{"op":"layout","mode":"reader"}}',
+      '{"t":"done"}',
+    ].join("\n");
+    const out = p.push(text);
+    expect(out).toHaveLength(4);
+    expect(JSON.parse(out[1])).toEqual({ t: "op", op: { op: "patch", id: "b1", set: { sections: [{ h: "Why", md: "x", depth: "standard" }] } } });
+    expect(p.autoClosed).toBe(1);
+    expect(p.closedByResync.has(out[1])).toBe(true);
+    expect(JSON.parse(out[2]).op.mode).toBe("reader");
+  });
+
+  it("closes open arrays in the right order", () => {
+    const p = new ObjectStreamParser();
+    const out = p.push('{"t":"op","op":{"op":"add","block":{"nodes":[{"id":"n1"}\n{"t": "done"}');
+    expect(out[0]).toBe('{"t":"op","op":{"op":"add","block":{"nodes":[{"id":"n1"}]}}}');
+    expect(out[1]).toBe('{"t": "done"}');
+  });
+
+  it("resyncs across chunk boundaries", () => {
+    const text = '{"t":"op","op":{"op":"layout","mode":"reader"}\n{"t":"done"}\n';
+    for (const size of [1, 2, 5]) {
+      const p = new ObjectStreamParser();
+      const out: string[] = [];
+      for (let i = 0; i < text.length; i += size) out.push(...p.push(text.slice(i, i + size)));
+      expect(out).toEqual(['{"t":"op","op":{"op":"layout","mode":"reader"}}', '{"t":"done"}']);
+    }
+  });
+
+  it("does not resync on pretty-printed objects or on newlines inside a nested object", () => {
+    const p = new ObjectStreamParser();
+    const out = p.push('{\n  "t": "op",\n  "op": {\n    "op": "focus",\n    "id": "b2",\n    "fullscreen": false\n  }\n}\n');
+    expect(out).toHaveLength(1);
+    expect(p.autoClosed).toBe(0);
+    expect(JSON.parse(out[0]).op.id).toBe("b2");
+  });
+});
