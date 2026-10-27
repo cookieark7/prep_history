@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/lib/store/workspace";
-import { useHydrated, ThemeSync } from "@/components/ui/hydration";
+import { useHydrated, ThemeSync, AccountSync } from "@/components/ui/hydration";
 import { ChatDock } from "@/components/chat/ChatDock";
 import { CommandBar } from "@/components/chat/CommandBar";
 import { CommandPalette, HistoryDrawer, ShortcutsDialog } from "@/components/ui/dialogs";
@@ -45,7 +45,7 @@ export function Workspace() {
     shortcuts: openShortcuts,
     anyDialogOpen,
     copyBlock: (id: string) => void copyBlock(id),
-    newLesson: () => router.push("/"),
+    newLesson: () => router.push("/start"),
   }), [openPalette, openShortcuts, anyDialogOpen, router]));
 
   useNoteHighlights();
@@ -55,10 +55,11 @@ export function Workspace() {
   return (
     <>
       <ThemeSync />
+      <AccountSync />
       {wide ? <CommandBar /> : <ChatDock />}
       <main
         style={{ "--dock-w": `${dockWidth}px` } as React.CSSProperties}
-        className={`min-h-screen ${chatOpen && !wide ? "md:pl-[var(--dock-w)]" : ""} pb-44 md:pb-0`}
+        className={`min-h-screen ${chatOpen && !wide ? "md:pl-[var(--dock-w)]" : ""} pb-36 md:pb-0`}
       >
         <TopBar onHistory={openHistory} onPalette={openPalette} />
         {mode === "reader" || mode === "focus" ? <ReaderStage margin={<NotesMargin />} /> : <ModeView mode={mode} />}

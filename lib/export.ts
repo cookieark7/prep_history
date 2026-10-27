@@ -20,9 +20,10 @@ const CALLOUT_LABEL: Record<string, string> = { anchor: "Remember this", mnemoni
 /** Article markdown -> readable text: entities become names, [E] becomes "(established)". */
 export function articleText(md: string): string {
   return md
-    .replace(/\[\[([^\]|]+)\|[a-z]+\]\]/g, "$1")
+    .replace(/\[\[([^\]|]+)\|[^\]|]*\]\]/g, "$1")
     .replace(/\[\[([^\]|]+)\]\]/g, "$1")
-    .replace(/\s?\[(E|L|C)\]/g, (_, c: Confidence) => ` (${CONFIDENCE_LABEL[c]})`);
+    .replace(/\s?\[(E|L|C)\]/g, (_, c: Confidence) => ` (${CONFIDENCE_LABEL[c]})`)
+    .replace(/\[S:\d+\]/g, ""); // source markers: the reader shows them as numbered links
 }
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

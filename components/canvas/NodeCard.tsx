@@ -29,9 +29,9 @@ export function NodeCard({
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-[12px] text-muted">
             <LayerShape layer={n.layer} size={11} /> {LAYER_LABEL[n.layer]}
-            <span className="mono-tab ml-1">{nodeTimeLabel(block, n)}</span>
+            <span className="tnum text-[12px] ml-1">{nodeTimeLabel(block, n)}</span>
           </p>
-          <h3 className="mt-1 font-serif text-[19px] font-semibold leading-tight">{n.label}</h3>
+          <h3 className="mt-1 font-heading text-[19px] font-semibold leading-tight">{n.label}</h3>
           <p className="mt-1 flex items-center gap-1.5 text-[12px] text-muted">
             <ConfidenceDot c={n.confidence} /> {CONFIDENCE_LABEL[n.confidence]}
           </p>
@@ -50,7 +50,7 @@ export function NodeCard({
                   <button type="button" onClick={() => onSelect(e.from)} className="flex items-center gap-1.5 text-left font-medium hover:text-accent">
                     <ConfidenceDot c={e.confidence} /> {label(e.from)}
                   </button>
-                  <p className="mt-0.5 pl-[14px] font-serif text-[15px] text-muted">{e.why}</p>
+                  <p className="mt-0.5 pl-[14px] text-[15px] text-muted">{e.why}</p>
                 </li>
               ))}
             </ul>
@@ -65,7 +65,7 @@ export function NodeCard({
                   <button type="button" onClick={() => onSelect(e.to)} className="flex items-center gap-1.5 text-left font-medium hover:text-accent">
                     <ConfidenceDot c={e.confidence} /> {label(e.to)}
                   </button>
-                  <p className="mt-0.5 pl-[14px] font-serif text-[15px] text-muted">{e.why}</p>
+                  <p className="mt-0.5 pl-[14px] text-[15px] text-muted">{e.why}</p>
                 </li>
               ))}
             </ul>

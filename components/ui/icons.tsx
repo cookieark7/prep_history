@@ -83,6 +83,11 @@ export const Icon = {
   cross: (p: P) => <Svg {...p}><path d="M4 4l8 8M12 4l-8 8" /></Svg>,
   eye: (p: P) => <Svg {...p}><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" /><circle cx="8" cy="8" r="2" /></Svg>,
   shuffle: (p: P) => <Svg {...p}><path d="M2 4.5h2.5l7 7H14M2 11.5h2.5l2-2M9.5 6.5l2-2H14M12.5 3l1.5 1.5-1.5 1.5M12.5 10l1.5 1.5-1.5 1.5" /></Svg>,
+  /** the app's three places: Learn is the route, Review the card stack, Progress the bars */
+  learn: (p: P) => <Svg {...p}><path d="M1.5 8h13" /><circle cx="4.5" cy="8" r="1.7" fill="currentColor" /><circle cx="11.5" cy="8" r="1.7" fill="var(--bg)" /></Svg>,
+  review: (p: P) => <Svg {...p}><rect x="2.5" y="4.5" width="9" height="9" rx="1" /><path d="M5 2.5h7.5a1 1 0 0 1 1 1V11" /></Svg>,
+  progress: (p: P) => <Svg {...p}><path d="M3 13.5V9M8 13.5V3.5M13 13.5V6.5" /></Svg>,
+  arrowRight: (p: P) => <Svg {...p}><path d="M2.5 8h10.5M9 4l4 4-4 4" /></Svg>,
   grip: (p: P) => (
     <Svg {...p}><circle cx="6" cy="4" r=".7" fill="currentColor" /><circle cx="10" cy="4" r=".7" fill="currentColor" /><circle cx="6" cy="8" r=".7" fill="currentColor" /><circle cx="10" cy="8" r=".7" fill="currentColor" /><circle cx="6" cy="12" r=".7" fill="currentColor" /><circle cx="10" cy="12" r=".7" fill="currentColor" /></Svg>
   ),

@@ -28,7 +28,7 @@ export function PredictGateBlock({ block }: { block: GateT }) {
 
   return (
     <div className="rounded-[2px] border border-rule bg-surface p-5">
-      <p className="font-serif text-[20px] leading-snug">{block.prompt}</p>
+      <p className="font-heading text-[20px] leading-snug">{block.prompt}</p>
       <ul className="mt-4 space-y-2" role="list">
         {block.options.map((o, i) => {
           const isAnswer = o.id === block.answer_id;
@@ -47,7 +47,7 @@ export function PredictGateBlock({ block }: { block: GateT }) {
                   state === "wrong" ? "border-brick text-text" : "border-rule text-muted"
                 }`}
               >
-                <span className="mono-tab grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">
+                <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">
                   {state === "right" ? <Icon.check size={12} className="text-ok" /> : state === "wrong" ? <Icon.cross size={12} className="text-brick" /> : String.fromCharCode(65 + i)}
                 </span>
                 {o.label}
@@ -67,7 +67,7 @@ export function PredictGateBlock({ block }: { block: GateT }) {
           {chosen != null && (
             <p className={`mb-1 text-[13px] font-medium ${correct ? "text-ok" : "text-brick"}`}>{correct ? "Correct." : "Not quite."}</p>
           )}
-          <p className="font-serif text-[17px] leading-relaxed">{block.explanation}</p>
+          <p className="text-[17px] leading-relaxed">{block.explanation}</p>
         </div>
       )}
     </div>

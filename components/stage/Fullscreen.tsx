@@ -39,7 +39,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
 
   if (!fullscreen || !block) return null;
   const reading = block.type === "article" || block.type === "callout" || block.type === "predict_gate" || block.type === "quiz";
-  const nextTheme = theme === "paper" ? "sepia" : theme === "sepia" ? "ink" : "paper";
+  const nextTheme = theme === "light" ? "dark" : "light";
 
   const onScroll = (el: HTMLDivElement) => {
     const max = el.scrollHeight - el.clientHeight;
@@ -75,7 +75,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
         {reading && (
           <>
             <label className="hidden h-8 shrink-0 items-center gap-2 px-2 text-[12px] text-muted sm:inline-flex" title="Line height">
-              <span aria-hidden className="font-serif text-[15px] leading-none">≡</span>
+              <span aria-hidden className="font-heading text-[15px] leading-none">≡</span>
               <span className="sr-only">Line height</span>
               <input type="range" min={1.4} max={2.2} step={0.05} value={lineHeight}
                 onChange={(e) => useWorkspace.getState().setReading({ lineHeight: Number(e.target.value) })}
@@ -95,7 +95,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
       <div ref={scroller} tabIndex={-1} className="scroll-thin h-full overflow-y-auto outline-none" onScroll={(e) => onScroll(e.currentTarget)}>
         <div className={`relative mx-auto px-5 pb-56 pt-24 ${reading ? "max-w-[680px]" : "max-w-[1400px]"} ${focusPara ? "focus-para" : ""}`}>
           <p className="mb-2 text-[12px] uppercase tracking-wide text-muted">{TYPE_LABEL[block.type]}</p>
-          <h1 className="mb-8 font-serif text-[32px] font-semibold leading-[1.15] md:text-[40px]">{block.title}</h1>
+          <h1 className="mb-8 font-heading text-[32px] font-semibold leading-[1.15] md:text-[40px]">{block.title}</h1>
           <div data-fullscreen-block={block.id}>
             <BlockBody block={block} expanded />
           </div>
@@ -111,7 +111,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
       <div className="fixed bottom-4 left-1/2 z-10 w-[min(600px,calc(100vw-24px))] -translate-x-1/2">
         {(lastSay || lastReply?.status === "streaming") && (
           <div className="mb-2 rounded-md border border-rule bg-surface px-4 py-2 shadow-[var(--shadow-float)]">
-            {lastSay && <p className="line-clamp-2 font-serif text-[14.5px]">{lastSay}</p>}
+            {lastSay && <p className="line-clamp-2 text-[14.5px]">{lastSay}</p>}
             <StatusLine entry={lastReply} className="mt-1" />
           </div>
         )}

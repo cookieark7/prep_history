@@ -8,8 +8,10 @@ import Link from "next/link";
 import { useWorkspace, type ChatEntry } from "@/lib/store/workspace";
 import { retryTurn, sendTurn } from "@/lib/stream-client";
 import { Icon } from "@/components/ui/icons";
+import { ACCOUNTS } from "@/lib/auth";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 import { scrollToBlock } from "@/components/blocks/Markdown";
+import { PlaceLinks } from "@/components/shell/AppShell";
 import { Composer } from "./Composer";
 import { StatusLine } from "./TurnStatus";
 
@@ -18,7 +20,7 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
   const latestReply = [...chat].reverse().find((c) => c.role === "director")?.id;
 
   if (!chat.length) {
-    return <p className="px-5 py-6 font-serif text-[15px] italic text-muted">The conversation shows up here. The lesson builds on the Stage.</p>;
+    return <p className="px-5 py-6 text-[15px] italic text-muted">Your questions and the replies show up here. The lesson builds beside them.</p>;
   }
   return (
     <ol className={compact ? "" : "pb-4"} aria-label="Conversation">
@@ -53,7 +55,7 @@ function DirectorRow({ entry, latest }: { entry: ChatEntry; latest: boolean }) {
   return (
     <div>
       {entry.text ? (
-        <p className="fade-up font-serif text-[16px] leading-[1.5] text-text">{entry.text}</p>
+        <p className="fade-up text-[16px] leading-[1.5] text-text">{entry.text}</p>
       ) : streaming ? (
         <p className="sr-only">Working on it</p>
       ) : null}
@@ -70,7 +72,7 @@ function DirectorRow({ entry, latest }: { entry: ChatEntry; latest: boolean }) {
                 key={id}
                 type="button"
                 onClick={() => scrollToBlock(id, null, flashBlock)}
-                className="fade-up inline-flex max-w-full items-center gap-1.5 rounded-md border border-rule bg-surface px-2 py-1 text-[12px] text-text hover:border-rule-strong"
+                className="fade-up inline-flex max-w-full items-center gap-1.5 rounded-md bg-sunk px-2 py-1 text-[12.5px] text-text hover:bg-hover"
                 title={`${TYPE_LABEL[b.type]}: ${b.title}`}
               >
                 <I size={12} className="shrink-0 text-muted" />
@@ -80,6 +82,8 @@ function DirectorRow({ entry, latest }: { entry: ChatEntry; latest: boolean }) {
           })}
         </div>
       )}
+
+      {entry.remember && entry.remember.length > 0 && !streaming && <RememberList items={entry.remember} />}
 
       {/* follow-ups only under the latest reply: once one is used, the next reply replaces them */}
       {latest && entry.followups.length > 0 && (
@@ -103,7 +107,7 @@ function DirectorRow({ entry, latest }: { entry: ChatEntry; latest: boolean }) {
 
       {entry.status === "error" && (
         <p className="mt-2 flex items-center gap-2 text-[13px] text-muted">
-          The reply stopped before it finished. Your Stage is unchanged.
+          The reply stopped before it finished. The lesson is unchanged.
           {entry.retry && (
             <button type="button" className="text-accent underline-offset-2 hover:underline" onClick={() => retryTurn(entry.id)}>
               Retry
@@ -124,11 +128,11 @@ export function ChatDock() {
     <aside
       aria-label="Chat"
       style={{ width }}
-      className="fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-rule bg-bg md:flex"
+      className="fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-rule bg-frame md:flex"
     >
       <DockResizer width={width} />
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-rule px-5">
-        <Link href="/" className="font-serif text-[19px] font-semibold tracking-tight">Chronicle</Link>
+      <div className="flex h-14 shrink-0 items-center justify-between px-5">
+        <Link href="/start" className="board-type text-[21px] text-text">Chronicle</Link>
         <button
           type="button"
           onClick={() => useWorkspace.getState().setChatOpen(false)}
@@ -139,7 +143,8 @@ export function ChatDock() {
           <Icon.sidebar />
         </button>
       </div>
-      <ChatScroller className="min-h-0 flex-1">
+      <PlaceLinks />
+      <ChatScroller className="min-h-0 flex-1 border-t border-rule">
         <ChatLog />
       </ChatScroller>
       <div className="border-t border-rule p-3">
@@ -237,3 +242,24 @@ function DockResizer({ width }: { width: number }) {
     </div>
   );
 }
+
+/** The ideas this reply asks the learner to remember; with accounts they are in the review queue. */
+function RememberList({ items }: { items: string[] }) {
+  return (
+    <details className="fade-up group mt-2.5 rounded-md border border-rule bg-surface px-3 py-2 text-[13px]">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-text marker:hidden">
+        <Icon.check size={12} className="shrink-0 text-accent" />
+        <span className="font-medium">To remember</span>
+        <span className="text-muted">· {items.length} {ACCOUNTS ? "saved for review" : "ideas"}</span>
+        <span className="ml-auto text-[11px] text-muted group-open:hidden">Show</span>
+      </summary>
+      <ul className="mt-2 space-y-1.5 border-t border-rule pt-2">
+        {items.map((f) => <li key={f} className="leading-snug text-muted">{f}</li>)}
+      </ul>
+      {ACCOUNTS && (
+        <Link href="/review" className="mt-2 inline-block text-[12.5px] font-medium text-accent underline-offset-2 hover:underline">Review now</Link>
+      )}
+    </details>
+  );
+}
+

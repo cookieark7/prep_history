@@ -2,6 +2,7 @@ import type { Block } from "@/lib/contracts";
 import { formatRange, formatYear } from "@/lib/layout/years";
 
 export type EntityType = "person" | "place" | "event" | "term";
+const ENTITY_TYPES = new Set<string>(["person", "place", "event", "term"]);
 
 export interface Mention {
   blockId: string;
@@ -41,7 +42,12 @@ export function findMentions(blocks: Block[], name: string): Mention[] {
 /** Article markdown -> markdown where tags/entities are links with custom schemes. */
 export function preprocessMarkdown(md: string): string {
   return md
-    .replace(/\[\[([^\]|]+)\|(person|place|event|term)\]\]/g, (_, name: string, type: string) => `[${name}](entity:${type})`)
+    // any other type the model invents ("entity", "dynasty", ...) reads as a term, never as raw markup
+    .replace(/\[\[([^\]|]+)\|([^\]|]*)\]\]/g, (_, name: string, type: string) => `[${name}](entity:${ENTITY_TYPES.has(type.trim()) ? type.trim() : "term"})`)
     .replace(/\[\[([^\]|]+)\]\]/g, (_, name: string) => `[${name}](entity:term)`)
-    .replace(/\[(E|L|C)\](?!\()/g, (_, c: string) => `[${c}](conf:${c})`);
+    .replace(/\[(E|L|C)\](?!\()/g, (_, c: string) => `[${c}](conf:${c})`)
+    .replace(/\[S:(\d+)\](?!\()/g, (_, id: string) => `[S${id}](src:${id})`)
+    // one era style everywhere: the interface says BCE and CE, so lessons do too
+    .replace(/(\d)(\s?)BC\b/g, "$1$2BCE")
+    .replace(/\bAD\s?(\d{1,4})\b/g, "$1 CE");
 }

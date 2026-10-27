@@ -77,7 +77,7 @@ export function CauseGraphBlock({ block }: { block: GraphT }) {
                       type="button"
                       onClick={() => openCanvas(n.id)}
                       title={`${n.label} — open on canvas`}
-                      className={`flex h-full w-full items-center gap-1.5 overflow-hidden rounded-[3px] px-1.5 text-left font-hand leading-[1.05] text-text hover:bg-hover ${
+                      className={`flex h-full w-full items-center gap-1.5 overflow-hidden rounded-[3px] px-1.5 text-left font-sans leading-[1.05] text-text hover:bg-hover ${
                         isEvent ? "border-[1.5px] border-text bg-surface text-[17px] font-bold" : "text-[15.5px]"
                       } ${lit ? "ring-2 ring-accent" : ""}`}
                     >

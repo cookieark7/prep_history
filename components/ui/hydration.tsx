@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useWorkspace } from "@/lib/store/workspace";
+import { startSync } from "@/lib/store/sync";
 
 /** Rehydrates the persisted store once on the client; renders children only after. */
 export function useHydrated() {
@@ -26,5 +27,14 @@ export function ThemeSync() {
   useEffect(() => {
     document.documentElement.style.setProperty("--reading-lh", String(lineHeight));
   }, [lineHeight]);
+  return null;
+}
+
+/** Starts lesson sync once the store has loaded (a no-op without accounts). */
+export function AccountSync() {
+  const hydrated = useHydrated();
+  useEffect(() => {
+    if (hydrated) void startSync();
+  }, [hydrated]);
   return null;
 }

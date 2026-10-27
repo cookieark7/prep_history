@@ -19,7 +19,7 @@ function TimelineView() {
     return (
       <div className="grid h-[calc(100vh-57px)] place-items-center px-6 text-center">
         <div>
-          <p className="font-serif text-[20px]">No timeline on the Stage yet.</p>
+          <p className="font-heading text-[20px]">No timeline in this lesson yet.</p>
           <p className="mt-1 text-[13.5px] text-muted">Ask about a sequence of events, or “what happened at the same time?”</p>
         </div>
       </div>
@@ -29,7 +29,7 @@ function TimelineView() {
     <div className="mx-auto max-w-[1400px] space-y-14 px-4 pb-40 pt-8 md:px-8">
       {timelines.map((t) => (
         <section key={t.id} id={`block-${t.id}`} data-block={t.id}>
-          <h2 className="mb-1 font-serif text-[24px] font-semibold">{t.title}</h2>
+          <h2 className="mb-1 font-heading text-[24px] font-semibold">{t.title}</h2>
           <p className="mb-4 text-[12.5px] italic text-muted">{t.because}</p>
           <TimelineChart block={t} full />
         </section>

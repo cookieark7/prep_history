@@ -28,14 +28,14 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred, current = f
       aria-label={`${TYPE_LABEL[block.type]}: ${block.title}`}
       className="group/block relative scroll-mt-20 rounded-[2px] outline-none"
     >
-      {/* soft ochre edge on arrival; keyed so each streamed section re-runs it */}
+      {/* a soft edge on arrival; keyed so each streamed section re-runs it */}
       {arrivedAt && <span key={arrivedAt} aria-hidden className="arrive pointer-events-none absolute -inset-x-3 -inset-y-2 rounded-[2px]" />}
       {patchedEntry && <span aria-hidden className="absolute -left-4 top-1 bottom-1 w-[3px] rounded-full bg-ochre" />}
       <header className="mb-3 flex items-start gap-3">
         <span className="mt-[3px] text-muted"><TypeIcon size={16} /></span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <h2 className={`font-serif text-[22px] font-semibold leading-[1.25] tracking-[-0.005em] ${flash ? "flash" : ""}`} key={flash ?? 0}>
+            <h2 className={`font-heading text-[22px] font-semibold leading-[1.25] tracking-[-0.005em] ${flash ? "flash" : ""}`} key={flash ?? 0}>
               {block.title}
             </h2>
             {pinned && <span className="text-[11px] text-muted" title="Pinned"><Icon.pin size={12} /></span>}
@@ -55,10 +55,7 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred, current = f
               </span>
             )}
           </div>
-          <p className="mt-1 text-[12.5px] leading-snug text-muted">
-            <span className="italic">{block.because}</span>
-            {summary && <span className="mono-tab ml-2 whitespace-nowrap text-[11px]">· {summary}</span>}
-          </p>
+          {summary && <p className="mt-1 text-[13px] leading-snug text-muted tnum">{summary}</p>}
         </div>
         <BlockMenu block={block} pinned={pinned} current={current} />
       </header>
@@ -96,7 +93,13 @@ function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; 
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-48 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+          {block.because && (
+            <>
+              <p className="px-2 pb-2 pt-1.5 text-[12.5px] leading-snug text-muted"><span className="font-semibold text-text">Why this is here.</span> {block.because}</p>
+              <div className="mb-1 h-px bg-rule" />
+            </>
+          )}
           {/* stays open so the label can flip to "Copied" */}
           <button
             type="button"

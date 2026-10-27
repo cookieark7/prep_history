@@ -39,13 +39,13 @@ export function FocusView() {
         <div className="mx-auto flex min-h-full max-w-[680px] flex-col items-center justify-center px-5 text-center">
           {streaming ? (
             <>
-              <p className="font-serif text-[22px]">Building your quiz…</p>
+              <p className="font-heading text-[22px]">Building your quiz…</p>
               <div className="progress-rule mt-4 w-40" />
             </>
           ) : (
             <>
-              <p className="font-serif text-[22px]">No quiz yet.</p>
-              <p className="mt-1 text-[14px] text-muted">Build one from what is on the Stage.</p>
+              <p className="font-heading text-[22px]">No quiz yet.</p>
+              <p className="mt-1 text-[14px] text-muted">Build one from this lesson.</p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {graph && <GraphQuizStart graph={graph} />}
                 <button type="button" onClick={() => void sendTurn({ message: "Quiz me on what we covered." })} className="h-10 rounded-md border border-rule px-4 text-[14px] hover:bg-hover">Ask Chronicle for a quiz</button>
@@ -115,7 +115,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
       <div className="fixed left-0 right-0 top-0 z-10 flex h-14 items-center justify-between px-5 text-[13px] text-muted">
         <span className="truncate pr-4">{quiz.title}</span>
         <span className="flex items-center gap-4">
-          {!finished && <span className="mono-tab">{idx + 1} / {items.length}</span>}
+          {!finished && <span className="tnum text-[12px]">{idx + 1} / {items.length}</span>}
           <button type="button" onClick={onExit} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-hover hover:text-text">
             <kbd className="font-mono text-[11px]">Esc</kbd> Exit
           </button>
@@ -130,7 +130,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
             <p className="mb-2 text-[12px] uppercase tracking-wide text-muted">
               {item.kind === "mcq" ? "Multiple choice" : item.kind === "chronology" ? "Chronology" : "Match"}
             </p>
-            <h2 className="mb-6 font-serif text-[26px] leading-[1.25]">{item.stem}</h2>
+            <h2 className="mb-6 font-heading text-[26px] leading-[1.25]">{item.stem}</h2>
             {item.kind === "mcq" && <McqView item={item} onDone={onDone} locked={null} />}
             {item.kind === "chronology" && <ChronologyView item={item} onDone={onDone} />}
             {item.kind === "match" && <MatchView item={item} onDone={onDone} />}
@@ -139,7 +139,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
               <div className="fade-up mt-6 border-t border-rule pt-4">
                 <p className={`text-[13.5px] font-medium ${results[item.id] ? "text-ok" : "text-brick"}`}>{results[item.id] ? "Correct." : "Not quite."}</p>
                 {(item.kind === "mcq" ? item.why : item.kind === "match" ? item.explain : null) && (
-                  <p className="mt-1 font-serif text-[17px] leading-relaxed">{item.kind === "mcq" ? item.why : item.kind === "match" ? item.explain : ""}</p>
+                  <p className="mt-1 text-[17px] leading-relaxed">{item.kind === "mcq" ? item.why : item.kind === "match" ? item.explain : ""}</p>
                 )}
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button type="button" onClick={next} className="inline-flex h-10 items-center gap-1.5 rounded-md bg-text px-4 text-[14px] text-bg">
@@ -220,7 +220,7 @@ function EndScreen({ quiz, results, onRestart, onExit }: { quiz: QuizBlock; resu
   return (
     <div className="fade-up">
       <p className="text-[12px] uppercase tracking-wide text-muted">Done</p>
-      <h2 className="mt-1 font-serif text-[30px] leading-tight">{right} of {quiz.items.length} correct</h2>
+      <h2 className="mt-1 font-heading text-[30px] leading-tight">{right} of {quiz.items.length} correct</h2>
       <p className="mt-1 text-[14px] text-muted">{weak.length ? "The weaker spots are marked below. Practise them, or go back and reread." : "Everything held up. Try explaining one link out loud before moving on."}</p>
 
       {evs.length > 0 && (

@@ -134,8 +134,8 @@ export function LineageBlock({ block }: { block: LineageT }) {
                   aria-pressed={isSel}
                   aria-label={`${p.name}, ${formatRange(p.start, p.end, p.approx)}`}
                 >
-                  <span className="truncate font-serif text-[14.5px] font-semibold leading-tight">{p.name}</span>
-                  <span className="mono-tab text-[11px] text-muted">{formatRange(p.start, p.end, p.approx) || "dates unknown"}</span>
+                  <span className="truncate font-heading text-[14.5px] font-semibold leading-tight">{p.name}</span>
+                  <span className="tnum text-[11px] text-muted">{formatRange(p.start, p.end, p.approx) || "dates unknown"}</span>
                 </button>
                 {multi && <span className="absolute -top-2 left-2 rounded-[2px] bg-surface px-1 text-[10px] italic text-muted" title={`Reached by ${sources(p.id).length} paths`}>also here</span>}
                 {kids > 0 && (
@@ -278,8 +278,8 @@ function PersonDrawer({ block, person, onClose }: { block: LineageT; person: Per
     <div className="fade-up mt-3 rounded-[2px] border border-rule bg-surface p-4">
       <div className="flex items-start gap-3">
         <div className="flex-1">
-          <p className="font-serif text-[19px] font-semibold">{person.name}</p>
-          <p className="mono-tab text-muted">{formatRange(person.start, person.end, person.approx) || "dates unknown"}{person.approx && " · approximate"}</p>
+          <p className="font-heading text-[19px] font-semibold">{person.name}</p>
+          <p className="tnum text-[12px] text-muted">{formatRange(person.start, person.end, person.approx) || "dates unknown"}{person.approx && " · approximate"}</p>
         </div>
         <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close size={14} /></button>
       </div>

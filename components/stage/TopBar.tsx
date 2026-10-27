@@ -3,16 +3,18 @@
 import { useEffect, useState } from "react";
 import type { Depth, Mode } from "@/lib/contracts";
 import Link from "next/link";
+import * as Popover from "@radix-ui/react-popover";
 import { useWorkspace } from "@/lib/store/workspace";
 import { Icon } from "@/components/ui/icons";
 import { JumpToSheet, LessonProgress } from "./LessonRail";
 import { copyLesson } from "@/lib/copy-actions";
 
+// Plain names for the four views of one lesson (the ids stay as the contracts have them).
 export const MODES: { id: Mode; label: string }[] = [
-  { id: "reader", label: "Reader" },
-  { id: "canvas", label: "Canvas" },
+  { id: "reader", label: "Read" },
+  { id: "canvas", label: "Map" },
   { id: "timeline", label: "Timeline" },
-  { id: "focus", label: "Focus" },
+  { id: "focus", label: "Quiz" },
 ];
 const DEPTHS: { id: Depth; label: string }[] = [
   { id: "brief", label: "Brief" },
@@ -44,65 +46,49 @@ export function Segmented<T extends string>({
 }
 
 export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPalette: () => void }) {
-  const topic = useWorkspace((s) => s.topic);
   const mode = useWorkspace((s) => s.mode);
-  const depth = useWorkspace((s) => s.depth);
   const chatOpen = useWorkspace((s) => s.chatOpen);
-  const historyCount = useWorkspace((s) => s.history.filter((h) => h.status !== "undone").length);
   const { hidden, progress } = useScrollChrome();
+  const setMode = (m: Mode) => useWorkspace.getState().setMode(m);
 
   return (
     <header
-      className={`@container sticky top-0 z-20 border-b border-rule bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-[2px] transition-transform duration-200 ${
+      className={`sticky top-0 z-20 border-b border-rule bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur-[2px] transition-transform duration-200 ${
         hidden ? "-translate-y-full" : ""
       }`}
     >
-      <div className="flex h-14 min-w-0 items-center gap-3 px-4 md:px-6">
+      <div className="flex h-14 min-w-0 items-center gap-1 px-2 md:gap-3 md:px-6">
         {!chatOpen && (
           <button
             type="button"
             onClick={() => useWorkspace.getState().setChatOpen(true)}
-            className="hidden h-8 w-8 place-items-center rounded-md text-muted hover:bg-hover hover:text-text md:grid"
+            className="hidden h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover hover:text-text md:grid"
             aria-label="Open chat (Cmd+\)"
             title="Open chat (⌘\)"
           >
             <Icon.sidebar />
           </button>
         )}
-        <Link href="/" className="font-serif text-[17px] font-semibold md:hidden">Chronicle</Link>
-        <label className="sr-only" htmlFor="topic">Lesson topic</label>
-        <input
-          id="topic"
-          value={topic}
-          onChange={(e) => useWorkspace.getState().setTopic(e.target.value)}
-          placeholder="Untitled lesson"
-          className="hidden min-w-0 flex-1 truncate rounded-md bg-transparent px-1.5 py-1 font-serif text-[17px] text-text outline-none hover:bg-hover focus:bg-hover sm:block"
-        />
-        <div className="ml-auto flex items-center gap-2">
-          <div className="hidden @[700px]:block">
-            <Segmented label="Mode" value={mode} options={MODES} onChange={(m) => useWorkspace.getState().setMode(m)} />
-          </div>
-          <Segmented label="Depth" size="sm" value={depth} options={DEPTHS} onChange={(d) => useWorkspace.getState().setDepth(d)} />
-          <button
-            type="button"
-            onClick={onHistory}
-            className="relative grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover hover:text-text"
-            aria-label={`Lesson history (${historyCount} changes)`}
-            title="Lesson history"
-          >
-            <Icon.clock />
-          </button>
+        <Link href="/start" className="grid h-11 w-11 place-items-center rounded-md text-muted hover:bg-hover hover:text-text md:hidden" aria-label="Back to Learn">
+          <Icon.back size={18} />
+        </Link>
+        <nav aria-label="Lesson view" className="hidden h-14 items-stretch md:flex">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={mode === m.id}
+              onClick={() => setMode(m.id)}
+              className={`-mb-px border-b-2 px-3 text-[14.5px] ${mode === m.id ? "border-line font-semibold text-text" : "border-transparent text-muted hover:text-text"}`}
+            >
+              {m.label}
+            </button>
+          ))}
+        </nav>
+        <ViewMenu mode={mode} onChange={setMode} />
+        <div className="ml-auto flex items-center gap-1">
           <JumpToSheet />
-          <CopyLessonButton />
-          <button
-            type="button"
-            onClick={onPalette}
-            className="hidden h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover hover:text-text sm:grid"
-            aria-label="Command palette (Cmd+K)"
-            title="Commands (⌘K)"
-          >
-            <Icon.search />
-          </button>
+          <MoreMenu onHistory={onHistory} onPalette={onPalette} />
         </div>
       </div>
       {mode === "reader" && <LessonProgress className="md:hidden" />}
@@ -110,6 +96,87 @@ export function TopBar({ onHistory, onPalette }: { onHistory: () => void; onPale
         <div className="h-px bg-accent transition-[width] duration-100" style={{ width: `${progress * 100}%` }} />
       </div>
     </header>
+  );
+}
+
+/** Phones: the four views behind one button, so the lesson keeps the screen. */
+function ViewMenu({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger asChild>
+        <button type="button" className="inline-flex h-11 items-center gap-1.5 rounded-md px-2.5 text-[15px] font-semibold hover:bg-hover md:hidden" aria-label={`View: ${MODES.find((m) => m.id === mode)?.label}. Change view`}>
+          {MODES.find((m) => m.id === mode)?.label} <Icon.chevronDown size={14} className="text-muted" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align="start" sideOffset={4} className="fade-up z-50 w-48 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={mode === m.id}
+              onClick={() => { onChange(m.id); setOpen(false); }}
+              className={`flex h-11 w-full items-center gap-2 rounded px-2.5 text-left text-[15px] hover:bg-hover ${mode === m.id ? "font-semibold" : ""}`}
+            >
+              {m.label}
+              {mode === m.id && <Icon.check size={14} className="ml-auto" />}
+            </button>
+          ))}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
+/** Everything that is not reading: how much of each article to show, the change history, copy, commands. */
+function MoreMenu({ onHistory, onPalette }: { onHistory: () => void; onPalette: () => void }) {
+  const depth = useWorkspace((s) => s.depth);
+  const historyCount = useWorkspace((s) => s.history.filter((h) => h.status !== "undone").length);
+  const hasBlocks = useWorkspace((s) => s.blocks.length > 0);
+  const [copied, setCopied] = useState(false);
+  const item = "flex h-10 w-full items-center gap-2.5 rounded px-2.5 text-left text-[14px] hover:bg-hover disabled:opacity-40";
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button type="button" className="grid h-11 w-11 place-items-center rounded-md text-muted hover:bg-hover hover:text-text md:h-9 md:w-9" aria-label="More">
+          <Icon.more />
+        </button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+          <p className="px-2.5 pb-1.5 pt-2 text-[12.5px] text-muted">How much of each article to show</p>
+          <div className="px-1.5 pb-2">
+            <Segmented label="How much of each article to show" size="sm" value={depth} options={DEPTHS} onChange={(d) => useWorkspace.getState().setDepth(d)} />
+          </div>
+          <div className="my-1 h-px bg-rule" />
+          <Popover.Close asChild>
+            <button type="button" className={item} onClick={onHistory}>
+              <Icon.clock size={15} /> Lesson history <span className="ml-auto text-[12.5px] text-muted tnum">{historyCount}</span>
+            </button>
+          </Popover.Close>
+          <button
+            type="button"
+            className={item}
+            disabled={!hasBlocks}
+            onClick={async () => {
+              if (await copyLesson()) {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }
+            }}
+          >
+            {copied ? <Icon.check size={15} className="text-ok" /> : <Icon.article size={15} />}
+            <span aria-live="polite">{copied ? "Copied" : "Copy lesson"}</span>
+          </button>
+          <Popover.Close asChild>
+            <button type="button" className={`${item} pointer-coarse:hidden`} onClick={onPalette}>
+              <Icon.search size={15} /> Commands <kbd className="ml-auto font-mono text-[11.5px] text-muted">⌘K</kbd>
+            </button>
+          </Popover.Close>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -131,26 +198,4 @@ function useScrollChrome() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return { hidden, progress };
-}
-
-function CopyLessonButton() {
-  const [copied, setCopied] = useState(false);
-  const has = useWorkspace((s) => s.blocks.length > 0);
-  if (!has) return null;
-  return (
-    <button
-      type="button"
-      onClick={async () => {
-        if (await copyLesson()) {
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1500);
-        }
-      }}
-      className="hidden h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover hover:text-text sm:grid"
-      aria-label={copied ? "Copied" : "Copy lesson"}
-      title={copied ? "Copied" : "Copy lesson"}
-    >
-      {copied ? <Icon.check className="text-ok" /> : <Icon.article />}
-    </button>
-  );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { NoteKind } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { sendTurn } from "@/lib/stream-client";
+import { ACCOUNTS } from "@/lib/auth";
 
 export const NOTE_KINDS: { id: NoteKind; label: string; cls: string; color: string }[] = [
   { id: "remember", label: "Remember", cls: "note-remember", color: "var(--ochre)" },
@@ -14,11 +15,29 @@ export const NOTE_KINDS: { id: NoteKind; label: string; cls: string; color: stri
 /** Create a note on a quote; fires note_created so the Director can respond. */
 export function saveNote(n: { blockId: string; kind: NoteKind; quote: string; text: string; section: string | null }) {
   useWorkspace.getState().addNote(n);
+  if (n.kind === "remember" && ACCOUNTS) void rememberCard(n);
   const label = NOTE_KINDS.find((k) => k.id === n.kind)!.label;
   void sendTurn({
     event: { event: "note_created", block_id: n.blockId, kind: n.kind, text: n.text, quote: n.quote },
     echo: `${label}: “${n.quote.length > 80 ? n.quote.slice(0, 77) + "…" : n.quote}”${n.text ? ` — ${n.text}` : ""}`,
   });
+}
+
+/** A "Remember" note also goes into the review queue (docs/PROTOTYPE_PLAN.md, section 7.2). */
+function rememberCard(n: { blockId: string; quote: string; text: string }) {
+  const q = n.quote.replace(/\s+/g, " ").trim();
+  const short = q.length > 110 ? `${q.slice(0, 107).replace(/\s+\S*$/, "")}…` : q;
+  const back = n.text ? `${q} (your note: ${n.text})` : q;
+  return fetch("/api/review/cards", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      lessonId: useWorkspace.getState().lessonId,
+      front: `What do you remember about this: “${short}”?`,
+      back: back.length > 400 ? `${back.slice(0, 399)}…` : back,
+      sourceRef: { block: n.blockId, node: null },
+    }),
+  }).catch(() => {}); // the note itself is kept either way
 }
 
 export function NoteForm({
@@ -32,7 +51,7 @@ export function NoteForm({
   };
   return (
     <div className="w-72 rounded-md border border-rule bg-surface p-3 text-[13px] text-text shadow-[var(--shadow-float)]">
-      <p className="mb-2 line-clamp-2 font-serif text-[14px] italic text-muted">“{quote}”</p>
+      <p className="mb-2 line-clamp-2 text-[14px] italic text-muted">“{quote}”</p>
       <div role="radiogroup" aria-label="Note kind" className="mb-2 flex gap-1">
         {NOTE_KINDS.map((k) => (
           <button

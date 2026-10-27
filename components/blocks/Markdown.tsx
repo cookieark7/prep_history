@@ -4,6 +4,7 @@ import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import type { Confidence } from "@/lib/contracts";
 import { ConfidenceTag } from "@/components/ui/marks";
+import { SourceMark } from "./SourceMark";
 import { findMentions, preprocessMarkdown, type EntityType } from "@/lib/entities";
 import { useWorkspace } from "@/lib/store/workspace";
 import { sendTurn } from "@/lib/stream-client";
@@ -11,7 +12,7 @@ import { TYPE_LABEL } from "@/lib/store/reducer";
 import { scrollToEl } from "@/lib/scroll";
 
 const urlTransform = (url: string) =>
-  /^(entity|conf):/.test(url) ? url : defaultUrlTransform(url);
+  /^(entity|conf|src):/.test(url) ? url : defaultUrlTransform(url);
 
 export function Markdown({ md, blockId }: { md: string; blockId: string }) {
   const source = preprocessMarkdown(md);
@@ -21,6 +22,7 @@ export function Markdown({ md, blockId }: { md: string; blockId: string }) {
       components={{
         a: ({ href = "", children }) => {
           if (href.startsWith("conf:")) return <ConfidenceTag c={href.slice(5) as Confidence} />;
+          if (href.startsWith("src:")) return <SourceMark id={href.slice(4)} />;
           if (href.startsWith("entity:")) {
             return <Entity name={String(children)} type={href.slice(7) as EntityType} blockId={blockId} />;
           }
@@ -56,7 +58,7 @@ function Entity({ name, type, blockId }: { name: string; type: EntityType; block
           className="fade-up z-50 w-72 rounded-md border border-rule bg-surface p-3 font-sans text-[13px] text-text shadow-[var(--shadow-float)]"
         >
           <p className="text-[11px] uppercase tracking-wide text-muted">{TYPE_WORD[type]}</p>
-          <p className="mt-0.5 font-serif text-[17px] leading-tight">{name}</p>
+          <p className="mt-0.5 font-heading text-[17px] leading-tight">{name}</p>
           {mentions.length > 0 ? (
             <ul className="mt-2 space-y-1 border-t border-rule pt-2">
               {mentions.map((m) => (
@@ -67,7 +69,7 @@ function Entity({ name, type, blockId }: { name: string; type: EntityType; block
                     onClick={() => scrollToBlock(m.blockId, m.node, flashBlock)}
                   >
                     <span className="text-muted">{m.where}:</span> {m.label}
-                    {m.when && <span className="mono-tab ml-1 text-muted">{m.when}</span>}
+                    {m.when && <span className="tnum text-[12px] ml-1 text-muted">{m.when}</span>}
                   </button>
                 </li>
               ))}

@@ -1,82 +1,101 @@
 @import "tailwindcss";
 
-/* ---------- design tokens (Part 7) ---------- */
+/* ---------- design tokens: a calm study app with one line through time ----------
+   (.impeccable/surfaces/app-start-page-tsx.md). White pages on a light neutral frame, near-black ink,
+   railway maroon for actions, station-board yellow only for "you are here" and things due, signal
+   green and red only where they mean something. One light theme and one dark one on
+   html[data-theme]; saved "paper" and "sepia" load as light and "ink" as dark (normalizeTheme in
+   lib/store/workspace.ts and the theme script in layout.tsx). The homepage keeps its own `.lp`
+   tokens in components/landing/landing.css until it is redesigned. */
 :root,
-:root[data-theme="paper"] {
-  --bg: #faf7f2;
-  --surface: #ffffff;
-  --text: #1f1b16;
-  --muted: #6b645a;
-  --rule: #e6dfd3;
-  --rule-strong: #d5ccbc;
-  --hover: rgba(31, 27, 22, 0.045);
-  --accent: #8c2f2b;
-  --accent-soft: rgba(140, 47, 43, 0.09);
-  --ochre: #c08a2b;
-  --brick: #b5482f;
-  --violet: #7a5ba8;
-  --ok: #4f7a4a;
-  --l-structural: #4c6a92;
-  --l-enabling: #7a8b5a;
-  --l-trigger: #b5482f;
-  --l-contingency: #8a6ba8;
-  --l-consequence: #c08a2b;
-  --shadow-float: 0 1px 2px rgba(31, 27, 22, 0.06), 0 8px 24px rgba(31, 27, 22, 0.1);
+:root[data-theme="light"] {
+  --bg: #ffffff; /* the page */
+  --frame: #f7f7f5; /* sidebar, bars, quiet panels */
+  --surface: #ffffff; /* popovers and raised panels */
+  --sunk: #efefec; /* chips and fields at rest */
+  --text: #1d1d1b;
+  --muted: #5f5e5a; /* 6.5:1 on the page */
+  --rule: #e6e5e1;
+  --rule-strong: #cfcec9;
+  --hover: rgba(29, 29, 27, 0.05);
+  --accent: #8a2b22; /* railway maroon: primary actions, links, focus (8.6:1) */
+  --accent-ink: #6f2019; /* hover and pressed */
+  --accent-soft: rgba(138, 43, 34, 0.08);
+  --board: #f2c230; /* station-board yellow: fills only, always with --board-ink on it */
+  --board-ink: #1d1d1b;
+  --line: #1d1d1b; /* the route */
+  --ochre: #946000; /* "remember" marks and the needle: 5.4:1 */
+  --brick: #c0281e; /* contested, overdue, errors: 5.9:1 */
+  --violet: #6b4fbb;
+  --ok: #1f7a3a; /* settled, correct, established */
+  /* cause-map layers: all at least 5:1 on the page */
+  --l-structural: #2f5da8;
+  --l-enabling: #4a7a2c;
+  --l-trigger: #c0281e;
+  --l-contingency: #7a4fb8;
+  --l-consequence: #946000;
+  --shadow-float: 0 1px 2px rgba(29, 29, 27, 0.08), 0 10px 28px -6px rgba(29, 29, 27, 0.16);
   color-scheme: light;
 }
 
-:root[data-theme="sepia"] {
-  --bg: #f1e7d3;
-  --surface: #f7eedc;
-  --text: #3b2f20;
-  --muted: #76664f;
-  --rule: #ddcdb0;
-  --rule-strong: #cbb894;
-  --hover: rgba(59, 47, 32, 0.06);
-  --accent-soft: rgba(140, 47, 43, 0.1);
-}
-
-:root[data-theme="ink"] {
-  --bg: #14120f;
-  --surface: #1c1915;
-  --text: #e9e3d8;
-  --muted: #a1988a;
-  --rule: #2f2a23;
-  --rule-strong: #443d33;
-  --hover: rgba(233, 227, 216, 0.06);
-  --accent: #d0716a;
-  --accent-soft: rgba(208, 113, 106, 0.14);
-  --ochre: #d9a648;
-  --brick: #d9735a;
-  --violet: #a68ad1;
-  --ok: #8cb784;
-  --l-structural: #7f9cc4;
-  --l-enabling: #a5b884;
-  --l-trigger: #dc7a5f;
-  --l-contingency: #b49ad0;
-  --l-consequence: #d9a648;
-  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
+:root[data-theme="dark"] {
+  --bg: #191918;
+  --frame: #202020;
+  --surface: #252524;
+  --sunk: #2c2c2a;
+  --text: #ecebe8;
+  --muted: #a3a29d;
+  --rule: #31312e;
+  --rule-strong: #4a4945;
+  --hover: rgba(236, 235, 232, 0.06);
+  --accent: #ec8b7c;
+  --accent-ink: #f4a99c;
+  --accent-soft: rgba(236, 139, 124, 0.12);
+  --board: #e8b72a;
+  --board-ink: #1d1d1b;
+  --line: #ecebe8;
+  --ochre: #dcaa45;
+  --brick: #f07a6b;
+  --violet: #b39cf0;
+  --ok: #6cc58a;
+  /* all at least 5.7:1 on the page */
+  --l-structural: #86a7d4;
+  --l-enabling: #a9c07f;
+  --l-trigger: #f07a6b;
+  --l-contingency: #c39ad8;
+  --l-consequence: #dcaa45;
+  --shadow-float: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -6px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-frame: var(--frame);
   --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-rule: var(--rule);
   --color-rule-strong: var(--rule-strong);
   --color-hover: var(--hover);
   --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
+  --color-board: var(--board);
+  --color-board-ink: var(--board-ink);
+  --color-line: var(--line);
   --color-ochre: var(--ochre);
   --color-brick: var(--brick);
   --color-violet: var(--violet);
   --color-ok: var(--ok);
-  --font-serif: var(--font-source-serif), Charter, Georgia, serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --font-hand: var(--font-caveat), "Comic Sans MS", cursive;
+  /* Atkinson Hyperlegible Next for reading, UI and headings; Archivo, narrow and heavy, only for
+     era names on station boards and the wordmark; Atkinson Mono only for keys and code. */
+  --font-sans: var(--font-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --font-heading: var(--font-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --font-board: var(--font-archivo), "Arial Narrow", sans-serif;
+  --font-mono: var(--font-atkinson-mono), ui-monospace, Menlo, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 /* ---------- base ---------- */
@@ -92,7 +111,15 @@ body {
   text-rendering: optimizeLegibility;
 }
 ::selection {
-  background: color-mix(in srgb, var(--ochre) 30%, transparent);
+  background: color-mix(in srgb, var(--board) 55%, transparent);
+  color: var(--text);
+}
+input,
+textarea {
+  caret-color: var(--accent);
+}
+html {
+  scrollbar-color: var(--rule-strong) transparent;
 }
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -106,15 +133,25 @@ button:disabled {
   cursor: default;
 }
 
-/* reading measure */
+/* station-board lettering: era names and the wordmark */
+.board-type {
+  font-family: var(--font-board);
+  font-stretch: 75%;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* reading measure: long text is set in Atkinson Hyperlegible Next */
 .reading {
-  font-family: var(--font-serif);
-  font-size: 20px;
+  font-family: var(--font-sans);
+  font-size: 19px;
   line-height: var(--reading-lh, 1.7);
 }
 @media (max-width: 767px) {
   .reading {
-    font-size: 18px;
+    font-size: 17.5px;
     line-height: 1.65;
   }
 }
@@ -132,10 +169,9 @@ button:disabled {
   padding-left: 1.2em;
 }
 
-.mono-tab {
-  font-family: var(--font-mono);
+/* dates and counts: tabular figures in the reading face (mono is for keys and code only) */
+.tnum {
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
 }
 
 /* ---------- motion ---------- */

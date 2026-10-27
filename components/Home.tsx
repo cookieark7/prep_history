@@ -1,190 +1,254 @@
 "use client";
 
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DEFAULT_SOURCE_PROMPT } from "@/lib/composer";
 import { PasteCard, useComposer, type ComposerSubmit } from "@/components/chat/useComposer";
-import { useRouter } from "next/navigation";
 import type { Level } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
-import { useHydrated, ThemeSync } from "@/components/ui/hydration";
-import { getLesson, listLessons, type LessonSummary } from "@/lib/store/lessons";
+import { useHydrated } from "@/components/ui/hydration";
+import { openLesson, useLessonList } from "@/lib/store/sync";
 import { sendTurn } from "@/lib/stream-client";
-import { formatYear } from "@/lib/layout/years";
+import { formatRange } from "@/lib/layout/years";
 import { Icon } from "@/components/ui/icons";
+import { AppShell } from "@/components/shell/AppShell";
+import { RouteLine, RouteList } from "@/components/route/RouteLine";
+import { StationDetails } from "@/components/route/StationDetails";
+import { PARTS, STATIONS, stationById, stationsOf, type Station } from "@/content/syllabus";
+import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
+import { useReviewStats, waitingCount, type ReviewStatus } from "@/lib/review/useReviewStats";
 
-const ERAS = ["Ancient", "Medieval", "Early modern", "Modern"] as const;
 const LEVELS: { id: Level; label: string }[] = [
   { id: "new", label: "New to this" },
   { id: "some", label: "Some background" },
   { id: "advanced", label: "Revising" },
 ];
-const EXAMPLES = [
-  "Why did Rome beat Carthage?",
-  "How did the Mughal empire decline?",
-  "What caused the French Revolution?",
-  "Who succeeded Ashoka, and why did it fall apart?",
-];
 
 export function Home() {
   const hydrated = useHydrated();
+  const routeReady = useRouteHydrated();
   const router = useRouter();
-  const [era, setEra] = useState<(typeof ERAS)[number] | null>(null);
   const [level, setLevel] = useState<Level>("some");
 
-  const curId = useWorkspace((s) => s.lessonId);
-  const curTopic = useWorkspace((s) => s.topic);
-  const curCount = useWorkspace((s) => s.blocks.length);
-  const current = curCount ? { id: curId, topic: curTopic, n: curCount } : null;
+  const part = useRoute((s) => s.part);
+  const stationId = useRoute((s) => s.station);
+  const started = useRoute((s) => s.started);
+  const review = useReviewStats(hydrated);
 
-  const recent = useMemo<LessonSummary[]>(() => (hydrated ? listLessons() : []), [hydrated]);
-
-  const start = ({ text, card }: ComposerSubmit) => {
-    const t = text.trim() || (card ? DEFAULT_SOURCE_PROMPT : "");
-    if (!t) return;
-    useWorkspace.getState().startLesson(text.trim() || "Pasted reading", level);
-    void sendTurn({ message: era ? `${t} (era: ${era})` : t, sourceText: card?.text, attachmentWords: card?.words });
+  const begin = (message: string, opts: { topic?: string; card?: ComposerSubmit["card"]; station?: string } = {}) => {
+    useWorkspace.getState().startLesson(opts.topic ?? message, level);
+    void sendTurn({ message, sourceText: opts.card?.text, attachmentWords: opts.card?.words });
+    if (opts.station) useRoute.getState().markStarted(opts.station, useWorkspace.getState().lessonId);
     router.push("/study");
   };
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const composer = useComposer({ ref: inputRef, streaming: false, onSubmit: start });
+  const composer = useComposer({
+    ref: inputRef,
+    streaming: false,
+    onSubmit: ({ text, card }) => {
+      const t = text.trim() || (card ? DEFAULT_SOURCE_PROMPT : "");
+      if (t) begin(t, { topic: text.trim() || "Pasted reading", card });
+    },
+  });
   const onSubmit = (e: FormEvent) => { e.preventDefault(); void composer.submit(); };
 
-  return (
-    <main className="min-h-screen bg-bg">
-      <ThemeSync />
-      <div className="mx-auto flex min-h-screen max-w-[720px] flex-col px-4 pb-16 pt-[14vh] md:px-6">
-        <p className="mb-10 text-center font-serif text-[17px] font-semibold tracking-tight text-muted">Chronicle</p>
-        <h1 className="text-center font-serif text-[32px] font-normal leading-[1.15] tracking-[-0.01em] md:text-[40px]">
-          What do you want to understand?
-        </h1>
+  const stations = stationsOf(part);
+  const here = stationById(stationId) ?? stations[0];
+  const startedCount = STATIONS.filter((s) => started[s.id]).length;
+  const partLabel = PARTS.find((p) => p.id === part)?.label ?? "";
+  const details = (s: Station) => <StationDetails station={s} onAsk={(q, topic) => begin(q, { topic, station: s.id })} />;
 
-        <form onSubmit={onSubmit} className="mt-8">
-          <div className="rounded-md border border-rule-strong bg-surface focus-within:border-text">
+  return (
+    <AppShell place="learn">
+      <main className="mx-auto max-w-[1120px] px-4 pb-16 pt-6 md:px-10 md:pt-10">
+        <h1 className="font-heading text-[28px] font-bold leading-tight tracking-[-0.015em] md:text-[34px]">History for GS Paper I</h1>
+        <p className="mt-1.5 text-[15px] text-muted">
+          {STATIONS.length} stations from the Stone Age to the Cold War{routeReady && startedCount > 0 ? ` · you have started ${startedCount}` : ""}
+        </p>
+
+        <form onSubmit={onSubmit} className="mt-6">
+          <div className="rounded-lg border border-rule-strong bg-bg transition-colors focus-within:border-accent">
             {composer.card && <PasteCard card={composer.card} onRemove={() => composer.setCard(null)} />}
             <label htmlFor="home-composer" className="sr-only">Topic or question</label>
             <textarea
               id="home-composer"
               ref={inputRef}
-              autoFocus
-              rows={3}
+              rows={2}
               maxLength={1000}
               value={composer.text}
               onChange={(e) => composer.setText(e.target.value)}
               onKeyDown={composer.onKeyDown}
               onPaste={composer.onPaste}
-              placeholder={composer.card ? "What do you want from this? (optional)" : "A topic, a question, or paste a paragraph you're reading"}
-              className="block min-h-[88px] w-full resize-none bg-transparent px-4 pt-3.5 font-serif text-[19px] leading-[26px] outline-none placeholder:text-muted"
+              placeholder={composer.card ? "What do you want from this? (optional)" : "Ask about any topic, person, place or year, or paste a paragraph you're reading"}
+              className="block min-h-[64px] w-full resize-none bg-transparent px-4 pt-3.5 text-[17px] leading-[25px] outline-none! placeholder:text-muted"
             />
-            <div className="flex items-center justify-end px-3 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-2.5 pb-2.5 pt-1">
+              <div className="flex gap-0.5" role="radiogroup" aria-label="Your level">
+                {LEVELS.map((l) => (
+                  <button
+                    key={l.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={level === l.id}
+                    onClick={() => setLevel(l.id)}
+                    className={`h-9 rounded-md px-2.5 text-[13.5px] ${level === l.id ? "bg-sunk font-semibold text-text" : "text-muted hover:bg-hover hover:text-text"}`}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
               <button
                 type="submit"
                 disabled={!composer.canSend}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-accent px-3.5 text-[13.5px] font-medium text-surface disabled:bg-rule disabled:text-muted"
+                className="ml-auto inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg transition-[background-color,transform] duration-150 hover:bg-accent-ink active:scale-[0.97] disabled:bg-sunk disabled:text-muted"
               >
-                Start <Icon.chevronRight size={14} />
+                Start lesson <Icon.arrowRight size={15} />
               </button>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Era">
-              {ERAS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  aria-pressed={era === e}
-                  onClick={() => setEra(era === e ? null : e)}
-                  className={`h-8 rounded-md border px-2.5 text-[12.5px] ${era === e ? "border-text bg-text text-bg" : "border-rule text-muted hover:border-rule-strong hover:text-text"}`}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Your level">
-              {LEVELS.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={level === l.id}
-                  onClick={() => setLevel(l.id)}
-                  className={`h-8 rounded-md px-2.5 text-[12.5px] ${level === l.id ? "bg-accent-soft text-accent" : "text-muted hover:text-text"}`}
-                >
-                  {l.label}
-                </button>
-              ))}
             </div>
           </div>
         </form>
 
-        <ul className="mt-10 space-y-1.5">
-          {EXAMPLES.map((ex) => (
-            <li key={ex}>
-              <button
-                type="button"
-                onClick={() => start({ text: ex, card: null })}
-                className="font-serif text-[18px] italic text-muted underline-offset-4 hover:text-text hover:underline"
-              >
-                {ex}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-5 lg:hidden">
+          <ReviewPanel status={review} compact />
+        </div>
 
-        {hydrated && (current || recent.length > 0) && (
-          <section className="mt-14">
-            <h2 className="mb-2 text-[12px] font-medium uppercase tracking-wide text-muted">Continue</h2>
-            <ul className="border-t border-rule">
-              {current && (
-                <ContinueRow
-                  topic={current.topic || "Current lesson"}
-                  meta={`${current.n} blocks · open now`}
-                  period={null}
-                  onClick={() => router.push("/study")}
-                />
-              )}
-              {recent.filter((r) => r.id !== current?.id).map((r) => (
-                <ContinueRow
-                  key={r.id}
-                  topic={r.topic}
-                  meta={`${r.blockCount} blocks · ${new Date(r.updatedAt).toLocaleDateString()}`}
-                  period={r.period}
-                  onClick={() => {
-                    const snap = getLesson(r.id);
-                    if (snap) useWorkspace.getState().loadSnapshot(snap);
-                    router.push("/study");
-                  }}
-                />
+        <section aria-labelledby="route-heading" className="mt-10">
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-rule">
+            <h2 id="route-heading" className="pb-2 text-[18px] font-semibold">The syllabus</h2>
+            <div className="-mb-px flex overflow-x-auto scroll-thin" role="group" aria-label="Part of the syllabus">
+              {PARTS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={part === p.id}
+                  onClick={() => useRoute.getState().setPart(p.id)}
+                  className={`h-10 shrink-0 whitespace-nowrap border-b-2 px-3 text-[14.5px] ${part === p.id ? "border-line font-semibold text-text" : "border-transparent text-muted hover:text-text"}`}
+                >
+                  {p.label}
+                </button>
               ))}
-            </ul>
-          </section>
-        )}
-      </div>
-    </main>
+            </div>
+          </div>
+
+          {routeReady ? (
+            <>
+              <div className="mt-7 hidden lg:block">
+                <RouteLine stations={stations} current={here.id} started={started} onSelect={(id) => useRoute.getState().setStation(id)} label={`${partLabel} stations`} />
+              </div>
+              <div className="mt-4 lg:hidden">
+                <RouteList stations={stations} current={here.id} started={started} onSelect={(id) => useRoute.getState().setStation(id)} label={`${partLabel} stations`} details={details} />
+              </div>
+              <div className="mt-4 hidden grid-cols-[minmax(0,1fr)_320px] gap-12 lg:grid">
+                {details(here)}
+                <ReviewPanel status={review} />
+              </div>
+            </>
+          ) : (
+            <div aria-hidden className="h-[420px]" />
+          )}
+        </section>
+
+        <RecentLessons hydrated={hydrated} />
+      </main>
+    </AppShell>
   );
 }
 
-function ContinueRow({ topic, meta, period, onClick }: { topic: string; meta: string; period: [number, number] | null; onClick: () => void }) {
-  return (
-    <li className="border-b border-rule">
-      <button type="button" onClick={onClick} className="flex min-h-12 w-full items-center gap-4 px-1 py-2.5 text-left hover:bg-hover">
-        <MiniSpine period={period} />
-        <span className="flex-1 font-serif text-[16px]">{topic}</span>
-        <span className="text-[12px] text-muted">{meta}</span>
-      </button>
-    </li>
-  );
-}
+function ReviewPanel({ status, compact = false }: { status: ReviewStatus; compact?: boolean }) {
+  if (status.state === "off") return null;
+  const n = waitingCount(status);
+  const minutes = Math.max(1, Math.round((n * 15) / 60));
 
-/** A tiny time-spine marker: where in history (-3000 .. 2000) the lesson sits. */
-function MiniSpine({ period }: { period: [number, number] | null }) {
-  const lo = -3000, hi = 2025;
-  const pos = (y: number) => Math.max(0, Math.min(100, ((y - lo) / (hi - lo)) * 100));
+  if (compact) {
+    if (status.state !== "ready" || n === 0) return null;
+    return (
+      <Link href="/review" className="flex min-h-14 items-center gap-3 rounded-lg bg-frame px-4 py-3 hover:bg-hover">
+        <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-[3px] bg-board px-1.5 text-[14px] font-bold text-board-ink tnum">{n}</span>
+        <span className="flex-1 text-[15px]"><span className="font-semibold">To review today</span><span className="text-muted"> · about {minutes} min</span></span>
+        <Icon.arrowRight size={16} className="text-accent" />
+      </Link>
+    );
+  }
+
   return (
-    <span className="relative block h-1 w-14 shrink-0 rounded-full bg-rule" title={period ? `${formatYear(period[0])} to ${formatYear(period[1])}` : undefined}>
-      {period && (
-        <span className="absolute -top-px h-1.5 min-w-1.5 rounded-full bg-accent" style={{ left: `${pos(period[0])}%`, width: `${Math.max(3, pos(period[1]) - pos(period[0]))}%` }} />
+    <aside aria-labelledby="review-heading" className="self-start rounded-lg bg-frame p-5">
+      <h3 id="review-heading" className="text-[16px] font-semibold">Daily review</h3>
+      {status.state === "loading" && <p className="mt-3 h-5 w-40 animate-pulse rounded bg-sunk" aria-label="Loading" />}
+      {status.state === "error" && <p className="mt-2 text-[14.5px] text-muted">Your review could not be loaded. It will try again next time you open this page.</p>}
+      {status.state === "ready" && n > 0 && (
+        <>
+          <p className="mt-2 text-[24px] font-bold leading-tight tnum">{n} {n === 1 ? "card" : "cards"} to review</p>
+          <p className="mt-1 text-[14.5px] text-muted">
+            About {minutes} min{status.stats.due ? ` · ${status.stats.due} due` : ""}{status.stats.newAvailable ? ` · ${status.stats.newAvailable} new` : ""}
+          </p>
+          <Link href="/review" className="mt-4 inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg transition-[background-color,transform] duration-150 hover:bg-accent-ink active:scale-[0.97]">
+            Start review <Icon.arrowRight size={15} />
+          </Link>
+          {status.stats.streakDays > 0 && <p className="mt-3 text-[13.5px] text-muted tnum">{status.stats.streakDays}-day streak</p>}
+        </>
       )}
-    </span>
+      {status.state === "ready" && n === 0 && status.stats.totalCards > 0 && (
+        <>
+          <p className="mt-2 text-[15px]">Nothing to review right now.</p>
+          <p className="mt-1 text-[14px] text-muted tnum">{status.stats.reviewedToday ? `${status.stats.reviewedToday} reviewed today. ` : ""}{status.stats.learned} of {status.stats.totalCards} cards settled.</p>
+          <Link href="/stats" className="mt-3 inline-block text-[14px] font-semibold text-accent underline-offset-4 hover:underline">See your progress</Link>
+        </>
+      )}
+      {status.state === "ready" && status.stats.totalCards === 0 && (
+        <p className="mt-2 text-[14.5px] text-muted">Every lesson ends with what to remember. Those become cards here, and come back just before you would forget them.</p>
+      )}
+    </aside>
+  );
+}
+
+function RecentLessons({ hydrated }: { hydrated: boolean }) {
+  const router = useRouter();
+  const curId = useWorkspace((s) => s.lessonId);
+  const curTopic = useWorkspace((s) => s.topic);
+  const curCount = useWorkspace((s) => s.blocks.length);
+  const recent = useLessonList(hydrated);
+  if (!hydrated) return null;
+
+  const rows = [
+    ...(curCount ? [{ id: curId, topic: curTopic || "Current lesson", period: null as [number, number] | null, blocks: curCount, when: "Open now", open: () => router.push("/study") }] : []),
+    ...recent.filter((r) => r.id !== curId).slice(0, 8).map((r) => ({
+      id: r.id, topic: r.topic, period: r.period, blocks: r.blockCount,
+      when: new Date(r.updatedAt).toLocaleDateString(undefined, { day: "numeric", month: "short" }),
+      open: () => { void openLesson(r.id).then((ok) => ok && router.push("/study")); },
+    })),
+  ];
+
+  return (
+    <section aria-labelledby="recent-heading" className="mt-14">
+      <h2 id="recent-heading" className="text-[18px] font-semibold">Recent lessons</h2>
+      {rows.length === 0 ? (
+        <p className="mt-2 text-[15px] text-muted">Lessons you start appear here, on this device and any other you sign in on.</p>
+      ) : (
+        <table className="mt-3 w-full border-collapse text-left text-[15px]">
+          <thead>
+            <tr className="border-b border-rule-strong text-[13px] text-muted">
+              <th scope="col" className="py-2 pr-4 font-medium">Lesson</th>
+              <th scope="col" className="hidden py-2 pr-4 font-medium sm:table-cell">Period</th>
+              <th scope="col" className="hidden py-2 pr-4 text-right font-medium md:table-cell">Blocks</th>
+              <th scope="col" className="py-2 text-right font-medium">Opened</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-b border-rule hover:bg-hover">
+                <td className="py-0 pr-4">
+                  <button type="button" onClick={r.open} className="block min-h-12 w-full py-3 text-left font-medium hover:text-accent">{r.topic}</button>
+                </td>
+                <td className="hidden whitespace-nowrap pr-4 text-muted tnum sm:table-cell">{r.period ? formatRange(r.period[0], r.period[1]) : "–"}</td>
+                <td className="hidden pr-4 text-right text-muted tnum md:table-cell">{r.blocks}</td>
+                <td className="whitespace-nowrap text-right text-muted tnum">{r.when}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
   );
 }

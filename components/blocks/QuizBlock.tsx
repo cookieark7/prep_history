@@ -17,10 +17,10 @@ export function QuizBlock({ block }: { block: QuizT }) {
       <p className="text-[13px] text-muted">
         {block.items.length} question{block.items.length > 1 ? "s" : ""} · {Object.entries(counts).map(([k, n]) => `${n} ${KIND[k as keyof typeof KIND]}`).join(", ")}
       </p>
-      <ol className="mt-3 space-y-1.5 font-serif text-[16px]">
+      <ol className="mt-3 space-y-1.5 text-[16px]">
         {block.items.slice(0, 3).map((it, i) => (
           <li key={it.id} className="flex gap-2">
-            <span className="mono-tab mt-1 text-muted">{i + 1}.</span>
+            <span className="tnum text-[12px] mt-1 text-muted">{i + 1}.</span>
             <span className="flex-1">{it.stem}</span>
             {run && it.id in run && (run[it.id] ? <Icon.check size={14} className="mt-1 text-ok" /> : <Icon.cross size={14} className="mt-1 text-brick" />)}
           </li>

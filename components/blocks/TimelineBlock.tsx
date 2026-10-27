@@ -125,7 +125,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
           <button type="button" onClick={() => zoomBy(1 / 1.6)} className="grid h-8 w-8 place-items-center border-l border-rule hover:bg-hover" aria-label="Zoom out">−</button>
           <button type="button" onClick={reset} className="h-8 border-l border-rule px-2 hover:bg-hover">Reset</button>
         </div>
-        <span className="mono-tab ml-auto">{formatYear(fromAstro(Math.round(domain[0])), { era })} – {formatYear(fromAstro(Math.round(domain[1])), { era })}</span>
+        <span className="tnum text-[12px] ml-auto">{formatYear(fromAstro(Math.round(domain[0])), { era })} – {formatYear(fromAstro(Math.round(domain[1])), { era })}</span>
         {!full && <span className="hidden text-[11px] md:inline">⌘ + scroll to zoom · drag to pan</span>}
       </div>
 
@@ -259,7 +259,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
 
       {simul && guideYear != null && (
         <p className="mt-2 text-[12.5px] text-muted">
-          <span className="mono-tab text-accent">{formatYear(guideYear, { era })}</span>{" "}
+          <span className="tnum text-[12px] text-accent">{formatYear(guideYear, { era })}</span>{" "}
           {block.events.filter(atGuide).map((e) => e.label).join(" · ") || "Nothing on these tracks in that year."}
         </p>
       )}
@@ -311,8 +311,8 @@ function EventDrawer({ block, ev, onClose }: { block: TimelineT; ev: Ev; onClose
     <div className="fade-up mt-3 rounded-[2px] border border-rule bg-surface p-4">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="mono-tab text-muted">{formatRange(ev.start, ev.end)} · {track}</p>
-          <p className="mt-0.5 font-serif text-[18px] font-semibold">{ev.label}</p>
+          <p className="tnum text-[12px] text-muted">{formatRange(ev.start, ev.end)} · {track}</p>
+          <p className="mt-0.5 font-heading text-[18px] font-semibold">{ev.label}</p>
           <p className="mt-1 flex items-center gap-1.5 text-[12px] text-muted"><ConfidenceDot c={ev.confidence} /> {CONFIDENCE_LABEL[ev.confidence]}</p>
         </div>
         <button type="button" onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close size={14} /></button>

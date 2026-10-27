@@ -28,20 +28,45 @@ export function blockPeriod(b: Block): [number, number] | null {
   }
 }
 
-/** Years mentioned like "216 BCE", "(218-201 BCE)", "in 476", "1658". Rough by design. */
+/**
+ * Years mentioned like "216 BCE", "(218-201 BCE)", "in 476", "1658". Rough by design. A year
+ * with no era takes the text's: in a passage that marks BCE and never CE or AD, "in 264" is
+ * 264 BCE, not 264 CE.
+ */
 export function yearsInText(md: string): [number, number] | null {
   const years: number[] = [];
   const range = /(\d{2,4})\s*[-–]\s*(\d{2,4})\s*(BCE|BC|CE|AD)?/g;
   const single = /\b(\d{3,4})\s*(BCE|BC|CE|AD)?\b/g;
+  const bceText = /\d\s*(BCE|BC)\b/.test(md) && !/\d\s*(CE|AD)\b|\bAD\s*\d/.test(md);
+  const isBce = (era: string | undefined) => era === "BCE" || era === "BC" || (!era && bceText);
   for (const m of md.matchAll(range)) {
-    const bce = m[3] === "BCE" || m[3] === "BC";
+    const bce = isBce(m[3]);
     years.push(bce ? -Number(m[1]) : Number(m[1]), bce ? -Number(m[2]) : Number(m[2]));
   }
   for (const m of md.replace(range, " ").matchAll(single)) {
     const n = Number(m[1]);
     if (n < 100 && !m[2]) continue;
-    years.push(m[2] === "BCE" || m[2] === "BC" ? -n : n);
+    years.push(isBce(m[2]) ? -n : n);
   }
   if (!years.length) return null;
   return [Math.min(...years), Math.max(...years)];
+}
+
+/** Each block's period; blocks without one borrow from the nearest neighbour that has one. */
+export function periodsFor(blocks: Block[]): ([number, number] | null)[] {
+  const own = blocks.map(blockPeriod);
+  return own.map((p, i) => {
+    if (p) return p;
+    for (let d = 1; d < blocks.length; d++) {
+      if (own[i + d]) return own[i + d];
+      if (own[i - d]) return own[i - d];
+    }
+    return null;
+  });
+}
+
+/** The whole lesson's span: earliest to latest year of the blocks that have a period. */
+export function lessonSpan(blocks: Block[]): [number, number] | null {
+  const known = blocks.map(blockPeriod).filter((p): p is [number, number] => !!p);
+  return known.length ? [Math.min(...known.map((p) => p[0])), Math.max(...known.map((p) => p[1]))] : null;
 }

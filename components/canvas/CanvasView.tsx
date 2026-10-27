@@ -49,7 +49,7 @@ export function CanvasView() {
             <rect x="110" y="32" width="42" height="26" rx="5" fill="none" stroke="currentColor" strokeDasharray="4 4" />
             <path d="M42 21 C80 21 80 45 110 45 M42 69 C80 69 80 45 110 45" fill="none" stroke="currentColor" strokeDasharray="4 4" />
           </svg>
-          <p className="font-serif text-[20px]">No cause graph on the Stage yet.</p>
+          <p className="font-heading text-[20px]">No cause map in this lesson yet.</p>
           <p className="mt-1 text-[13.5px] text-muted">Ask “why did … happen?” and one will appear here.</p>
         </div>
       </div>
@@ -303,7 +303,7 @@ function CauseNodeView({ data }: NodeProps<CauseRFNode>) {
       <svg width="14" height="14" viewBox="0 0 14 14" className="mt-[3px] shrink-0" aria-hidden>
         <ShapeAt layer={node.layer} cx={7} cy={7} r={isEvent ? 6 : 5.2} />
       </svg>
-      <span className={`line-clamp-3 font-hand leading-[1.08] text-text ${isEvent ? "text-[21px] font-bold" : "text-[18px]"}`}>{node.label}</span>
+      <span className={`line-clamp-3 font-sans leading-[1.08] text-text ${isEvent ? "text-[21px] font-bold" : "text-[18px]"}`}>{node.label}</span>
       <span className="absolute bottom-1.5 right-1.5 text-muted" title={`confidence ${node.confidence}`}><ConfidenceDot c={node.confidence} size={7} /></span>
       <Handle type="source" position={Position.Right} className="!pointer-events-none !opacity-0" />
     </div>
@@ -325,7 +325,7 @@ function YearsRuler({ data }: NodeProps<RulerRFNode>) {
       {data.ticks.map((t) => (
         <div key={t.t} className="absolute top-0" style={{ left: t.x }}>
           <div className="mx-auto h-4 w-px -translate-x-1/2 bg-rule-strong" />
-          <span className="mono-tab absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] text-muted">+{t.t}</span>
+          <span className="tnum absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] text-muted">+{t.t}</span>
         </div>
       ))}
       <span className="absolute -bottom-3 right-0 text-[11px] italic text-muted">years later</span>

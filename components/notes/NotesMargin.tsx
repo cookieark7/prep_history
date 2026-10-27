@@ -25,7 +25,7 @@ export function NoteCard({ note, compact = false }: { note: Note; compact?: bool
           <Icon.close size={11} />
         </button>
       </p>
-      <p className={`font-serif text-[14px] italic text-muted ${compact ? "line-clamp-2" : "line-clamp-3"}`}>“{cleanQuote(note.quote)}”</p>
+      <p className={`text-[14px] italic text-muted ${compact ? "line-clamp-2" : "line-clamp-3"}`}>“{cleanQuote(note.quote)}”</p>
       {note.text && <p className="mt-1 text-text">{note.text}</p>}
       <button type="button" onClick={() => askAbout(note)} className="mt-1.5 text-[12px] text-accent hover:underline">Ask Chronicle about this</button>
     </div>
@@ -119,7 +119,7 @@ export function NotesPanel({ open, onOpenChange }: { open: boolean; onOpenChange
         <Dialog.Overlay className="fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]" />
         <Dialog.Content className="fade-up fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
           <div className="flex h-14 items-center justify-between border-b border-rule px-5">
-            <Dialog.Title className="font-serif text-[18px] font-semibold">Notes</Dialog.Title>
+            <Dialog.Title className="font-heading text-[18px] font-semibold">Notes</Dialog.Title>
             <Dialog.Close className="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>
           </div>
           <Dialog.Description className="sr-only">All notes in this lesson</Dialog.Description>

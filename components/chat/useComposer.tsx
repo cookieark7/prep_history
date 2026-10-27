@@ -19,8 +19,10 @@ export function useComposer(opts: {
   streaming: boolean;
   onSubmit: (s: ComposerSubmit) => Promise<"done" | "error" | "aborted" | void> | void;
   onStop?: () => void;
+  /** Starting text, e.g. a question handed over from the landing page. */
+  initialText?: string;
 }) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(opts.initialText ?? "");
   const [card, setCard] = useState<PastedText | null>(null);
   const { ref } = opts;
 
@@ -95,7 +97,7 @@ export function PasteCard({ card, onRemove }: { card: PastedText; onRemove: () =
         </button>
       </div>
       {open && (
-        <p className="scroll-thin max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-rule px-2.5 py-2 font-serif text-[13.5px] leading-relaxed text-muted">
+        <p className="scroll-thin max-h-40 overflow-y-auto whitespace-pre-wrap border-t border-rule px-2.5 py-2 text-[13.5px] leading-relaxed text-muted">
           {card.text}
         </p>
       )}

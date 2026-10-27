@@ -27,7 +27,7 @@ export function McqView({ item, onDone, locked }: { item: McqItem; onDone: Done;
               onClick={() => { setChosen(o.id); onDone(o.id === item.answer_id); }}
               className={`${row} ${state === "idle" ? "border-rule bg-surface hover:border-text" : state === "right" ? "border-ok bg-surface" : state === "wrong" ? "border-brick bg-surface" : "border-rule text-muted"}`}
             >
-              <span className="mono-tab grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">
+              <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">
                 {state === "right" ? <Icon.check size={12} className="text-ok" /> : state === "wrong" ? <Icon.cross size={12} className="text-brick" /> : i + 1}
               </span>
               {o.text}
@@ -91,9 +91,9 @@ export function ChronologyView({ item, onDone }: { item: ChronologyItem; onDone:
             >
               <span className="cursor-grab text-muted" aria-hidden><Icon.grip size={14} /></span>
               <button type="button" onClick={() => tap(id)} className="flex flex-1 items-center gap-3 text-left" disabled={result != null}>
-                <span className="mono-tab grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{i < placed || result != null ? i + 1 : "·"}</span>
+                <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{i < placed || result != null ? i + 1 : "·"}</span>
                 <span className="flex-1">{e.label}</span>
-                {result != null && <span className="mono-tab text-muted">{formatYear(e.year, { era })}</span>}
+                {result != null && <span className="tnum text-[12px] text-muted">{formatYear(e.year, { era })}</span>}
               </button>
               {result == null && (
                 <span className="flex flex-col">
@@ -163,7 +163,7 @@ export function MatchView({ item, onDone }: { item: MatchItem; onDone: Done }) {
               <li key={p.left}>
                 <button type="button" onClick={() => pickLeft(p.left)} aria-pressed={active === p.left}
                   className={`${row} ${st === "active" ? "border-accent bg-accent-soft" : st === "paired" ? "border-text bg-surface" : st === "right" ? "border-ok bg-surface" : st === "wrong" ? "border-brick bg-surface" : "border-rule bg-surface hover:border-text"}`}>
-                  <span className="mono-tab grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{pairs[p.left] ? num(p.left) : ""}</span>
+                  <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{pairs[p.left] ? num(p.left) : ""}</span>
                   {p.left}
                 </button>
               </li>
@@ -177,7 +177,7 @@ export function MatchView({ item, onDone }: { item: MatchItem; onDone: Done }) {
               <li key={r}>
                 <button type="button" onClick={() => pickRight(r)} disabled={result != null}
                   className={`${row} ${l ? "border-text bg-surface" : active ? "border-rule bg-surface hover:border-accent" : "border-rule bg-surface"}`}>
-                  <span className="mono-tab grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{l ? num(l) : ""}</span>
+                  <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">{l ? num(l) : ""}</span>
                   <span className="text-[14.5px]">{r}</span>
                 </button>
               </li>

@@ -23,15 +23,15 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
         <Dialog.Overlay className={overlay} />
         <Dialog.Content className="fade-up fixed inset-y-0 right-0 z-50 flex w-full max-w-[400px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
           <div className="flex h-14 items-center justify-between border-b border-rule px-5">
-            <Dialog.Title className="font-serif text-[18px] font-semibold">Lesson history</Dialog.Title>
+            <Dialog.Title className="font-heading text-[18px] font-semibold">Lesson history</Dialog.Title>
             <Dialog.Close className="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>
           </div>
-          <Dialog.Description className="px-5 pt-3 text-[13px] text-muted">Every change the Director made to the Stage, newest first. Undo any of them.</Dialog.Description>
+          <Dialog.Description className="px-5 pt-3 text-[13px] text-muted">Every change made to this lesson, newest first. Undo any of them.</Dialog.Description>
           <ol className="scroll-thin mt-2 flex-1 overflow-y-auto px-2 pb-6">
             {list.length === 0 && <li className="px-3 py-6 text-[13px] text-muted">No changes yet.</li>}
             {list.map((h) => (
               <li key={h.id} className="flex items-start gap-3 border-b border-rule px-3 py-2.5 last:border-0">
-                <span className="mono-tab mt-0.5 w-12 shrink-0 text-[11px] text-muted">
+                <span className="tnum mt-0.5 w-12 shrink-0 text-[11px] text-muted">
                   {new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
                 <span className={`flex-1 text-[13px] leading-snug ${h.status === "undone" ? "text-muted line-through" : ""}`}>{h.label}</span>
@@ -65,7 +65,7 @@ export function CommandPalette({
   const commands = useMemo<Cmd[]>(() => {
     const st = useWorkspace.getState();
     const levels: [Level, string][] = [["new", "New to this"], ["some", "Some background"], ["advanced", "Revising / advanced"]];
-    const themes: [Theme, string][] = [["paper", "Paper"], ["sepia", "Sepia"], ["ink", "Ink"]];
+    const themes: [Theme, string][] = [["light", "Light"], ["dark", "Dark"]];
     return [
       { id: "test", label: "Test me", icon: "test", run: () => void sendTurn({ message: "Quiz me on what we covered." }) },
       { id: "deeper", label: "Go deeper", icon: "deeper", run: () => void sendTurn({ message: "Go deeper" }) },
@@ -80,7 +80,9 @@ export function CommandPalette({
       { id: "export", label: "Export as Markdown", icon: "download", run: () => exportMarkdown(useWorkspace.getState()) },
       { id: "dock", label: "Toggle dock", icon: "sidebar", hint: "⌘\\", run: () => st.setChatOpen(!useWorkspace.getState().chatOpen) },
       { id: "shortcuts", label: "Keyboard shortcuts", icon: "keyboard", hint: "?", run: onShortcuts },
-      { id: "new", label: "New lesson", icon: "back", hint: "N", run: () => router.push("/") },
+      { id: "new", label: "New lesson", icon: "back", hint: "N", run: () => router.push("/start") },
+      { id: "review", label: "Review cards", icon: "test", run: () => router.push("/review") },
+      { id: "progress", label: "Your progress", icon: "clock", run: () => router.push("/stats") },
     ];
   }, [level, theme, onHistory, onNotes, onShortcuts, router]);
 
@@ -173,7 +175,7 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
         <Dialog.Content className="fade-up fixed left-1/2 top-[18vh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
-          <Dialog.Title className="mb-3 font-serif text-[18px] font-semibold">Keyboard shortcuts</Dialog.Title>
+          <Dialog.Title className="mb-3 font-heading text-[18px] font-semibold">Keyboard shortcuts</Dialog.Title>
           <div className="scroll-thin max-h-[60vh] space-y-4 overflow-y-auto pr-1">
             {SHORTCUTS.map((g) => (
               <section key={g.group}>
