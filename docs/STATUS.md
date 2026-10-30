@@ -1,12 +1,11 @@
 # Chronicle: where things stand
 
-Audit of 27 Oct 2026. Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
+Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6). Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
 
-**Health on 27 Oct:**
-- **Passing:** typecheck, lint, 247 tests (30 files) and `next build`.
-- **Pages:** `/`, `/start`, `/study`, `/review` and `/stats` all load.
-- **Not run that day:** the end-to-end script, because Docker (and so the database) was stopped. The restyle session last reported it passing after the homepage slideshow fix.
-- **Not tested at all:** a real phone. Every motion and layout check so far ran in headless Chrome.
+**Health on 28 Oct:**
+- **Passing:** typecheck, lint, 242 tests (31 files), `next build`, and all 10 end-to-end steps.
+- **Pages:** `/`, `/start`, `/study`, `/review` and `/stats` all load, in light and dark.
+- **Docker keeps stopping on this Mac** (three times on 28 Oct). When the database is down, the end-to-end steps that need it fail. Start it with `open -a Docker`, then `docker compose up -d db`.
 
 **Committed (27 Oct):** the work is now in four commits on `chronicle-v0.1`: prototype, redesign, homepage, docs. Nothing is pushed yet. Some things stay local only and are ignored by git, because they're large:
 - raw image-generation output (`image_gen/out/`, about 300 MB, regenerable);
@@ -93,15 +92,26 @@ Each item: what exists, then what's missing.
 
 ### Product and content
 - [ ] **Sources for the actual syllabus.**
-  - Have: 43 Wikipedia articles, mostly world history; about 10 cover India (Mauryas, Mughals).
-  - Missing: the Marathas, the Delhi Sultanate, Vijayanagara, Bhakti and Sufi, Plassey and Buxar, 1857, the national movement and Partition. Until these exist, most UPSC lessons are uncited, and free models get dates wrong.
+  - Have: 57 Wikipedia articles. About 24 cover India: the Mauryas, the Mughals, and the Marathas, added 28 Oct as 14 titles and 216 passages. "Sardeshmukhi" redirects to the "Chauth" article.
+  - Missing: the Delhi Sultanate, Vijayanagara, Bhakti and Sufi, Plassey and Buxar, 1857, the national movement and Partition. Until these exist, most UPSC lessons are uncited, and free models get dates wrong.
 - [ ] **Syllabus data.**
   - Have: `content/syllabus.ts` holds the stations and their starter questions.
   - Missing: stations split into short series ("The Marathas, in four parts"), and progress per part.
-- [ ] **Evals.**
-  - Have: only a 3-turn run on the current prompt.
-  - Missing: the full 16-turn eval on the latest prompt, after a quota reset.
-- [ ] **Director rules.** They still lead with causes ("causes and consequences, not lists of facts"); the critique's P1 says they should match the many-lenses product.
+- [x] **Evals** (28 Oct, `docs/evals/2026-10-28-*`).
+  - **Full run on the lens rules:** 20 cases, the 16 originals plus 4 UPSC cases on the Marathas. 10 of 20 passed; valid lines 98.2%.
+  - **New UPSC cases:** "learn the Marathas" passes with 8 citations from the new sources. The timeline lens gives a timeline.
+  - **Targeted re-run** of the 8 failures after tightening three rules: the timeline lens and the Prelims fact question (chauth as a quarter of the revenue) now pass.
+  - **Still failing:**
+    - "who succeeded Akbar" patches the Mughal timeline already on the stage instead of adding a lineage block (allowed by the rules; the check may be too strict);
+    - pasted text is cited from the paste, not the sources;
+    - a few turns get malformed JSON from the free model.
+  - On the old prompt, 12 of the original 16 passed; now 9 of the same 16. On free models one run is noisy, so the gap is unproven either way.
+- [x] **Director rules** (28 Oct, `lib/prompts/director/{role,rules,pedagogy,grounding}.ts`):
+  - the lens follows the question (story, timeline, people, places, cause and effect);
+  - exam facts (dates, people, places, terms) are stated precisely rather than played down;
+  - an article always has a brief and a standard section;
+  - who-ruled questions always get a lineage block;
+  - each article section cites a source when the passages cover it.
 
 ### Accounts and real-world setup
 - [ ] **Google sign-in:** the code is there, but no `GOOGLE_*` keys are set.
@@ -119,11 +129,23 @@ Each item: what exists, then what's missing.
 - [x] **Stale wording** (28 Oct): `docs/LANDING.md` opens with "The homepage today" and marks the rest as history; the `LoginCard.tsx` comment is corrected.
 
 ### Redesign
-- [ ] **Critique P1 issues**, each partly addressed:
-  - **Broken model output:** the date and tag fixes landed with tests. Not re-checked against the critique's list: raw `[[X|entity]]`, BC vs BCE, template card fronts.
-  - **Phone as an equal:** the tabs and the front door to review are done. Not re-checked: the canvas on a phone, the inline map clipping, tap targets under 44 px.
-  - **Speaking to UPSC students:** `PRODUCT.md` and `/start` are done; the Director rules and the status wording still lead with cause and effect.
-  - **One time system:** the route line is now everywhere. The 35 slideshow moments and the 24 timeline events still disagree.
+- [x] **Critique P1 issues** (closed 28 Oct):
+  - **Broken model output:**
+    - unknown entity tags read as terms;
+    - BC/AD become BCE/CE;
+    - the year parser takes the passage's era;
+    - fallback review questions read naturally ("What did the Second Punic War lead to?").
+  - **Phone as an equal:**
+    - the cause map reads as a list of steps on phones, inline and in the Map view;
+    - the Map view's quiz button no longer overflows;
+    - tap targets are 44 px.
+  - **Speaking to UPSC students:**
+    - lens-based lesson rules;
+    - the waiting line says what is happening and for how long, instead of rotating "Mapping causes…" verbs;
+    - block names in plain words ("Cause map", "Aside", "part" for block).
+  - **One time system:**
+    - the route line is the one drawing of a line: syllabus, lesson parts, review cards, the slideshow ruler, Progress;
+    - the 24-event tree is retired.
 
 ---
 
@@ -138,20 +160,41 @@ Each item: what exists, then what's missing.
 - [ ] **Later in the plan:** Mains answer practice, Hindi, state PSC syllabi.
 
 ### Design
-- [ ] **Onboarding (critique P2):**
+- [x] **Onboarding (critique P2):**
   - [x] guests start without the sign-in card (28 Oct);
   - [x] the question asked on the homepage sends itself, exactly once (28 Oct; end-to-end step 9);
-  - [ ] fill the 8–30 s wait with the era plate and due cards;
-  - [ ] show the daily quota.
-- [ ] **Finishing the redesign:** a final independent design review, then `DESIGN.md` with the design rules.
-- [ ] **Animation pass beyond the slideshow:** find what should move (`find-animation-opportunities`), build it (`animate`), then review it (`review-animations`).
-- [ ] **Small fixes from the critique:**
-  - a designed empty state on `/stats`;
-  - the ochre date text is 3.4:1 contrast;
-  - the selected level chip;
-  - small tap targets;
-  - fonts loaded twice;
-  - unused Caveat.
+  - [x] **the wait** (28 Oct): the lesson shows its era's plate, when it was started from a station that has one, plus up to two of today's review cards to recall and rate. To check it with the mock, set `MOCK_FIRST_DELAY_MS`.
+  - [x] **the daily quota** (28 Oct): "18 of 20 questions left today", under the question box and in the lesson composer. It turns red near the end, and guests are told signing in raises it. Served by `/api/turn/quota`.
+- [x] **Final design review** (28 Oct), by an independent reviewer over captures of every screen.
+  - **First verdict:** fix, with 8 material fixes. **After one fix round:** 5 resolved and 3 partial, plus 3 small regressions, which were then fixed.
+  - **Left open:**
+    - ~~the lesson line's route drawing~~ decided 29 Oct: keep the route (section 4);
+    - the settled and overdue states on Progress are unit-tested but not yet seen on screen (they need cards that have aged).
+  - Captures: `.impeccable/review/`.
+- [x] **`DESIGN.md`** (28 Oct): written from the built code, with `.impeccable/design.json`. The leftovers it flagged were fixed 29 Oct:
+  - the thick coloured left stripes are gone: asides are tinted panels (a live debate adds a dashed outline), note cards are frame-grey panels, and a changed part keeps only its "updated" tag (with Undo), not a stripe;
+  - the "Read as text" dialog and the sign-in card use the theme's surface and float shadow, so they follow dark mode; the sign-in button's text is the page colour, so it stays readable on the lighter dark-mode maroon;
+  - the stale comments in `globals.css` and `layout.tsx` are corrected;
+  - the "To remember" bullets are no longer yellow (yellow is kept for the station board).
+- [x] **Animation pass** (28 Oct). Found with `find-animation-opportunities`, built with `animate`:
+  - popovers grow from their button;
+  - the history and notes panels slide from the right edge, and the jump sheet rises from the bottom;
+  - the phone conversation and a station's details ease in where they open;
+  - the theme switch crossfades;
+  - the end of a daily review fills its stations;
+  - the ⌘K palette no longer animates (keyboard, used constantly);
+  - reduced motion keeps quick fades without movement.
+  - **Still to run yourself:** `/review-animations`. It is a skill only you can start.
+- [x] **Small fixes from the critique** (28 Oct):
+  - `/stats` rebuilt as Progress, with designed first-visit, loading and error states (and a retry);
+  - ochre contrast now 5.4:1;
+  - the level chip;
+  - 44 px targets;
+  - fonts load once;
+  - Caveat gone;
+  - no text under 12 px;
+  - no uppercase "kicker" labels;
+  - no monospace outside keys and code.
 - [ ] **Terms and Privacy pages** (`TODO(legal)`).
 
 ### Shipping
@@ -181,12 +224,13 @@ Each item: what exists, then what's missing.
    - what exam prep does when sources are thin.
 3. ~~**Handoff**~~ Decided 28 Oct: guests go straight in and the question sends itself.
 4. ~~**The timeline events**~~ Decided 28 Oct: retired, with their questions moved into matching stations.
-5. **Plates:**
+5. ~~**The lesson line**~~ Decided 29 Oct: keep the route for a lesson's parts (recorded in the app contract and `DESIGN.md`).
+6. **Plates:**
    - finish the Nano Banana deep-time set (2 more images);
    - make new plates for Indian eras, or keep the current set.
-6. **Name and tagline:** `PRODUCT.md` says both are open.
-7. **UPSC past papers:** check whether they may be reproduced before any "previous year question" feature.
-8. **Deploy target and when to invite testers.**
+7. **Name and tagline:** `PRODUCT.md` says both are open.
+8. **UPSC past papers:** check whether they may be reproduced before any "previous year question" feature.
+9. **Deploy target and when to invite testers.**
 
 ---
 
@@ -194,9 +238,28 @@ Each item: what exists, then what's missing.
 
 1. ~~**Commit** what exists, so the work is safe.~~ Done 27 Oct.
 2. ~~**Real phone pass** on the LAN build, and fix what shows up.~~ Done 27 Oct.
-3. **Close the redesign:**
-   - ~~onboarding decisions, the dead tree code, `docs/LANDING.md`~~ done 28 Oct;
-   - **next:** the final design review and `DESIGN.md`, then the rest of onboarding (the wait, the quota).
-4. **Sources for one syllabus unit** (the Marathas), then the full eval, to measure lesson quality on the free chain.
+3. ~~**Close the redesign:** onboarding, the final design review, `DESIGN.md`, the animation pass.~~ Done 28 Oct (see section 6); the lesson-line decision was made 29 Oct. Still yours: `/review-animations`.
+4. **Sources for the rest of the syllabus.** The Marathas are done (28 Oct). Next: the Delhi Sultanate, Vijayanagara, 1857 and the national movement. Re-run the eval after each unit.
 5. **Exam prep, first version** per `docs/MODES_PLAN.md` §10, after the decisions in point 2 of section 4.
 6. **Deploy and invite five testers.**
+
+---
+
+## 6. The 28 Oct checklist pass
+
+**What changed:**
+- **Small fixes:** text size, labels and fonts; Progress and the review card redesigned on the route line.
+- **Lesson content:** natural card questions; an honest waiting line; plain block names; the cause map as steps on phones.
+- **Lesson rules:** led by the lens that fits the question.
+- **Onboarding:** the wait and the quota.
+- **Motion:** the animation pass.
+- **Review and records:** the final design review with one fix round; Maratha sources; the full eval.
+
+**Unchanged:** the lesson contracts (`lib/contracts`). The review stats now also count overdue cards per lesson.
+
+**Verified:** 242 tests, types, lint, the production build, all 10 end-to-end steps, and captures in `.impeccable/review/`.
+
+**Not verified:**
+- the settled and overdue station states on screen;
+- motion feel on a real phone;
+- `/review-animations`.
