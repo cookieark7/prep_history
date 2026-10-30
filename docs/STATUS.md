@@ -1,13 +1,18 @@
 # Chronicle: where things stand
 
-Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6). Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
+Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6) and 30 Oct after the leftover fixes and commits. Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
 
-**Health on 28 Oct:**
-- **Passing:** typecheck, lint, 242 tests (31 files), `next build`, and all 10 end-to-end steps.
+**Health on 29 Oct:**
+- **Passing:** typecheck, lint, 242 tests (31 files), `next build`, and all 9 end-to-end steps.
 - **Pages:** `/`, `/start`, `/study`, `/review` and `/stats` all load, in light and dark.
 - **Docker keeps stopping on this Mac** (three times on 28 Oct). When the database is down, the end-to-end steps that need it fail. Start it with `open -a Docker`, then `docker compose up -d db`.
 
-**Committed (27 Oct):** the work is now in four commits on `chronicle-v0.1`: prototype, redesign, homepage, docs. Nothing is pushed yet. Some things stay local only and are ignored by git, because they're large:
+**Committed:** the work is on `chronicle-v0.1` in chunks:
+- 27 Oct: prototype, redesign, homepage, docs, then the phone fixes;
+- 28 Oct: homepage questions start at once, and the old timeline tree is retired;
+- 30 Oct: lesson writing for UPSC, the redesign checklist, and `DESIGN.md` with the review captures.
+
+Nothing is pushed: the repository has no remote yet. Some things stay local only and are ignored by git, because they're large:
 - raw image-generation output (`image_gen/out/`, about 300 MB, regenerable);
 - screen recordings (`docs/**/*.mp4`, about 100 MB).
 
@@ -198,7 +203,7 @@ Each item: what exists, then what's missing.
 - [ ] **Terms and Privacy pages** (`TODO(legal)`).
 
 ### Shipping
-- [x] Commit the work, in logical chunks (27 Oct; not pushed).
+- [x] Commit the work, in logical chunks (27 to 30 Oct; not pushed, as there is no remote yet).
 - [x] Test on a real phone (homepage, lesson, review). Passed on the owner's phone, 27 Oct.
   - **Done 27 Oct:** the phone-feel fixes are in, and checked on a phone profile. All 9 end-to-end steps pass with them.
     - 16 px text fields, so iOS no longer zooms in;
@@ -217,7 +222,7 @@ Each item: what exists, then what's missing.
 
 ## 4. Decisions waiting on you
 
-1. **Pushing:** `chronicle-v0.1` is committed locally but not pushed or merged into `main`.
+1. **Pushing:** `chronicle-v0.1` is committed locally but not pushed or merged into `main`. The repository has no remote yet, so pushing first needs a GitHub repository added as `origin`.
 2. **Exam prep and explore:** the open questions in `docs/MODES_PLAN.md` §11. The big ones:
    - one exam mode, or Prelims and Mains separately;
    - whether the goal replaces the level picker;
@@ -257,7 +262,7 @@ Each item: what exists, then what's missing.
 
 **Unchanged:** the lesson contracts (`lib/contracts`). The review stats now also count overdue cards per lesson.
 
-**Verified:** 242 tests, types, lint, the production build, all 10 end-to-end steps, and captures in `.impeccable/review/`.
+**Verified:** 242 tests, types, lint, the production build, all 9 end-to-end steps, and captures in `.impeccable/review/`.
 
 **Not verified:**
 - the settled and overdue station states on screen;
