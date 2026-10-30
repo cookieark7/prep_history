@@ -23,7 +23,7 @@ export function ConfidenceTag({ c }: { c: Confidence }) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="mx-0.5 inline-flex translate-y-[-2px] items-center gap-1 rounded-[3px] border border-rule px-1 py-px align-middle font-mono text-[10.5px] leading-none text-muted hover:border-rule-strong hover:text-text"
+          className="mx-0.5 inline-flex translate-y-[-2px] items-center gap-1 rounded-[3px] border border-rule px-1 py-px align-middle tnum font-semibold text-[11.5px] leading-none text-muted hover:border-rule-strong hover:text-text"
           aria-label={`Confidence: ${CONFIDENCE_LABEL[c]}. What does this mean?`}
         >
           <ConfidenceDot c={c} size={7} />
@@ -33,7 +33,7 @@ export function ConfidenceTag({ c }: { c: Confidence }) {
       <Popover.Portal>
         <Popover.Content
           sideOffset={6}
-          className="fade-up z-50 w-72 rounded-md border border-rule bg-surface p-3 font-sans text-[13px] leading-snug text-text shadow-[var(--shadow-float)]"
+          className="pop z-50 w-72 rounded-md border border-rule bg-surface p-3 font-sans text-[13px] leading-snug text-text shadow-[var(--shadow-float)]"
         >
           <p className="mb-2 font-medium">How sure are historians?</p>
           <ul className="space-y-1.5">
@@ -57,12 +57,12 @@ export function ConfidenceTag({ c }: { c: Confidence }) {
 }
 
 export const LAYER_LABEL: Record<Layer, string> = {
-  structural: "Structural",
-  enabling: "Enabling",
-  trigger: "Trigger",
-  contingency: "Contingency",
-  event: "Event",
-  consequence: "Consequence",
+  structural: "Long-term cause",
+  enabling: "Made it possible",
+  trigger: "Spark",
+  contingency: "Chance or choice",
+  event: "The event",
+  consequence: "What it led to",
 };
 
 export const layerColor = (l: Layer) => (l === "event" ? "var(--text)" : `var(--l-${l})`);

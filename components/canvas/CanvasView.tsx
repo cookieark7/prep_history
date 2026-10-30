@@ -1,7 +1,7 @@
 "use client";
 
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ReactFlow, ReactFlowProvider, Handle, Position, useInternalNode, useReactFlow,
   type Node, type Edge, type NodeProps, type EdgeProps,
@@ -20,6 +20,7 @@ import { ConfidenceDot, LAYER_LABEL, LayerShape } from "@/components/ui/marks";
 import { Icon, type IconName } from "@/components/ui/icons";
 import { NoteForm } from "@/components/notes/NoteForm";
 import { GraphQuizButton } from "@/components/quiz/GraphQuizButton";
+import { CauseList } from "@/components/blocks/CauseList";
 
 type CauseData = { node: CauseNode; state: "normal" | "lit" | "dim"; selected: boolean; pathEnd: boolean; flash: boolean };
 type LaneData = { layer: Exclude<Layer, "event"> };
@@ -38,6 +39,7 @@ export function CanvasView() {
   const focusId = useWorkspace((s) => s.focusId);
   const graphId = useCanvas((s) => s.graphId);
   const graph = graphs.find((g) => g.id === graphId) ?? graphs.find((g) => g.id === focusId) ?? graphs[0];
+  const narrow = useNarrow();
 
   if (!graph) {
     return (
@@ -55,10 +57,47 @@ export function CanvasView() {
       </div>
     );
   }
+  if (narrow) return <PhoneMap graph={graph} graphs={graphs} />;
   return (
     <ReactFlowProvider>
       <GraphCanvas key={graph.id} graph={graph} graphs={graphs} />
     </ReactFlowProvider>
+  );
+}
+
+const NARROW = "(max-width: 767px)";
+function useNarrow() {
+  return useSyncExternalStore(
+    (on) => { const mq = matchMedia(NARROW); mq.addEventListener("change", on); return () => mq.removeEventListener("change", on); },
+    () => matchMedia(NARROW).matches,
+    () => false,
+  );
+}
+
+/** Phones: the map as steps (CauseList), with a switcher when the lesson has more than one map. */
+function PhoneMap({ graph, graphs }: { graph: CauseGraphBlock; graphs: CauseGraphBlock[] }) {
+  return (
+    <div className="mx-auto max-w-[680px] px-4 pb-40 pt-6">
+      {graphs.length > 1 && (
+        <div role="group" aria-label="Cause maps in this lesson" className="-mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 scroll-thin">
+          {graphs.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              aria-pressed={g.id === graph.id}
+              onClick={() => useCanvas.getState().open(g.id, null)}
+              className={`h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-[14px] ${g.id === graph.id ? "bg-text font-semibold text-bg" : "bg-sunk text-text"}`}
+            >
+              {g.title}
+            </button>
+          ))}
+        </div>
+      )}
+      <h1 className="font-heading text-[24px] font-bold leading-tight">{graph.title}</h1>
+      <p className="mt-1.5 text-[14.5px] text-muted">On a phone the map reads as steps. The drawn map is on a larger screen.</p>
+      <div className="mt-5"><CauseList block={graph} /></div>
+      <div className="mt-6"><GraphQuizButton graph={graph} /></div>
+    </div>
   );
 }
 
@@ -210,7 +249,7 @@ function GraphCanvas({ graph, graphs }: { graph: CauseGraphBlock; graphs: CauseG
         </div>
       )}
 
-      <div className="absolute bottom-4 left-4 z-10 hidden rounded-md border border-rule bg-surface px-3 py-2 text-[11.5px] text-muted shadow-[var(--shadow-float)] lg:block">
+      <div className="absolute bottom-4 left-4 z-10 hidden rounded-md border border-rule bg-surface px-3 py-2 text-[12.5px] text-muted shadow-[var(--shadow-float)] lg:block">
         <div className="mb-1.5 flex flex-wrap gap-x-3 gap-y-1">
           {LANES.map((l) => <span key={l} className="inline-flex items-center gap-1"><LayerShape layer={l} size={10} />{LAYER_LABEL[l]}</span>)}
         </div>
@@ -312,7 +351,7 @@ function CauseNodeView({ data }: NodeProps<CauseRFNode>) {
 
 function LaneLabel({ data }: NodeProps<LaneRFNode>) {
   return (
-    <div className="pointer-events-none flex w-[140px] items-center justify-end gap-1.5 text-[12px] font-medium uppercase tracking-wide text-muted">
+    <div className="pointer-events-none flex w-[140px] items-center justify-end gap-1.5 text-[13px] font-medium text-muted">
       {LAYER_LABEL[data.layer]} <LayerShape layer={data.layer} size={11} />
     </div>
   );
@@ -325,10 +364,10 @@ function YearsRuler({ data }: NodeProps<RulerRFNode>) {
       {data.ticks.map((t) => (
         <div key={t.t} className="absolute top-0" style={{ left: t.x }}>
           <div className="mx-auto h-4 w-px -translate-x-1/2 bg-rule-strong" />
-          <span className="tnum absolute top-4 -translate-x-1/2 whitespace-nowrap text-[11px] text-muted">+{t.t}</span>
+          <span className="tnum absolute top-4 -translate-x-1/2 whitespace-nowrap text-[12px] text-muted">+{t.t}</span>
         </div>
       ))}
-      <span className="absolute -bottom-3 right-0 text-[11px] italic text-muted">years later</span>
+      <span className="absolute -bottom-3 right-0 text-[12px] italic text-muted">years later</span>
     </div>
   );
 }

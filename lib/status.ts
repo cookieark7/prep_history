@@ -1,16 +1,12 @@
 import type { BlockType } from "@/lib/contracts";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 
-/** Shown between send and the first op. Short, and about what the Director is doing. */
-export const WAITING_VERBS = [
-  "Mapping causes",
-  "Placing events in time",
-  "Checking who came before whom",
-  "Looking for the turning point",
-  "Weighing the evidence",
-  "Separating causes from consequences",
-];
-export const ROTATE_MS = 2500;
+/**
+ * Before the first part lands the line is honest rather than busy: what is happening and for how
+ * long, and, once the wait is long, why (free models take a while to start). `tick` is seconds.
+ */
+export const ROTATE_MS = 1000;
+export const SLOW_AFTER_S = 8;
 
 export interface LastOp {
   type: BlockType;
@@ -20,11 +16,15 @@ export interface LastOp {
 /**
  * The single status line in a reply row (no spinner, no dots).
  *  - not streaming: nothing
- *  - no op yet: a rotating verb (tick = how many rotations have passed)
- *  - ops arriving: what just landed, plus a note that more is coming
+ *  - no part yet: "Writing your lesson", with the seconds so far (tick = seconds), and after
+ *    SLOW_AFTER_S a note on why it takes this long
+ *  - parts arriving: what just landed, plus a note that more is coming
  */
 export function statusText(streaming: boolean, last: LastOp | null, tick: number): string | null {
   if (!streaming) return null;
-  if (!last) return `${WAITING_VERBS[tick % WAITING_VERBS.length]}…`;
-  return `${TYPE_LABEL[last.type]} ${last.kind} · working on the next block`;
+  if (!last) {
+    const s = tick > 0 ? ` · ${tick} s` : "";
+    return tick >= SLOW_AFTER_S ? `Writing your lesson${s}. Free models can take up to 30 s to start.` : `Writing your lesson${s}`;
+  }
+  return `${TYPE_LABEL[last.type]} ${last.kind} · working on the next part`;
 }

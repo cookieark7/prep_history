@@ -140,9 +140,9 @@ async function main() {
 
     await step("/stats counts today's reviews", async () => {
       await pa.goto(`${BASE}/stats`, { waitUntil: "networkidle" });
-      await pa.getByText("Reviewed today").waitFor();
+      await pa.getByText(/\d+ reviewed today/).waitFor();
       const text = await pa.locator("main").innerText();
-      const today = Number(text.match(/(\d+)\s*\n\s*Reviewed today/)?.[1] ?? -1);
+      const today = Number(text.match(/(\d+) reviewed today/)?.[1] ?? -1);
       expect(today === due, `reviewed today shows ${today}`);
       return `${today} reviewed today`;
     });

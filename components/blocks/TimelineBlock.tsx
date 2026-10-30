@@ -126,7 +126,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
           <button type="button" onClick={reset} className="h-8 border-l border-rule px-2 hover:bg-hover">Reset</button>
         </div>
         <span className="tnum text-[12px] ml-auto">{formatYear(fromAstro(Math.round(domain[0])), { era })} – {formatYear(fromAstro(Math.round(domain[1])), { era })}</span>
-        {!full && <span className="hidden text-[11px] md:inline">⌘ + scroll to zoom · drag to pan</span>}
+        {!full && <span className="hidden text-[12px] md:inline">⌘ + scroll to zoom · drag to pan</span>}
       </div>
 
       <div className="flex rounded-[2px] border border-rule bg-surface">
@@ -165,7 +165,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
           {ticks.map((y) => (
             <g key={y} transform={`translate(${x(y)},0)`}>
               <line y1={AXIS_H - 6} y2={chartH} stroke="var(--rule)" strokeDasharray="2 4" />
-              <text y={AXIS_H - 11} textAnchor="middle" fontSize={11} fontFamily="var(--font-mono)" fill="var(--muted)">{formatYear(y, { era })}</text>
+              <text y={AXIS_H - 11} textAnchor="middle" fontSize={12} style={{ fontVariantNumeric: "tabular-nums" }} fill="var(--muted)">{formatYear(y, { era })}</text>
             </g>
           ))}
           {/* tracks: markers first, then labels on top so a bar never hides a label */}
@@ -174,7 +174,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
             return (
               <g key={tr.id}>
                 {i > 0 && <line x1={0} x2={plotW} y1={y0} y2={y0} stroke="var(--rule)" />}
-                {!full && <text x={6} y={y0 + 12} fontSize={10} fill="var(--muted)" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>{tr.label}</text>}
+                {!full && <text x={6} y={y0 + 12} fontSize={12} fontWeight={600} fill="var(--muted)">{tr.label}</text>}
               </g>
             );
           })}
@@ -240,7 +240,7 @@ export function TimelineChart({ block, full = false }: { block: TimelineT; full?
             <g pointerEvents="none">
               <line x1={xz(guide)} x2={xz(guide)} y1={AXIS_H} y2={chartH} stroke="var(--accent)" strokeWidth={1.2} />
               <rect x={xz(guide) - 34} y={2} width={68} height={16} rx={2} fill="var(--accent)" />
-              <text x={xz(guide)} y={14} textAnchor="middle" fontSize={11} fontFamily="var(--font-mono)" fill="var(--surface)">{formatYear(guideYear!, { era })}</text>
+              <text x={xz(guide)} y={14} textAnchor="middle" fontSize={12} style={{ fontVariantNumeric: "tabular-nums" }} fill="var(--surface)">{formatYear(guideYear!, { era })}</text>
             </g>
           )}
           <defs>

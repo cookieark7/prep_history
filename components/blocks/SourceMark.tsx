@@ -20,7 +20,7 @@ export function SourceMark({ id }: { id: string }) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          className="mx-px inline-flex translate-y-[-0.45em] items-center rounded-[3px] px-[3px] font-mono text-[10.5px] leading-none text-accent hover:bg-accent-soft"
+          className="mx-px inline-flex translate-y-[-0.45em] items-center rounded-[3px] px-[3px] tnum text-[12px] font-semibold leading-none text-accent hover:bg-accent-soft"
           aria-label={source ? `Source ${n}: ${source.title}` : "Source"}
         >
           {n ?? "·"}
@@ -30,11 +30,11 @@ export function SourceMark({ id }: { id: string }) {
         <Popover.Content
           sideOffset={6}
           collisionPadding={12}
-          className="fade-up z-50 w-80 max-w-[calc(100vw-24px)] rounded-md border border-rule bg-surface p-3 font-sans text-[13px] leading-snug text-text shadow-[var(--shadow-float)]"
+          className="pop z-50 w-80 max-w-[calc(100vw-24px)] rounded-md border border-rule bg-surface p-3 font-sans text-[13px] leading-snug text-text shadow-[var(--shadow-float)]"
         >
           {source ? (
             <>
-              <p className="text-[11px] uppercase tracking-wide text-muted">Source {n}</p>
+              <p className="text-[12.5px] font-medium text-muted">Source {n}</p>
               <p className="mt-0.5 font-heading text-[16px] leading-tight">{source.title}</p>
               {section && <p className="mt-0.5 text-[12px] text-muted">{section}</p>}
               <blockquote className="mt-2 border-l-2 border-rule pl-2.5 text-[13px] leading-relaxed text-muted">{source.excerpt}</blockquote>

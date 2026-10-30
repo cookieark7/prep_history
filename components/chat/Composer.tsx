@@ -6,6 +6,7 @@ import { abortTurn, sendTurn } from "@/lib/stream-client";
 import { DEFAULT_SOURCE_PROMPT } from "@/lib/composer";
 import { Icon } from "@/components/ui/icons";
 import { PasteCard, useComposer } from "./useComposer";
+import { quotaText, useQuota } from "@/lib/turns/useQuota";
 
 export const COMPOSER_PLACEHOLDER = "Ask why, pick a period, or paste something you're reading";
 
@@ -15,6 +16,7 @@ type ComposerProps = { id?: string; autoFocus?: boolean; onFocus?: () => void };
 // directly (components/stage/HandoffReader.tsx).
 export function Composer({ id = "composer", autoFocus = false, onFocus }: ComposerProps) {
   const streaming = useWorkspace((s) => s.streaming);
+  const quota = useQuota(true);
   const ref = useRef<HTMLTextAreaElement>(null);
   const c = useComposer({
     ref,
@@ -47,9 +49,14 @@ export function Composer({ id = "composer", autoFocus = false, onFocus }: Compos
         className="block min-h-[52px] w-full resize-none bg-transparent px-3 pt-2.5 text-[14px] pointer-coarse:text-[16px] leading-5 text-text outline-none! placeholder:text-muted"
       />
       <div className="flex items-center justify-between px-2 pb-2">
-        <span className="pl-1 text-[11.5px] text-muted pointer-coarse:invisible">
-          <kbd className="font-mono">⌘K</kbd> commands
-        </span>
+        {/* the day's free limit when it's known; otherwise, with a keyboard, where the commands are */}
+        {quota ? (
+          <span className={`pl-1 text-[12.5px] tnum ${quota.left <= 3 ? "text-brick" : "text-muted"}`}>{quotaText(quota)}</span>
+        ) : (
+          <span className="pl-1 text-[12.5px] text-muted pointer-coarse:invisible">
+            <kbd className="font-mono">⌘K</kbd> commands
+          </span>
+        )}
         {streaming ? (
           <button
             type="button"

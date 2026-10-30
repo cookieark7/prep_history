@@ -18,8 +18,8 @@ function askAbout(n: Note) {
 export function NoteCard({ note, compact = false }: { note: Note; compact?: boolean }) {
   const k = NOTE_KINDS.find((x) => x.id === note.kind)!;
   return (
-    <div className="rounded-[2px] border-l-2 bg-surface py-2 pl-3 pr-2 text-[13px] leading-snug" style={{ borderColor: k.color }}>
-      <p className="mb-1 flex items-center justify-between text-[11px] uppercase tracking-wide text-muted">
+    <div className="rounded-md bg-frame py-2 pl-3 pr-2 text-[13px] leading-snug">
+      <p className="mb-1 flex items-center justify-between text-[12.5px] font-medium text-muted">
         <span className={k.cls}>{k.label}</span>
         <button type="button" onClick={() => useWorkspace.getState().removeNote(note.id)} className="grid h-6 w-6 place-items-center rounded text-muted hover:bg-hover hover:text-text" aria-label="Delete note">
           <Icon.close size={11} />
@@ -111,13 +111,13 @@ export function NotesPanel({ open, onOpenChange }: { open: boolean; onOpenChange
   const flashBlock = useWorkspace((s) => s.flashBlock);
   const [filter, setFilter] = useState<NoteKind | "all">("all");
   const list = notes.filter((n) => filter === "all" || n.kind === filter);
-  const title = (id: string) => blocks.find((b) => b.id === id)?.title ?? "Removed block";
+  const title = (id: string) => blocks.find((b) => b.id === id)?.title ?? "Removed part";
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]" />
-        <Dialog.Content className="fade-up fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]" />
+        <Dialog.Content className="panel-right fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
           <div className="flex h-14 items-center justify-between border-b border-rule px-5">
             <Dialog.Title className="font-heading text-[18px] font-semibold">Notes</Dialog.Title>
             <Dialog.Close className="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>

@@ -8,7 +8,7 @@ import { Icon } from "@/components/ui/icons";
 
 /**
  * The Stage never auto-scrolls. When a block lands outside the viewport, this chip says so
- * ("Cause graph added, below"); several collapse into one. Click jumps to the first one.
+ * ("Cause map added, below"); several collapse into one. Click jumps to the first one.
  * A pending block drops off when it scrolls into view; the chip times out after 8s.
  * Patches never raise a chip.
  */

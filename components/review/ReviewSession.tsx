@@ -44,6 +44,7 @@ export function ReviewSession() {
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState({ reviewed: 0, remembered: 0 });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!hydrated || !ACCOUNTS) return;
@@ -52,9 +53,9 @@ export function ReviewSession() {
       .then(() => fetch(`/api/review/queue?tz=${tz()}&limit=30`))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d: { items: Item[] }) => { if (live) setItems(d.items); })
-      .catch(() => { if (live) setError("Couldn't load your review. Check your connection and try again."); });
+      .catch(() => { if (live) setError("Check your connection, then try again."); });
     return () => { live = false; };
-  }, [hydrated]);
+  }, [hydrated, attempt]);
 
   const answered = useCallback((grade: number) => {
     setDone((d) => ({ reviewed: d.reviewed + 1, remembered: d.remembered + (grade >= 2 ? 1 : 0) }));
@@ -65,33 +66,35 @@ export function ReviewSession() {
   return (
     <AppShell place="review">
       <main className="mx-auto flex max-w-[640px] flex-col px-4 pb-10 pt-6 md:px-6 md:pt-10">
+        {/* without accounts (a local copy with no database) cards are not stored */}
         {!ACCOUNTS ? (
-          <Empty title="Reviews need the database" text="Set DATABASE_URL and NEXT_PUBLIC_CHRONICLE_ACCOUNTS=1 to save cards and review them." />
+          <Empty title="Review isn't available here" text="This copy of Chronicle doesn't keep cards, so there is nothing to review." />
         ) : error ? (
-          <Empty title="Something went wrong" text={error} />
+          <Empty title="Your review couldn't be loaded" text={error}>
+            <button type="button" onClick={() => { setError(null); setItems(null); setAttempt((n) => n + 1); }} className="mt-6 inline-flex h-10 items-center rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97]">Try again</button>
+          </Empty>
         ) : !items ? (
           <div className="mt-24 flex justify-center"><div className="progress-rule w-40" /></div>
         ) : item ? (
           <>
-            <div className="mt-6 flex items-center gap-3">
-              <div className="h-1 flex-1 overflow-hidden rounded-full bg-rule" aria-hidden>
-                <div className="h-full bg-accent transition-[width] duration-300" style={{ width: `${(index / items.length) * 100}%` }} />
-              </div>
-              <span className="tnum text-[11px] text-muted">{index + 1} of {items.length}</span>
-            </div>
+            <CardLine total={items.length} at={index} />
             <ReviewCard key={item.id} item={item} onAnswered={answered} />
           </>
         ) : items.length === 0 ? (
           <Empty title="Nothing to review right now" text="Cards come from your lessons and return just before you'd forget them. Learn something new, and come back tomorrow.">
-            <Link href="/start" className="mt-6 inline-flex h-10 items-center rounded-[7px] bg-accent px-4 text-[14px] font-semibold text-surface hover:bg-accent-ink">Start a lesson</Link>
+            <Link href="/start" className="mt-6 inline-flex h-10 items-center rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97]">Start a lesson</Link>
           </Empty>
         ) : (
-          <Empty title="Done for now" text={`You reviewed ${done.reviewed} card${done.reviewed === 1 ? "" : "s"} and remembered ${done.remembered}. Each one comes back just before you'd forget it.`}>
+          <>
+          {/* the day's line runs on to its last station: a small, once-a-day finish */}
+          <CardLine total={items.length} at={items.length - 1} finished />
+          <Empty title="Done for now" delayed text={`You reviewed ${done.reviewed} card${done.reviewed === 1 ? "" : "s"} and remembered ${done.remembered}. Each one comes back just before you'd forget it.`}>
             <div className="mt-6 flex gap-2">
-              <Link href="/stats" className="inline-flex h-10 items-center rounded-[7px] border border-rule-strong px-4 text-[14px] hover:bg-hover">See progress</Link>
-              <Link href="/start" className="inline-flex h-10 items-center rounded-[7px] bg-accent px-4 text-[14px] font-semibold text-surface hover:bg-accent-ink">Learn something new</Link>
+              <Link href="/stats" className="inline-flex h-10 items-center rounded-md bg-sunk px-4 text-[14.5px] font-medium hover:bg-hover active:scale-[0.97]">See progress</Link>
+              <Link href="/start" className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97]">Learn something new</Link>
             </div>
           </Empty>
+          </>
         )}
       </main>
     </AppShell>
@@ -140,12 +143,10 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
 
   return (
     <article className="fade-up mt-6" aria-live="polite">
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted">
-        <span className="font-medium uppercase tracking-wide text-accent">{KIND_LABEL[item.kind] ?? "Recall"}</span>
-        {item.isNew && <span className="rounded-[3px] bg-accent-soft px-1.5 py-px text-[11px] text-accent">new</span>}
-        {item.lessonTopic && <span className="truncate">· {item.lessonTopic}</span>}
+      <h1 className="mt-2 font-heading text-[25px] font-bold leading-[1.25] tracking-[-0.01em] md:text-[29px]">{item.front}</h1>
+      <p className="mt-2 truncate text-[13.5px] text-muted">
+        {KIND_LABEL[item.kind] ?? "Recall"}{item.isNew ? ", new card" : ""}{item.lessonTopic ? ` · from ${item.lessonTopic}` : ""}
       </p>
-      <h1 className="mt-3 font-heading text-[24px] leading-[1.25] md:text-[28px]">{item.front}</h1>
 
       {auto ? (
         <div className="mt-6">
@@ -157,7 +158,7 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
               <p className={`text-[15px] font-medium ${result ? "text-ok" : "text-brick"}`}>{result ? "Right." : "Not quite."}</p>
               <p className="mt-1 text-[15.5px] leading-relaxed text-muted">{item.back}</p>
               <button type="button" disabled={sending} onClick={() => void rate(autoGrade!, result)}
-                className="mt-5 inline-flex h-11 items-center gap-1.5 rounded-[7px] bg-accent px-5 text-[14px] font-semibold text-surface hover:bg-accent-ink disabled:opacity-45">
+                className="mt-5 inline-flex h-11 items-center gap-1.5 rounded-md bg-accent px-5 text-[15px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97] disabled:opacity-45">
                 Next <Icon.chevronRight size={14} />
               </button>
             </div>
@@ -169,32 +170,32 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
           <textarea
             id="recall" rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)}
             placeholder="Your answer (optional)"
-            className="mt-2 block w-full resize-none rounded-[10px] border border-rule-strong bg-surface px-3.5 py-3 text-[16px] leading-relaxed outline-none transition-colors placeholder:text-muted focus:border-accent"
+            className="mt-2 block w-full resize-none rounded-lg border border-rule-strong bg-bg px-3.5 py-3 text-[16px] leading-relaxed outline-none transition-colors placeholder:text-muted focus:border-accent"
           />
           <button type="button" onClick={() => setRevealed(true)}
-            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-[7px] bg-accent text-[15px] font-semibold text-surface hover:bg-accent-ink sm:w-auto sm:px-6">
+            className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-md bg-accent text-[15px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97] sm:w-auto sm:px-6">
             Show answer
           </button>
         </div>
       ) : (
         <div className="mt-6">
           {answer.trim() && (
-            <div className="mb-3 rounded-md border border-rule bg-surface px-3.5 py-2.5">
-              <p className="text-[11px] uppercase tracking-wide text-muted">You wrote</p>
+            <div className="mb-3 rounded-lg border border-rule px-4 py-3">
+              <p className="text-[12.5px] font-medium text-muted">You wrote</p>
               <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-relaxed">{answer.trim()}</p>
             </div>
           )}
-          <div className="fade-up rounded-md border border-accent bg-surface px-3.5 py-3">
-            <p className="text-[11px] uppercase tracking-wide text-accent">Answer</p>
-            <p className="mt-0.5 text-[17px] leading-relaxed">{item.back}</p>
+          <div className="fade-up rounded-lg bg-frame px-4 py-3.5">
+            <p className="text-[13px] font-semibold text-muted">Answer</p>
+            <p className="mt-1 text-[17.5px] leading-relaxed">{item.back}</p>
           </div>
           <p className="mt-5 text-[13px] text-muted">How did it go?</p>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="How well did you remember?">
             {RATINGS.map((r) => (
               <button key={r.grade} type="button" disabled={sending} onClick={() => void rate(r.grade)}
-                className={`flex min-h-14 flex-col items-center justify-center rounded-[7px] border px-2 py-1.5 text-center disabled:opacity-45 ${r.grade === 3 ? "border-accent bg-accent-soft text-accent" : "border-rule-strong bg-surface hover:border-text"}`}>
-                <span className="text-[14px] font-semibold">{r.label} <span className="tnum text-[11px] font-normal text-muted">{r.grade}</span></span>
-                <span className="text-[11.5px] text-muted">{item.preview[String(r.grade)] ? `back in ${item.preview[String(r.grade)]}` : r.hint}</span>
+                className={`flex min-h-14 flex-col items-center justify-center rounded-md border px-2 py-1.5 text-center transition-transform duration-150 active:scale-[0.97] disabled:opacity-45 ${r.grade === 3 ? "border-accent bg-accent-soft text-accent" : "border-rule-strong bg-bg hover:border-text"}`}>
+                <span className="text-[14px] font-semibold">{r.label} <span className="tnum text-[12px] font-normal text-muted">{r.grade}</span></span>
+                <span className="text-[12.5px] text-muted">{item.preview[String(r.grade)] ? `back in ${item.preview[String(r.grade)]}` : r.hint}</span>
               </button>
             ))}
           </div>
@@ -204,10 +205,38 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
   );
 }
 
-function Empty({ title, text, children }: { title: string; text: string; children?: React.ReactNode }) {
+/**
+ * Today's cards as the route line: the same 3px ink line everywhere, answered cards filled in, the
+ * card in hand on the yellow board. At the end every station fills, left to right, once a day.
+ */
+function CardLine({ total, at, finished = false }: { total: number; at: number; finished?: boolean }) {
   return (
-    <div className="mt-24 text-center">
-      <h1 className="font-heading text-[26px] leading-tight">{title}</h1>
+    <div className="mt-4 flex items-center gap-4">
+      <div className="relative h-6 flex-1" aria-hidden>
+        <span className="absolute inset-x-0 top-1/2 -mt-[1.5px] h-[3px] bg-line" />
+        {Array.from({ length: total }, (_, k) => {
+          const here = !finished && k === at;
+          const filled = finished || k < at;
+          return (
+            <span
+              key={k}
+              className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-line ${
+                here ? "h-[18px] w-[18px] bg-board" : `h-3 w-3 ${filled ? "bg-line" : "bg-bg"}`
+              } ${finished ? "fill-in" : ""}`}
+              style={{ left: total > 1 ? `${(k / (total - 1)) * 100}%` : "0%", ...(finished ? { transitionDelay: `${Math.min(k * 40, 600)}ms` } : {}) }}
+            />
+          );
+        })}
+      </div>
+      <span className="text-[13.5px] text-muted tnum">{finished ? `${total} of ${total}` : `${at + 1} of ${total}`}</span>
+    </div>
+  );
+}
+
+function Empty({ title, text, children, delayed = false }: { title: string; text: string; children?: React.ReactNode; delayed?: boolean }) {
+  return (
+    <div className={`mt-24 text-center ${delayed ? "fade-up [animation-delay:60ms]" : ""}`}>
+      <h1 className="font-heading text-[26px] font-bold leading-tight">{title}</h1>
       <p className="mx-auto mt-3 max-w-[42ch] text-[15px] leading-relaxed text-muted">{text}</p>
       {children && <div className="flex justify-center">{children}</div>}
     </div>

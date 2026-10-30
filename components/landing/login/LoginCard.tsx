@@ -28,7 +28,7 @@ export function LoginCard() {
           </div>
         </Dialog.Overlay>
         <Dialog.Content
-          className={`${LANDING_THEME} login-card fade-up fixed left-1/2 top-1/2 z-[71] w-[min(440px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-[12px] border border-[color:var(--lp-rule)] bg-[color:var(--lp-card)] p-8 shadow-[0_1px_2px_rgba(22,32,28,0.06),0_12px_32px_rgba(22,32,28,0.12)] outline-none`}
+          className={`${LANDING_THEME} login-card fade-up fixed left-1/2 top-1/2 z-[71] w-[min(440px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 rounded-[12px] border border-[color:var(--lp-rule)] bg-[color:var(--lp-card)] p-8 shadow-[var(--shadow-float)] outline-none`}
           onCloseAutoFocus={(e) => {
             e.preventDefault();
             useLoginCard.getState().opener?.focus();
@@ -122,7 +122,7 @@ function CardBody() {
         type="button"
         disabled={!!busy}
         onClick={() => void signIn("google")}
-        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-[6px] bg-[color:var(--lp-accent)] font-sans text-[14px] font-medium text-white hover:bg-[var(--lp-accent-ink)] disabled:opacity-60"
+        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-[6px] bg-[color:var(--lp-accent)] font-sans text-[14px] font-medium text-[color:var(--lp-bg)] hover:bg-[var(--lp-accent-ink)] disabled:opacity-60"
       >
         {busy === "google" ? "Signing in…" : "Continue with Google"}
       </button>
@@ -145,12 +145,12 @@ function CardBody() {
           onChange={(e) => { setEmail(e.target.value); setError(null); }}
           aria-invalid={!!error}
           aria-describedby={error ? "login-error" : undefined}
-          className="h-11 w-full rounded-[6px] border border-[color:var(--lp-rule)] bg-white px-3 font-sans text-[14px] pointer-coarse:text-[16px] text-[color:var(--lp-ink)] outline-none placeholder:text-[color:var(--lp-muted)] focus:border-[color:var(--lp-rule-strong)]"
+          className="h-11 w-full rounded-[6px] border border-[color:var(--lp-rule)] bg-[color:var(--lp-bg)] px-3 font-sans text-[14px] pointer-coarse:text-[16px] text-[color:var(--lp-ink)] outline-none placeholder:text-[color:var(--lp-muted)] focus:border-[color:var(--lp-rule-strong)]"
         />
         <button
           type="submit"
           disabled={!!busy || !email.trim()}
-          className="inline-flex h-11 w-full items-center justify-center rounded-[6px] border border-[color:var(--lp-rule-strong)] bg-white font-sans text-[14px] font-medium text-[color:var(--lp-ink)] hover:bg-[color:var(--lp-bg)] disabled:opacity-50"
+          className="inline-flex h-11 w-full items-center justify-center rounded-[6px] border border-[color:var(--lp-rule-strong)] bg-[color:var(--lp-card)] font-sans text-[14px] font-medium text-[color:var(--lp-ink)] hover:bg-[color:var(--lp-bg)] disabled:opacity-50"
         >
           {busy === "email" ? "Signing in…" : "Continue with email"}
         </button>

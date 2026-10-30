@@ -22,11 +22,11 @@ export function landingDirection(rect: { top: number; bottom: number }, viewport
   return null;
 }
 
-/** "Cause graph added, below" / "3 blocks added, below" / "2 blocks added" (mixed). */
+/** "Cause map added, below" / "3 parts added, below" / "2 parts added" (mixed). */
 export function chipLabel(pending: PendingLanding[]): string | null {
   if (!pending.length) return null;
   const dirs = new Set(pending.map((p) => p.dir));
   const where = dirs.size === 1 ? `, ${pending[0].dir}` : "";
   if (pending.length === 1) return `${TYPE_LABEL[pending[0].type]} added${where}`;
-  return `${pending.length} blocks added${where}`;
+  return `${pending.length} parts added${where}`;
 }

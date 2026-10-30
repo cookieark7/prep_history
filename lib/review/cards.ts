@@ -62,6 +62,14 @@ export function quizCard(it: QuizItem): NewCard {
   return { kind: it.kind, front: it.stem, back: back.trim(), payload: it, sourceRef: it.source_ref, cites: [], origin: "quiz" };
 }
 
+/**
+ * A node label inside a question, with the article it needs: "The fall of Rome" reads as "the fall
+ * of Rome", and named events take "the" ("the Siege of Saguntum", "the Second Punic War"). Other
+ * labels are left as they are rather than guessed at.
+ */
+const NEEDS_THE = /^(First|Second|Third|Fourth|Fifth|Siege|Battle|Treaty|Fall|Rise|Revolt|Partition|Sack|Collapse|Conquest|Death|Spread|Growth|Decline|Expansion|Loss|Defeat|Victory)\b/;
+const inSentence = (l: string) => (/^(The|A|An) /.test(l) ? l[0].toLowerCase() + l.slice(1) : NEEDS_THE.test(l) ? `the ${l}` : l);
+
 /** The strongest links into and out of the event: established or likely, at most four. */
 export function graphCards(b: CauseGraphBlock): NewCard[] {
   const label = new Map(b.nodes.map((n) => [n.id, n.label]));
@@ -73,8 +81,11 @@ export function graphCards(b: CauseGraphBlock): NewCard[] {
     .slice(0, 4)
     .map((e) => ({
       kind: e.from === event ? "consequence" : "why",
-      front: `How did “${label.get(e.from)}” lead to “${label.get(e.to)}”?`,
-      back: e.why,
+      // asked the way a student would: what came of the event, or what part a cause played in it
+      front: e.from === event
+        ? `What did ${inSentence(label.get(e.from)!)} lead to?`
+        : `What part did ${inSentence(label.get(e.from)!)} play in ${inSentence(label.get(e.to)!)}?`,
+      back: e.from === event ? `${label.get(e.to)}. ${e.why}` : e.why,
       sourceRef: { block: b.id, node: e.to === event ? e.from : e.to },
       cites: [],
       origin: "graph" as const,

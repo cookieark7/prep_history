@@ -138,6 +138,7 @@ export function OpeningWindow({ aside }: { aside?: ReactNode }) {
 
       // ---- plates
       const want = new Map<number, { o: number; s: number }>();
+      let shownIdx = i; // the slot whose plate dominates the frame: the label follows it
       let waiting = false; // nothing in Act II has loaded yet: stay in the white-out
       const deepFrom = plan.slots[1].start;
       showChain(s.act !== "deep" ? null
@@ -162,6 +163,7 @@ export function OpeningWindow({ aside }: { aside?: ReactNode }) {
           const slotSeconds = (s.end - s.start) / ups.history;
           const f = span(local, 1 - Math.min(0.45, cfg.fadeSeconds / slotSeconds), 1);
           want.set(i + 1, { o: smooth(f), s: 1 });
+          if (smooth(f) >= 0.5 && ready(imgs.current[i + 1])) shownIdx = i + 1;
         }
       }
       show(want);
@@ -171,16 +173,18 @@ export function OpeningWindow({ aside }: { aside?: ReactNode }) {
       const w = waiting ? 1 : 1 - Math.min(1, Math.abs(p - cfg.deepEnd) / wide);
       if (whiteRef.current) whiteRef.current.style.opacity = w.toFixed(3);
 
-      // ---- the label under the window: date and title always, the cause at key moments
-      const b = byId.get(s.id)!;
+      // ---- the label: date and title always, the cause at key moments. They change on the frame
+      // the next plate takes over the crossfade, so words and picture never disagree.
+      const shown = plan.slots[shownIdx];
+      const b = byId.get(shown.id)!;
       if (b.id !== lastId) {
         lastId = b.id;
         if (dateRef.current) dateRef.current.textContent = b.label;
         if (titleRef.current) titleRef.current.textContent = b.title;
-        if (capRef.current) capRef.current.textContent = s.key || s.act === "landing" ? b.caption : "";
+        if (capRef.current) capRef.current.textContent = shown.key || shown.act === "landing" ? b.caption : "";
       }
       if (capRef.current) {
-        const o = s.key || s.act === "landing" ? Math.min(span(local, 0.06, 0.22), s.act === "landing" ? 1 : 1 - span(local, 0.8, 0.97)) : 0;
+        const o = shownIdx !== i ? 0 : s.key || s.act === "landing" ? Math.min(span(local, 0.06, 0.22), s.act === "landing" ? 1 : 1 - span(local, 0.8, 0.97)) : 0;
         capRef.current.style.opacity = o.toFixed(3);
       }
 
@@ -225,7 +229,7 @@ export function OpeningWindow({ aside }: { aside?: ReactNode }) {
     tl.to(state, { p: cfg.deepEnd, duration: cfg.actSeconds.deep, ease: "none", onUpdate }, bloomS);
     tl.to(state, { p: cfg.historyEnd, duration: cfg.actSeconds.history, ease: "none", onUpdate });
     tl.to(state, { p: cfg.total, duration: cfg.actSeconds.landing, ease: "none", onUpdate });
-    tl.to(fadeRef.current, { opacity: 1, duration: 0.7, ease: "power1.in" }, `+=${HOLD_END_S}`);
+    tl.to(fadeRef.current, { opacity: 1, duration: 0.7, ease: "power2.out" }, `+=${HOLD_END_S}`);
     tl.call(() => { state.p = 0; render(0); });
     tl.to(fadeRef.current, { opacity: 0, duration: 0.6, ease: "power1.out" });
     render(0);

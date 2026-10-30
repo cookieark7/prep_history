@@ -8,6 +8,7 @@ import { useHydrated, ThemeSync, AccountSync } from "@/components/ui/hydration";
 import { useWorkspace } from "@/lib/store/workspace";
 import { openLesson, useLessonList } from "@/lib/store/sync";
 import { useReviewStats, waitingCount } from "@/lib/review/useReviewStats";
+import { ACCOUNTS, useSession } from "@/lib/auth";
 
 export type Place = "learn" | "review" | "progress";
 
@@ -49,7 +50,10 @@ export function AppShell({ place, children }: { place: Place; children: ReactNod
           </ul>
         </nav>
         <RecentLessons hydrated={hydrated} />
-        <ThemeButton className="mt-auto" />
+        <div className="mt-auto space-y-0.5">
+          <AccountEntry />
+          <ThemeButton />
+        </div>
       </aside>
 
       <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b border-rule bg-bg/95 px-4 backdrop-blur md:hidden">
@@ -148,6 +152,36 @@ function RecentLessons({ hydrated }: { hydrated: boolean }) {
   );
 }
 
+/**
+ * Flips the theme with a 200 ms crossfade of the page (View Transitions), so every colour doesn't
+ * jump at once. The new theme goes on <html> inside the transition; ThemeSync then agrees with it.
+ * No transition with reduced motion or where the browser lacks it.
+ */
+function switchTheme(next: "light" | "dark") {
+  const apply = () => {
+    document.documentElement.dataset.theme = next;
+    useWorkspace.getState().setTheme(next);
+  };
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+  if (doc.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) doc.startViewTransition(apply);
+  else apply();
+}
+
+/** Who is studying: a guest gets the way to keep their work; an account shows its email. */
+function AccountEntry() {
+  const session = useSession();
+  if (!ACCOUNTS) return null;
+  if (!session || session.provider === "guest") {
+    return (
+      <Link href="/?signin=1" className="flex min-h-9 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[14px] text-muted hover:bg-hover hover:text-text">
+        <Icon.note size={16} />
+        <span><span className="block font-semibold text-text">Sign in</span><span className="block text-[12.5px]">Keep your lessons and cards on every device</span></span>
+      </Link>
+    );
+  }
+  return <p className="truncate px-2.5 py-1.5 text-[13.5px] text-muted" title={session.user.email ?? undefined}>{session.user.email ?? session.user.name}</p>;
+}
+
 export function ThemeButton({ compact = false, className = "" }: { compact?: boolean; className?: string }) {
   // the server renders light; the saved theme is known only once the store has loaded
   const saved = useWorkspace((s) => s.theme);
@@ -156,7 +190,7 @@ export function ThemeButton({ compact = false, className = "" }: { compact?: boo
   return (
     <button
       type="button"
-      onClick={() => useWorkspace.getState().setTheme(next)}
+      onClick={() => switchTheme(next)}
       aria-label={`Switch to the ${next} theme`}
       className={`flex items-center gap-2.5 rounded-md text-[14px] text-muted hover:bg-hover hover:text-text ${compact ? "h-10 w-10 justify-center" : "h-9 px-2.5"} ${className}`}
     >

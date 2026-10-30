@@ -7,8 +7,8 @@ import { THEME_COLORS } from "@/lib/theme-colors";
 // Atkinson Hyperlegible Next for reading, UI and headings (with italics, for emphasis in lessons);
 // Archivo, with its width axis, for the narrow heavy lettering on station boards and the wordmark;
 // Atkinson Hyperlegible Mono for keys and code. Next has no fallback metrics for the Atkinson
-// faces yet, so no size-adjusted fallback for them. The homepage loads its own faces
-// (components/landing/theme.ts).
+// faces yet, so no size-adjusted fallback for them. The homepage uses the same faces through
+// these variables (components/landing/landing.css).
 const text = Atkinson_Hyperlegible_Next({ subsets: ["latin"], variable: "--font-atkinson", display: "swap", style: ["normal", "italic"], adjustFontFallback: false, fallback: ["Helvetica Neue", "Arial", "sans-serif"] });
 const board = Archivo({ subsets: ["latin"], variable: "--font-archivo", display: "swap", axes: ["wdth"] });
 const mono = Atkinson_Hyperlegible_Mono({ subsets: ["latin"], variable: "--font-atkinson-mono", display: "swap", adjustFontFallback: false, fallback: ["ui-monospace", "Menlo", "monospace"] });

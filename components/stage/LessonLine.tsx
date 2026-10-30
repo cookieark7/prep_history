@@ -11,9 +11,10 @@ import { scrollToBlock } from "@/components/blocks/Markdown";
 import { StationDot } from "@/components/route/RouteLine";
 
 /**
- * The lesson as a short line (laptops): one station per block in reading order, its date beside
- * it, the block in view on the yellow board, read blocks filled in. The same drawing as the
- * syllabus route on the home page. Roving tabindex: arrows move, Enter jumps, Tab leaves.
+ * The lesson as a short line (laptops): one station per part in reading order, named by the kind
+ * of part, the part in view on the yellow board, read parts filled in. It is the route through
+ * the lesson, not a time axis, so it is labelled by part rather than by year (each part's period
+ * shows in its tooltip). Roving tabindex: arrows move, Enter jumps, Tab leaves.
  */
 export function LessonLine({ items, blocks, current }: { items: RailItem[]; blocks: Block[]; current: string | null }) {
   const flashBlock = useWorkspace((s) => s.flashBlock);
@@ -43,7 +44,10 @@ export function LessonLine({ items, blocks, current }: { items: RailItem[]; bloc
         {items.map((it, i) => {
           const here = it.id === current;
           const p = periods.get(it.id);
-          const label = p ? formatYear(p[0], { era }) : TYPE_LABEL[it.type];
+          // stops are named by their part's title (two articles must not look the same); the kind
+          // of part and its period are in the tooltip and the accessible name
+          const label = it.title.length > 16 ? `${it.title.slice(0, 15).trimEnd()}…` : it.title;
+          const when = p ? (p[0] === p[1] ? formatYear(p[0], { era }) : `${formatYear(p[0], { era })} to ${formatYear(p[1], { era })}`) : null;
           return (
             <li key={it.id}>
               <button
@@ -59,8 +63,8 @@ export function LessonLine({ items, blocks, current }: { items: RailItem[]; bloc
                 className="group relative flex h-11 w-full items-center justify-end gap-2 rounded-md"
               >
                 <span
-                  className={`whitespace-nowrap text-[12.5px] tnum ${
-                    here ? "rounded-[2px] border-2 border-line bg-board px-1.5 py-px font-bold text-board-ink" : p ? "text-muted" : "text-[12px] text-muted"
+                  className={`max-w-[92px] truncate whitespace-nowrap text-[12.5px] ${
+                    here ? "rounded-[2px] border-2 border-line bg-board px-1.5 py-px font-bold text-board-ink" : it.complete ? "text-text" : "text-muted"
                   }`}
                 >
                   {label}
@@ -70,7 +74,7 @@ export function LessonLine({ items, blocks, current }: { items: RailItem[]; bloc
                   <Arrival id={it.id} />
                 </span>
                 <span className="pointer-events-none absolute left-full top-1/2 z-10 ml-3 max-w-72 -translate-y-1/2 truncate whitespace-nowrap rounded-md border border-rule bg-surface px-2.5 py-1.5 text-[13px] text-text opacity-0 shadow-[var(--shadow-float)] transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-                  <span className="text-muted">{TYPE_LABEL[it.type]}:</span> {it.title}
+                  <span className="text-muted">{TYPE_LABEL[it.type]}:</span> {it.title}{when ? <span className="text-muted tnum"> · {when}</span> : null}
                 </span>
               </button>
             </li>

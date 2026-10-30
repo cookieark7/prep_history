@@ -31,7 +31,7 @@ export function Fallback({ block }: { block: { title?: string } }) {
   return (
     <details className="rounded-[2px] border border-dashed border-rule p-3 text-[13px] text-muted">
       <summary className="cursor-pointer">This block type can&apos;t be drawn yet. Show raw data</summary>
-      <pre className="scroll-thin mt-2 max-h-80 overflow-auto font-mono text-[11px] leading-relaxed">{JSON.stringify(block, null, 2)}</pre>
+      <pre className="scroll-thin mt-2 max-h-80 overflow-auto font-mono text-[12px] leading-relaxed">{JSON.stringify(block, null, 2)}</pre>
     </details>
   );
 }

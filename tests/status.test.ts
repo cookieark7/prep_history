@@ -1,16 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { statusText, WAITING_VERBS } from "@/lib/status";
+import { SLOW_AFTER_S, statusText } from "@/lib/status";
 
 describe("statusText (E2)", () => {
-  it("rotates waiting verbs before the first op", () => {
-    expect(statusText(true, null, 0)).toBe(`${WAITING_VERBS[0]}…`);
-    expect(statusText(true, null, 1)).toBe(`${WAITING_VERBS[1]}…`);
-    expect(statusText(true, null, WAITING_VERBS.length)).toBe(`${WAITING_VERBS[0]}…`);
+  it("says what is happening and for how long before the first part lands", () => {
+    expect(statusText(true, null, 0)).toBe("Writing your lesson");
+    expect(statusText(true, null, 3)).toBe("Writing your lesson · 3 s");
   });
 
-  it("switches to op-driven text once an op lands", () => {
-    expect(statusText(true, { type: "cause_graph", kind: "added" }, 3)).toBe("Cause graph added · working on the next block");
-    expect(statusText(true, { type: "article", kind: "updated" }, 0)).toBe("Article updated · working on the next block");
+  it("explains a long wait honestly", () => {
+    expect(statusText(true, null, SLOW_AFTER_S)).toBe(`Writing your lesson · ${SLOW_AFTER_S} s. Free models can take up to 30 s to start.`);
+  });
+
+  it("switches to part-driven text once a part lands", () => {
+    expect(statusText(true, { type: "cause_graph", kind: "added" }, 3)).toBe("Cause map added · working on the next part");
+    expect(statusText(true, { type: "article", kind: "updated" }, 0)).toBe("Article updated · working on the next part");
   });
 
   it("clears when the turn is not streaming (done, error, abort)", () => {

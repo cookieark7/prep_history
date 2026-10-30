@@ -110,7 +110,7 @@ function ViewMenu({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void 
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="start" sideOffset={4} className="fade-up z-50 w-48 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+        <Popover.Content align="start" sideOffset={4} className="pop z-50 w-48 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
           {MODES.map((m) => (
             <button
               key={m.id}
@@ -144,7 +144,7 @@ function MoreMenu({ onHistory, onPalette }: { onHistory: () => void; onPalette: 
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+        <Popover.Content align="end" sideOffset={4} className="pop z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
           <p className="px-2.5 pb-1.5 pt-2 text-[12.5px] text-muted">How much of each article to show</p>
           <div className="px-1.5 pb-2">
             <Segmented label="How much of each article to show" size="sm" value={depth} options={DEPTHS} onChange={(d) => useWorkspace.getState().setDepth(d)} />
@@ -171,7 +171,7 @@ function MoreMenu({ onHistory, onPalette }: { onHistory: () => void; onPalette: 
           </button>
           <Popover.Close asChild>
             <button type="button" className={`${item} pointer-coarse:hidden`} onClick={onPalette}>
-              <Icon.search size={15} /> Commands <kbd className="ml-auto font-mono text-[11.5px] text-muted">⌘K</kbd>
+              <Icon.search size={15} /> Commands <kbd className="ml-auto font-mono text-[12.5px] text-muted">⌘K</kbd>
             </button>
           </Popover.Close>
         </Popover.Content>

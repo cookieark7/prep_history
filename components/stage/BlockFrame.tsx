@@ -30,7 +30,6 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred, current = f
     >
       {/* a soft edge on arrival; keyed so each streamed section re-runs it */}
       {arrivedAt && <span key={arrivedAt} aria-hidden className="arrive pointer-events-none absolute -inset-x-3 -inset-y-2 rounded-[2px]" />}
-      {patchedEntry && <span aria-hidden className="absolute -left-4 top-1 bottom-1 w-[3px] rounded-full bg-ochre" />}
       <header className="mb-3 flex items-start gap-3">
         <span className="mt-[3px] text-muted"><TypeIcon size={16} /></span>
         <div className="min-w-0 flex-1">
@@ -38,12 +37,12 @@ export const BlockFrame = memo(function BlockFrame({ block, blurred, current = f
             <h2 className={`font-heading text-[22px] font-semibold leading-[1.25] tracking-[-0.005em] ${flash ? "flash" : ""}`} key={flash ?? 0}>
               {block.title}
             </h2>
-            {pinned && <span className="text-[11px] text-muted" title="Pinned"><Icon.pin size={12} /></span>}
+            {pinned && <span className="text-[12px] text-muted" title="Pinned"><Icon.pin size={12} /></span>}
             {approximate && (
-              <span className="rounded-[3px] border border-rule px-1.5 py-px text-[11px] text-muted">Approximate</span>
+              <span className="rounded-[3px] border border-rule px-1.5 py-px text-[12px] text-muted">Approximate</span>
             )}
             {patchedEntry && (
-              <span className="inline-flex items-center gap-1 rounded-[3px] bg-accent-soft px-1.5 py-px text-[11px] text-accent">
+              <span className="inline-flex items-center gap-1 rounded-[3px] bg-accent-soft px-1.5 py-px text-[12px] text-accent">
                 updated
                 <button
                   type="button"
@@ -84,7 +83,7 @@ function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; 
       <Popover.Trigger asChild>
         <button
           type="button"
-          aria-label="Block menu"
+          aria-label="Part menu"
           className={`-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-md text-muted opacity-0 hover:bg-hover hover:text-text focus-visible:opacity-100 group-hover/block:opacity-100 group-focus-within/block:opacity-100 data-[state=open]:opacity-100 pointer-coarse:h-11 pointer-coarse:w-11 ${
             current ? "max-md:opacity-100 pointer-coarse:opacity-100" : "max-md:invisible pointer-coarse:invisible"
           }`}
@@ -93,7 +92,7 @@ function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; 
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content align="end" sideOffset={4} className="fade-up z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
+        <Popover.Content align="end" sideOffset={4} className="pop z-50 w-64 rounded-md border border-rule bg-surface p-1 text-text shadow-[var(--shadow-float)]">
           {block.because && (
             <>
               <p className="px-2 pb-2 pt-1.5 text-[12.5px] leading-snug text-muted"><span className="font-semibold text-text">Why this is here.</span> {block.because}</p>
@@ -113,21 +112,21 @@ function BlockMenu({ block, pinned, current }: { block: Block; pinned: boolean; 
           >
             {copied ? <Icon.check size={14} className="text-ok" /> : <Icon.article size={14} />}
             <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
-            <kbd className="ml-auto font-mono text-[11px] text-muted">c</kbd>
+            <kbd className="ml-auto font-mono text-[12px] text-muted">c</kbd>
           </button>
           <Popover.Close asChild>
             <button type="button" className={item} onClick={() => useWorkspace.getState().focusBlock(block.id, true)}>
-              <Icon.expand size={14} /> Fullscreen <kbd className="ml-auto font-mono text-[11px] text-muted">f</kbd>
+              <Icon.expand size={14} /> Fullscreen <kbd className="ml-auto font-mono text-[12px] text-muted">f</kbd>
             </button>
           </Popover.Close>
           <Popover.Close asChild>
             <button type="button" className={item} onClick={() => useWorkspace.getState().togglePin(block.id)}>
-              <Icon.pin size={14} /> {pinned ? "Unpin" : "Pin to top"} <kbd className="ml-auto font-mono text-[11px] text-muted">p</kbd>
+              <Icon.pin size={14} /> {pinned ? "Unpin" : "Pin to top"} <kbd className="ml-auto font-mono text-[12px] text-muted">p</kbd>
             </button>
           </Popover.Close>
           <Popover.Close asChild>
             <button type="button" className={item} disabled={!canUndo} onClick={() => useWorkspace.getState().undoLatestFor(block.id)}>
-              <Icon.undo size={14} /> Undo last change <kbd className="ml-auto font-mono text-[11px] text-muted">u</kbd>
+              <Icon.undo size={14} /> Undo last change <kbd className="ml-auto font-mono text-[12px] text-muted">u</kbd>
             </button>
           </Popover.Close>
         </Popover.Content>

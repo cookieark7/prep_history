@@ -71,8 +71,8 @@ export function JumpToSheet() {
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]" />
-        <Dialog.Content className="fade-up fixed inset-x-0 bottom-0 z-50 max-h-[70dvh] overflow-y-auto overscroll-contain rounded-t-[10px] border-t border-rule bg-bg pb-[env(safe-area-inset-bottom)] outline-none">
+        <Dialog.Overlay className="scrim fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]" />
+        <Dialog.Content className="sheet-up fixed inset-x-0 bottom-0 z-50 max-h-[70dvh] overflow-y-auto overscroll-contain rounded-t-[10px] border-t border-rule bg-bg pb-[env(safe-area-inset-bottom)] outline-none">
           <div className="flex items-center justify-between px-4 py-3">
             <Dialog.Title className="font-heading text-[17px] font-semibold">Jump to</Dialog.Title>
             <Dialog.Close className="grid h-11 w-11 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>

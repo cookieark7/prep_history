@@ -43,7 +43,7 @@ export function DebateMarker({ x, y }: { x: number; y: number }) {
   return (
     <g transform={`translate(${x},${y})`} aria-label="contested">
       <circle r={7} fill="var(--surface)" stroke="var(--violet)" strokeWidth={1.2} />
-      <text textAnchor="middle" dy="3.5" fontSize={10} fontFamily="var(--font-mono)" fill="var(--violet)">?</text>
+      <text textAnchor="middle" dy="3.5" fontSize={11} fontWeight={700} fill="var(--violet)">?</text>
     </g>
   );
 }

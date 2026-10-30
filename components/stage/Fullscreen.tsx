@@ -62,7 +62,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
       {/* floating pill */}
       <div className="fixed left-1/2 top-4 z-10 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-full border border-rule bg-surface px-1.5 py-1 shadow-[var(--shadow-float)]">
         <button type="button" onClick={() => useWorkspace.getState().exitFocus()} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] hover:bg-hover">
-          <kbd className="font-mono text-[11px] text-muted">Esc</kbd> Exit
+          <kbd className="font-mono text-[12px] text-muted">Esc</kbd> Exit
         </button>
         {block.type === "article" && (
           <Segmented label="Depth" size="sm" value={depth}
@@ -94,7 +94,7 @@ export function FullscreenOverlay({ onNotes }: { onNotes: () => void }) {
 
       <div ref={scroller} tabIndex={-1} className="scroll-thin h-full overflow-y-auto overscroll-contain outline-none" onScroll={(e) => onScroll(e.currentTarget)}>
         <div className={`relative mx-auto px-5 pb-56 pt-24 ${reading ? "max-w-[680px]" : "max-w-[1400px]"} ${focusPara ? "focus-para" : ""}`}>
-          <p className="mb-2 text-[12px] uppercase tracking-wide text-muted">{TYPE_LABEL[block.type]}</p>
+          <p className="mb-2 text-[13px] font-medium text-muted">{TYPE_LABEL[block.type]}</p>
           <h1 className="mb-8 font-heading text-[32px] font-semibold leading-[1.15] md:text-[40px]">{block.title}</h1>
           <div data-fullscreen-block={block.id}>
             <BlockBody block={block} expanded />

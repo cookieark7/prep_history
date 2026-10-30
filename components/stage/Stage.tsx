@@ -10,6 +10,9 @@ import { lessonSpan } from "@/lib/period";
 import { formatRange } from "@/lib/layout/years";
 import { ACCOUNTS } from "@/lib/auth";
 import { stationById } from "@/content/syllabus";
+import { BEATS } from "@/content/landing/beats";
+import { Plate } from "@/components/landing/Plate";
+import { startSync } from "@/lib/store/sync";
 import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
 import { Icon } from "@/components/ui/icons";
 import { LessonLine } from "./LessonLine";
@@ -80,7 +83,7 @@ export function ReaderStage({ margin }: { margin?: React.ReactNode }) {
       <div className="min-w-0 max-w-[680px] flex-1">
         <LessonHeader read={rail.filter((r) => r.complete).length} />
         {list.length === 0 && (
-          streaming ? <StageSkeleton /> : (
+          streaming ? <WaitPanel /> : (
             <p className="py-12 text-[16px] text-muted">Nothing here yet. Ask about a period, an event or a person, and the lesson builds here.</p>
           )
         )}
@@ -129,7 +132,7 @@ function LessonHeader({ read }: { read: number }) {
       {(span || station || blocks.length > 0) && (
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[14px] text-muted">
           {span && (
-            <span className="rounded-[2px] border-2 border-line bg-board px-2 py-0.5 text-[13.5px] font-bold text-board-ink tnum">
+            <span className="rounded-[2px] border-2 border-line px-2 py-0.5 text-[13.5px] font-bold text-text tnum">
               {formatRange(span[0], span[1])}
             </span>
           )}
@@ -159,7 +162,7 @@ function ToRemember() {
       <ol className="mt-5 space-y-3">
         {items.map((f) => (
           <li key={f} className="flex gap-3 text-[16px] leading-[1.5]">
-            <span aria-hidden className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full border-2 border-line bg-board" />
+            <span aria-hidden className="mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full border-2 border-line bg-bg" />
             <span>{f}</span>
           </li>
         ))}
@@ -170,6 +173,94 @@ function ToRemember() {
         </Link>
       )}
     </section>
+  );
+}
+
+/**
+ * The 8 to 30 seconds before the first part arrives, put to use: the era's plate when the lesson
+ * came from a syllabus station, and up to two due review cards to recall in the meantime.
+ */
+function WaitPanel() {
+  const lessonId = useWorkspace((s) => s.lessonId);
+  const routeReady = useRouteHydrated();
+  const stationId = useRoute((s) => s.lessons[lessonId]);
+  const station = routeReady ? stationById(stationId) : null;
+  const beat = station?.plate ? BEATS.find((b) => b.id === station.plate) : undefined;
+  const cards = useWaitCards();
+
+  if (!beat && !cards.length) return <StageSkeleton />;
+  return (
+    <div className="space-y-10 py-2">
+      {beat && station && (
+        <figure className="overflow-hidden rounded-xl bg-[#0e0e0d]">
+          <div className="aspect-video overflow-hidden">
+            <Plate id={beat.id} crop="wide" className="wait-plate block h-full w-full object-cover" />
+          </div>
+          <figcaption className="bg-frame px-4 py-2.5 text-[13.5px] text-muted">Plate: {beat.title} · {station.dates}</figcaption>
+        </figure>
+      )}
+      {cards.length > 0 && (
+        <section aria-labelledby="wait-cards-h">
+          <h2 id="wait-cards-h" className="text-[16px] font-semibold">While you wait, recall {cards.length === 1 ? "this card" : "these cards"}</h2>
+          <p className="mt-0.5 text-[14px] text-muted">They&rsquo;re in today&rsquo;s review. Your answers count.</p>
+          <ul className="mt-4 space-y-3">
+            {cards.map((c) => <WaitCard key={c.id} card={c} />)}
+          </ul>
+        </section>
+      )}
+    </div>
+  );
+}
+
+type WaitItem = { id: string; front: string; back: string; kind: string };
+
+/** Up to two recall cards from today's queue (quiz-style cards need their own screen, so they're skipped). */
+function useWaitCards(): WaitItem[] {
+  const [cards, setCards] = useState<WaitItem[]>([]);
+  useEffect(() => {
+    if (!ACCOUNTS) return;
+    let live = true;
+    void startSync()
+      .then(() => fetch(`/api/review/queue?tz=${-new Date().getTimezoneOffset()}&limit=6`))
+      .then((r) => (r.ok ? (r.json() as Promise<{ items: WaitItem[] }>) : null))
+      .then((d) => { if (live && d) setCards(d.items.filter((i) => !["mcq", "chronology", "match"].includes(i.kind)).slice(0, 2)); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+  return cards;
+}
+
+function WaitCard({ card }: { card: WaitItem }) {
+  const [shown, setShown] = useState(false);
+  const [rated, setRated] = useState<"again" | "good" | null>(null);
+  const [startedAt] = useState(() => Date.now());
+  const rate = (rating: 1 | 3) => {
+    setRated(rating === 1 ? "again" : "good");
+    void fetch(`/api/review/${encodeURIComponent(card.id)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rating, correct: null, answerText: null, durationMs: Date.now() - startedAt }),
+    }).catch(() => {});
+  };
+  return (
+    <li className="rounded-lg bg-frame px-4 py-3.5">
+      <p className="text-[16.5px] font-semibold leading-snug">{card.front}</p>
+      {!shown ? (
+        <button type="button" onClick={() => setShown(true)} className="mt-3 inline-flex h-10 items-center rounded-md bg-sunk px-3.5 text-[14px] font-medium hover:bg-hover active:scale-[0.97]">Show answer</button>
+      ) : (
+        <>
+          <p className="mt-2 text-[15.5px] leading-relaxed text-muted">{card.back}</p>
+          {rated ? (
+            <p className="mt-3 text-[14px] text-muted" aria-live="polite">{rated === "good" ? "Saved. It comes back in a few days." : "Saved. It comes back soon."}</p>
+          ) : (
+            <div className="mt-3 flex gap-2" role="group" aria-label="Did you remember it?">
+              <button type="button" onClick={() => rate(1)} className="inline-flex h-10 items-center rounded-md border border-rule-strong px-3.5 text-[14px] font-medium hover:border-text active:scale-[0.97]">Missed it</button>
+              <button type="button" onClick={() => rate(3)} className="inline-flex h-10 items-center rounded-md bg-accent px-3.5 text-[14px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97]">Got it</button>
+            </div>
+          )}
+        </>
+      )}
+    </li>
   );
 }
 

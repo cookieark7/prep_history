@@ -55,9 +55,9 @@ function Entity({ name, type, blockId }: { name: string; type: EntityType; block
       <HoverCard.Portal>
         <HoverCard.Content
           sideOffset={6}
-          className="fade-up z-50 w-72 rounded-md border border-rule bg-surface p-3 font-sans text-[13px] text-text shadow-[var(--shadow-float)]"
+          className="pop z-50 w-72 rounded-md border border-rule bg-surface p-3 font-sans text-[13px] text-text shadow-[var(--shadow-float)]"
         >
-          <p className="text-[11px] uppercase tracking-wide text-muted">{TYPE_WORD[type]}</p>
+          <p className="text-[12.5px] font-medium text-muted">{TYPE_WORD[type]}</p>
           <p className="mt-0.5 font-heading text-[17px] leading-tight">{name}</p>
           {mentions.length > 0 ? (
             <ul className="mt-2 space-y-1 border-t border-rule pt-2">

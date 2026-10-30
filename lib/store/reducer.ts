@@ -54,12 +54,12 @@ export interface OpResult {
 
 export const TYPE_LABEL: Record<Block["type"], string> = {
   article: "Article",
-  cause_graph: "Cause graph",
+  cause_graph: "Cause map",
   timeline: "Timeline",
   lineage: "Lineage",
   predict_gate: "Prediction",
   quiz: "Quiz",
-  callout: "Callout",
+  callout: "Aside",
 };
 
 let seq = 0;

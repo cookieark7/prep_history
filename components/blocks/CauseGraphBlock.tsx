@@ -8,6 +8,7 @@ import { useCanvas } from "@/components/canvas/canvas-store";
 import { Icon } from "@/components/ui/icons";
 import { LAYER_LABEL, LayerShape, ConfidenceDot } from "@/components/ui/marks";
 import { ArrowDefs, EdgeStroke, ShapeAt } from "./GraphGlyphs";
+import { CauseList } from "./CauseList";
 import type { Box } from "@/lib/rough";
 
 const SX = 0.74; // horizontal scale of the full layout in the preview
@@ -47,7 +48,11 @@ export function CauseGraphBlock({ block }: { block: GraphT }) {
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-[2px] border border-rule bg-surface">
+      {/* phones: the map as a line of steps; the drawn map is too small to read there */}
+      <div className="md:hidden">
+        <CauseList block={block} onOpen={(id) => openCanvas(id)} />
+      </div>
+      <div className="relative hidden overflow-hidden rounded-md border border-rule bg-surface md:block">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 flex w-[30px] flex-col bg-[linear-gradient(90deg,var(--surface)_60%,transparent)] pt-[14px]">
           {LANES.map((l) => (
             <span key={l} className="flex items-center justify-center" style={{ height: LANE_P }} title={LAYER_LABEL[l]}>
@@ -56,7 +61,7 @@ export function CauseGraphBlock({ block }: { block: GraphT }) {
           ))}
         </div>
         <div ref={scroller} className="scroll-thin overflow-x-auto" style={{ height: PREVIEW_H }}>
-          <svg width={Math.max(width, 640)} height={PREVIEW_H} role="img" aria-label={`Cause graph: ${block.title}. ${block.nodes.length} events, ${block.edges.length} links.`}>
+          <svg width={Math.max(width, 640)} height={PREVIEW_H} role="img" aria-label={`Cause map: ${block.title}. ${block.nodes.length} events, ${block.edges.length} links.`}>
             <ArrowDefs />
             {LANES.map((l, i) => (
               <line key={l} x1={0} x2={Math.max(width, 640)} y1={PAD + (i + 1) * LANE_P} y2={PAD + (i + 1) * LANE_P} stroke="var(--rule)" strokeDasharray="2 4" />
@@ -93,13 +98,13 @@ export function CauseGraphBlock({ block }: { block: GraphT }) {
           </svg>
         </div>
       </div>
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[12px] text-muted">
+      <div className="mt-2.5 hidden flex-wrap items-center gap-x-4 gap-y-2 text-[12.5px] text-muted md:flex">
         <button
           type="button"
           onClick={() => openCanvas()}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-rule bg-surface px-2.5 text-[12.5px] text-text hover:border-rule-strong"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-sunk px-3 text-[13.5px] font-medium text-text hover:bg-hover active:scale-[0.97]"
         >
-          <Icon.expand size={12} /> Open on canvas
+          <Icon.expand size={13} /> Open in Map
         </button>
         <GraphLegend />
       </div>

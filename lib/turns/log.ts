@@ -17,6 +17,13 @@ export function limitsFor(isGuest: boolean, env: Record<string, string | undefin
   };
 }
 
+/** Turns this user started in the last 24 hours (the window the daily limit counts). */
+export async function turnsLastDay(db: Db, userId: string, now = Date.now()): Promise<number> {
+  const [day] = await db.select({ n: count() }).from(schema.turns)
+    .where(and(eq(schema.turns.userId, userId), gte(schema.turns.createdAt, new Date(now - 24 * 3600_000))));
+  return day.n;
+}
+
 /** "day" or "minute" when the user is over a limit, else null. */
 export async function overLimit(db: Db, userId: string, limits: Limits, now = Date.now()): Promise<"day" | "minute" | null> {
   const since = (ms: number) => and(eq(schema.turns.userId, userId), gte(schema.turns.createdAt, new Date(now - ms)));

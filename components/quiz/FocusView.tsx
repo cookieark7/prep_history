@@ -117,7 +117,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
         <span className="flex items-center gap-4">
           {!finished && <span className="tnum text-[12px]">{idx + 1} / {items.length}</span>}
           <button type="button" onClick={onExit} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-hover hover:text-text">
-            <kbd className="font-mono text-[11px]">Esc</kbd> Exit
+            <kbd className="font-mono text-[12px]">Esc</kbd> Exit
           </button>
         </span>
       </div>
@@ -127,7 +127,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
           <EndScreen quiz={quiz} results={results} onRestart={() => { setIdx(0); setResults({}); }} onExit={onExit} />
         ) : item ? (
           <div key={item.id} className="fade-up">
-            <p className="mb-2 text-[12px] uppercase tracking-wide text-muted">
+            <p className="mb-2 text-[13px] font-medium text-muted">
               {item.kind === "mcq" ? "Multiple choice" : item.kind === "chronology" ? "Chronology" : "Match"}
             </p>
             <h2 className="mb-6 font-heading text-[26px] leading-[1.25]">{item.stem}</h2>
@@ -143,7 +143,7 @@ function QuizRunner({ quiz, onExit }: { quiz: QuizBlock; onExit: () => void }) {
                 )}
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button type="button" onClick={next} className="inline-flex h-10 items-center gap-1.5 rounded-md bg-text px-4 text-[14px] text-bg">
-                    {idx + 1 < items.length ? "Next" : "Finish"} <kbd className="font-mono text-[11px] opacity-60">↵</kbd>
+                    {idx + 1 < items.length ? "Next" : "Finish"} <kbd className="font-mono text-[12px] opacity-60">↵</kbd>
                   </button>
                   <SeeInLesson block={item.source_ref.block} node={item.source_ref.node} />
                 </div>
@@ -219,7 +219,7 @@ function EndScreen({ quiz, results, onRestart, onExit }: { quiz: QuizBlock; resu
 
   return (
     <div className="fade-up">
-      <p className="text-[12px] uppercase tracking-wide text-muted">Done</p>
+      <p className="text-[13px] font-medium text-muted">Done</p>
       <h2 className="mt-1 font-heading text-[30px] leading-tight">{right} of {quiz.items.length} correct</h2>
       <p className="mt-1 text-[14px] text-muted">{weak.length ? "The weaker spots are marked below. Practise them, or go back and reread." : "Everything held up. Try explaining one link out loud before moving on."}</p>
 
@@ -234,14 +234,14 @@ function EndScreen({ quiz, results, onRestart, onExit }: { quiz: QuizBlock; resu
                 <g key={e.key} transform={`translate(${x},40)`}>
                   <title>{`${e.label} (${formatYear(e.year)}): recall ${Math.round(s * 100)}%`}</title>
                   <circle r={6} fill={strengthColor(s)} stroke="var(--surface)" strokeWidth={1.5} />
-                  <text y={i % 2 ? 24 : -14} textAnchor="middle" fontSize={10.5} fill="var(--muted)">{e.label.length > 22 ? e.label.slice(0, 21) + "…" : e.label}</text>
+                  <text y={i % 2 ? 24 : -14} textAnchor="middle" fontSize={12} fill="var(--muted)">{e.label.length > 22 ? e.label.slice(0, 21) + "…" : e.label}</text>
                 </g>
               );
             })}
-            <text x={16} y={82} fontSize={10.5} fontFamily="var(--font-mono)" fill="var(--muted)">{formatYear(Math.min(...evs.map((e) => e.year)), { era })}</text>
-            <text x={624} y={82} textAnchor="end" fontSize={10.5} fontFamily="var(--font-mono)" fill="var(--muted)">{formatYear(Math.max(...evs.map((e) => e.year)), { era })}</text>
+            <text x={16} y={82} fontSize={12} style={{ fontVariantNumeric: "tabular-nums" }} fill="var(--muted)">{formatYear(Math.min(...evs.map((e) => e.year)), { era })}</text>
+            <text x={624} y={82} textAnchor="end" fontSize={12} style={{ fontVariantNumeric: "tabular-nums" }} fill="var(--muted)">{formatYear(Math.max(...evs.map((e) => e.year)), { era })}</text>
           </svg>
-          <figcaption className="mt-1 flex items-center gap-3 text-[11.5px] text-muted">
+          <figcaption className="mt-1 flex items-center gap-3 text-[12.5px] text-muted">
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-brick" /> weak</span>
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-ochre" /> shaky</span>
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-ok" /> strong</span>

@@ -5,8 +5,8 @@
    railway maroon for actions, station-board yellow only for "you are here" and things due, signal
    green and red only where they mean something. One light theme and one dark one on
    html[data-theme]; saved "paper" and "sepia" load as light and "ink" as dark (normalizeTheme in
-   lib/store/workspace.ts and the theme script in layout.tsx). The homepage keeps its own `.lp`
-   tokens in components/landing/landing.css until it is redesigned. */
+   lib/store/workspace.ts and the theme script in layout.tsx). The homepage uses these tokens too:
+   components/landing/landing.css maps its own --lp-* names onto them under `.lp`. */
 :root,
 :root[data-theme="light"] {
   --bg: #ffffff; /* the page */
@@ -96,6 +96,7 @@
   --font-mono: var(--font-atkinson-mono), ui-monospace, Menlo, monospace;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* iOS-like sheets and side panels */
 }
 
 /* ---------- base ---------- */
@@ -204,12 +205,14 @@ button:disabled {
 }
 
 /* ---------- motion ---------- */
+/* a part that just arrived or changed: a soft tint of board yellow that fades (no side stripe) */
 @keyframes arrive {
-  0% {
-    box-shadow: inset 3px 0 0 var(--ochre), 0 0 0 1px color-mix(in srgb, var(--ochre) 60%, transparent);
+  0%,
+  20% {
+    background-color: color-mix(in srgb, var(--board) 22%, transparent);
   }
   100% {
-    box-shadow: inset 3px 0 0 transparent, 0 0 0 1px transparent;
+    background-color: transparent;
   }
 }
 .arrive {
@@ -262,6 +265,114 @@ button:disabled {
   background: var(--accent);
   animation: progress-slide 1.4s ease-in-out infinite;
 }
+/* ---------- motion vocabulary (transform and opacity only; UI motion under 300ms) ----------
+   Radix keeps a closing popover or dialog mounted until its animation ends, so exits are
+   keyframes on data-state="closed". */
+
+/* popovers and menus grow from their trigger (Radix sets the origin) */
+.pop {
+  transform-origin: var(--radix-popover-content-transform-origin, var(--radix-hover-card-content-transform-origin, top));
+}
+.pop[data-state="open"] {
+  animation: pop-in 150ms var(--ease-out);
+}
+.pop[data-state="closed"] {
+  animation: pop-out 100ms var(--ease-out);
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.97); }
+}
+@keyframes pop-out {
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+/* side panels come in from the right edge and leave the same way */
+.panel-right[data-state="open"] {
+  animation: panel-in 280ms var(--ease-drawer);
+}
+.panel-right[data-state="closed"] {
+  animation: panel-out 200ms var(--ease-out);
+}
+@keyframes panel-in {
+  from { transform: translateX(100%); }
+}
+@keyframes panel-out {
+  to { transform: translateX(100%); }
+}
+
+/* bottom sheets come up from the bottom edge and leave the same way */
+.sheet-up[data-state="open"] {
+  animation: sheet-in 280ms var(--ease-drawer);
+}
+.sheet-up[data-state="closed"] {
+  animation: sheet-out 200ms var(--ease-out);
+}
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+}
+@keyframes sheet-out {
+  to { transform: translateY(100%); }
+}
+
+/* the dimmed backdrop behind a panel or sheet */
+.scrim[data-state="open"] {
+  animation: scrim-in 200ms ease-out;
+}
+.scrim[data-state="closed"] {
+  animation: scrim-out 200ms ease-out;
+}
+@keyframes scrim-in {
+  from { opacity: 0; }
+}
+@keyframes scrim-out {
+  to { opacity: 0; }
+}
+
+/* content that opens in place: the phone conversation rises a little, a station's details drop in */
+.enter-rise {
+  transition: opacity 260ms var(--ease-drawer), transform 260ms var(--ease-drawer);
+}
+@starting-style {
+  .enter-rise {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+.enter-drop {
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+@starting-style {
+  .enter-drop {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* the theme switch crossfades the page (View Transitions; skipped with reduced motion) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: ease;
+}
+
+/* the end of a daily review: the stations fill left to right (delays set inline, 40ms apart) */
+.fill-in {
+  transition: background-color 200ms ease-out;
+}
+@starting-style {
+  .fill-in {
+    background-color: var(--bg);
+  }
+}
+
+/* the era's plate while a lesson is on its way: a slow push-in, transform only */
+@keyframes wait-plate {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+.wait-plate {
+  animation: wait-plate 24s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -274,6 +385,21 @@ button:disabled {
   .progress-rule::after {
     width: 100%;
     opacity: 0.5;
+  }
+  /* panels, sheets and popovers still fade, quickly, without moving */
+  .pop[data-state="open"],
+  .panel-right[data-state="open"],
+  .sheet-up[data-state="open"],
+  .scrim[data-state="open"] {
+    animation-name: scrim-in !important;
+    animation-duration: 120ms !important;
+  }
+  .pop[data-state="closed"],
+  .panel-right[data-state="closed"],
+  .sheet-up[data-state="closed"],
+  .scrim[data-state="closed"] {
+    animation-name: scrim-out !important;
+    animation-duration: 120ms !important;
   }
 }
 

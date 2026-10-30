@@ -47,7 +47,7 @@ export function PredictGateBlock({ block }: { block: GateT }) {
                   state === "wrong" ? "border-brick text-text" : "border-rule text-muted"
                 }`}
               >
-                <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[11px] text-muted">
+                <span className="tnum grid h-6 w-6 shrink-0 place-items-center rounded-full border border-rule text-[12px] text-muted">
                   {state === "right" ? <Icon.check size={12} className="text-ok" /> : state === "wrong" ? <Icon.cross size={12} className="text-brick" /> : String.fromCharCode(65 + i)}
                 </span>
                 {o.label}

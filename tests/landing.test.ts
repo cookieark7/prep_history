@@ -18,15 +18,15 @@ describe("landingDirection (E4)", () => {
 describe("chipLabel (E4)", () => {
   it("names a single block and collapses several", () => {
     expect(chipLabel([])).toBeNull();
-    expect(chipLabel([{ id: "b2", type: "cause_graph", dir: "below" }])).toBe("Cause graph added, below");
+    expect(chipLabel([{ id: "b2", type: "cause_graph", dir: "below" }])).toBe("Cause map added, below");
     expect(chipLabel([
       { id: "b2", type: "cause_graph", dir: "below" },
       { id: "b3", type: "timeline", dir: "below" },
       { id: "b4", type: "callout", dir: "below" },
-    ])).toBe("3 blocks added, below");
+    ])).toBe("3 parts added, below");
     expect(chipLabel([
       { id: "b2", type: "cause_graph", dir: "above" },
       { id: "b5", type: "quiz", dir: "below" },
-    ])).toBe("2 blocks added");
+    ])).toBe("2 parts added");
   });
 });

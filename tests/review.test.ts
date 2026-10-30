@@ -45,8 +45,8 @@ describe("cards from a turn", () => {
   it("falls back to the cause map's strongest links when the Director sent no cards", () => {
     const cards = cardsFromTurn([add(graph), { t: "done" }]);
     expect(cards.map((c) => c.front)).toEqual([
-      "How did “Italian alliance system” lead to “Second Punic War”?",
-      "How did “Second Punic War” lead to “Rome dominates the west”?",
+      "What part did Italian alliance system play in the Second Punic War?",
+      "What did the Second Punic War lead to?",
     ]);
     expect(cards[1].kind).toBe("consequence");
   });
@@ -112,7 +112,7 @@ describe("spaced review", () => {
     const month = s.retention.find((b) => b.bucket === "over 30 days" || b.bucket === "8–30 days");
     expect(s.retention.reduce((n, b) => n + b.reviews, 0)).toBeGreaterThanOrEqual(1);
     expect(month).toBeDefined();
-    expect(s.lessons).toEqual([{ lessonId: "l1", topic: "Why did Rome beat Carthage?", cards: 2, learned: expect.any(Number) }]);
+    expect(s.lessons).toEqual([{ lessonId: "l1", topic: "Why did Rome beat Carthage?", cards: 2, learned: expect.any(Number), overdue: 0 }]);
   });
 
   it("works out the learner's local midnight", () => {

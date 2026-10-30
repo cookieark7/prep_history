@@ -10,7 +10,7 @@ export function ReadAsText({ beats, open, onOpenChange }: { beats: Beat[]; open:
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={`${LANDING_THEME} fixed inset-0 z-[60] bg-[color-mix(in_srgb,var(--text)_22%,transparent)]`} />
-        <Dialog.Content className={`${LANDING_THEME} fade-up fixed left-1/2 top-[8dvh] z-[61] flex max-h-[84dvh] w-[min(640px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-[6px] border border-[color:var(--lp-rule)] bg-white shadow-[0_1px_2px_rgba(22,32,28,0.06),0_8px_24px_rgba(22,32,28,0.1)] outline-none`}>
+        <Dialog.Content className={`${LANDING_THEME} fade-up fixed left-1/2 top-[8dvh] z-[61] flex max-h-[84dvh] w-[min(640px,calc(100vw-32px))] -translate-x-1/2 flex-col rounded-[6px] border border-[color:var(--lp-rule)] bg-[color:var(--lp-card)] shadow-[var(--shadow-float)] outline-none`}>
           <div className="flex items-center justify-between border-b border-[color:var(--lp-rule)] px-6 py-4">
             <Dialog.Title className="font-heading text-[20px] font-bold text-[color:var(--lp-ink)]">From the Big Bang to today</Dialog.Title>
             <Dialog.Close className="inline-flex min-h-[44px] items-center font-sans text-[13px] font-medium text-[color:var(--lp-muted)] hover:text-[color:var(--lp-ink)]">

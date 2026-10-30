@@ -135,14 +135,14 @@ export function LineageBlock({ block }: { block: LineageT }) {
                   aria-label={`${p.name}, ${formatRange(p.start, p.end, p.approx)}`}
                 >
                   <span className="truncate font-heading text-[14.5px] font-semibold leading-tight">{p.name}</span>
-                  <span className="tnum text-[11px] text-muted">{formatRange(p.start, p.end, p.approx) || "dates unknown"}</span>
+                  <span className="tnum text-[12px] text-muted">{formatRange(p.start, p.end, p.approx) || "dates unknown"}</span>
                 </button>
-                {multi && <span className="absolute -top-2 left-2 rounded-[2px] bg-surface px-1 text-[10px] italic text-muted" title={`Reached by ${sources(p.id).length} paths`}>also here</span>}
+                {multi && <span className="absolute -top-2 left-2 rounded-[2px] bg-surface px-1 text-[11px] italic text-muted" title={`Reached by ${sources(p.id).length} paths`}>also here</span>}
                 {kids > 0 && (
                   <button
                     type="button"
                     onClick={() => setCollapsed((c) => (c.includes(p.id) ? c.filter((x) => x !== p.id) : [...c, p.id]))}
-                    className="absolute -bottom-2.5 left-1/2 grid h-5 min-w-5 -translate-x-1/2 place-items-center rounded-full border border-rule bg-surface px-1 text-[10px] text-muted hover:text-text"
+                    className="absolute -bottom-2.5 left-1/2 grid h-5 min-w-5 -translate-x-1/2 place-items-center rounded-full border border-rule bg-surface px-1 text-[11px] text-muted hover:text-text"
                     aria-label={isCollapsed ? `Expand ${p.name}'s branch` : `Collapse ${p.name}'s branch`}
                     title={isCollapsed ? "Expand branch" : "Collapse branch"}
                   >
@@ -210,7 +210,7 @@ function LinkStroke({ link, a, b, opacity, n }: { link: Link; a: PositionedPerso
         {draw(d, "var(--accent)", 1.5, { marker: "url(#lin-arrow)" })}
         <g transform={`translate(${mx},${my})`}>
           <circle r={8} fill="var(--surface)" stroke="var(--accent)" strokeWidth={1.2} />
-          <text textAnchor="middle" dy="3.5" fontSize={10} fontFamily="var(--font-mono)" fill="var(--accent)">{n}</text>
+          <text textAnchor="middle" dy="3.5" fontSize={11} fontWeight={700} fill="var(--accent)">{n}</text>
         </g>
       </g>
     );
@@ -241,7 +241,7 @@ function LinkStroke({ link, a, b, opacity, n }: { link: Link; a: PositionedPerso
 
 function LineageLegend() {
   return (
-    <span className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px]">
+    <span className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
       <span className="inline-flex items-center gap-1"><svg width="20" height="8"><path d="M1,4 H19" stroke="var(--accent)" strokeWidth="1.5" /></svg>succeeded (numbered)</span>
       <span className="inline-flex items-center gap-1"><svg width="20" height="8"><path d="M1,4 H19" stroke="var(--muted)" strokeWidth="1.2" /></svg>parent</span>
       <span className="inline-flex items-center gap-1"><svg width="20" height="8"><path d="M1,2 H19 M1,6 H19" stroke="var(--muted)" strokeWidth="1.2" /></svg>spouse</span>
@@ -285,7 +285,7 @@ function PersonDrawer({ block, person, onClose }: { block: LineageT; person: Per
       </div>
       {person.key_events.length > 0 && (
         <>
-          <p className="mb-1 mt-3 text-[11.5px] font-medium uppercase tracking-wide text-muted">Key events</p>
+          <p className="mb-1 mt-3 text-[12.5px] font-medium text-muted">Key events</p>
           <ul className="space-y-1 text-[13.5px]">
             {person.key_events.map((k) => {
               const m = timelineMatch(k);
@@ -308,7 +308,7 @@ function PersonDrawer({ block, person, onClose }: { block: LineageT; person: Per
             <li key={i} className="flex items-center gap-1.5">
               <ConfidenceDot c={l.confidence} />
               <span className="text-muted">{word}</span> {name(other)}
-              {l.confidence !== "E" && <span className="text-[11.5px] text-muted">({CONFIDENCE_LABEL[l.confidence]})</span>}
+              {l.confidence !== "E" && <span className="text-[12.5px] text-muted">({CONFIDENCE_LABEL[l.confidence]})</span>}
             </li>
           ))}
         </ul>

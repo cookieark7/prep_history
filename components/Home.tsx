@@ -18,6 +18,7 @@ import { StationDetails } from "@/components/route/StationDetails";
 import { PARTS, STATIONS, stationById, stationsOf, type Station } from "@/content/syllabus";
 import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
 import { useReviewStats, waitingCount, type ReviewStatus } from "@/lib/review/useReviewStats";
+import { quotaText, useQuota } from "@/lib/turns/useQuota";
 
 const LEVELS: { id: Level; label: string }[] = [
   { id: "new", label: "New to this" },
@@ -35,6 +36,7 @@ export function Home() {
   const stationId = useRoute((s) => s.station);
   const started = useRoute((s) => s.started);
   const review = useReviewStats(hydrated);
+  const quota = useQuota(hydrated);
 
   const begin = (message: string, opts: { topic?: string; card?: ComposerSubmit["card"]; station?: string } = {}) => {
     useWorkspace.getState().startLesson(opts.topic ?? message, level);
@@ -108,6 +110,7 @@ export function Home() {
               </button>
             </div>
           </div>
+          {quota && <p className={`mt-2 px-1 text-[13px] tnum ${quota.left <= 3 ? "text-brick" : "text-muted"}`}>{quotaText(quota)}</p>}
         </form>
 
         <div className="mt-5 lg:hidden">
@@ -231,7 +234,7 @@ function RecentLessons({ hydrated }: { hydrated: boolean }) {
             <tr className="border-b border-rule-strong text-[13px] text-muted">
               <th scope="col" className="py-2 pr-4 font-medium">Lesson</th>
               <th scope="col" className="hidden py-2 pr-4 font-medium sm:table-cell">Period</th>
-              <th scope="col" className="hidden py-2 pr-4 text-right font-medium md:table-cell">Blocks</th>
+              <th scope="col" className="hidden py-2 pr-4 text-right font-medium md:table-cell">Parts</th>
               <th scope="col" className="py-2 text-right font-medium">Opened</th>
             </tr>
           </thead>

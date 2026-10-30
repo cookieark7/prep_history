@@ -105,7 +105,8 @@ export interface ReviewStats {
   streakDays: number;
   /** recall on mature cards (in review), by days since the last review */
   retention: { bucket: string; reviews: number; recalled: number }[];
-  lessons: { lessonId: string; topic: string; cards: number; learned: number }[];
+  /** per lesson: cards, cards settled (in review), and cards overdue (due before today began) */
+  lessons: { lessonId: string; topic: string; cards: number; learned: number; overdue: number }[];
 }
 
 const BUCKETS: [string, number, number][] = [["1–2 days", 0, 2], ["3–7 days", 3, 7], ["8–30 days", 8, 30], ["over 30 days", 31, 100000]];
@@ -141,13 +142,16 @@ export async function reviewStats(db: Db, userId: string, now = new Date(), dayO
   const lessons = await db.select({
     lessonId: c.lessonId, topic: schema.lessons.topic,
     cards: count(), learned: sql<number>`count(*) filter (where ${c.state} = 2)`,
-  }).from(c).innerJoin(schema.lessons, eq(schema.lessons.id, c.lessonId))
+    // a raw sql fragment gets no column type, and the Postgres driver won't bind a Date there: pass ISO text
+    overdue: sql<number>`count(*) filter (where ${c.state} <> 0 and ${c.due} < ${dayStart.toISOString()}::timestamptz and ${c.suspended} = false)`,
+  // a left join: a lesson's cards count even in the seconds before the lesson itself is saved
+  }).from(c).leftJoin(schema.lessons, eq(schema.lessons.id, c.lessonId))
     .where(eq(c.userId, userId)).groupBy(c.lessonId, schema.lessons.topic).orderBy(desc(count())).limit(20);
 
   return {
     due: dueRow.n, newAvailable: Math.min(newRow.n, newLeft), totalCards: totalRow.n, learned: learnedRow.n,
     reviewedToday: todayRow.n, streakDays, retention,
-    lessons: lessons.map((l) => ({ lessonId: l.lessonId!, topic: l.topic, cards: l.cards, learned: Number(l.learned) })),
+    lessons: lessons.filter((l) => l.lessonId).map((l) => ({ lessonId: l.lessonId!, topic: l.topic ?? "", cards: l.cards, learned: Number(l.learned), overdue: Number(l.overdue) })),
   };
 }
 

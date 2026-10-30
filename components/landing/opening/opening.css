@@ -10,8 +10,12 @@
 }
 .ow-frame {
   position: relative;
+  width: 100%; /* a definite width, so the height cap below crops the box instead of narrowing it */
   aspect-ratio: 16 / 7;
-  max-height: 66svh;
+  /* on a laptop the question box below must stay in the first screen (about 500px of page sits
+     under the box), so the box gives up height (the plates crop wider) before the question box
+     gives up the fold */
+  max-height: max(300px, calc(100svh - 500px));
   overflow: hidden;
   isolation: isolate;
   background: var(--lp-stage);
@@ -172,20 +176,25 @@
 .ow-line {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.85);
+  background: #fff;
 }
+/* the moments are stations on the line: the key ones open circles, the rest small subordinate ticks */
 .ow-tick {
   position: absolute;
-  top: -4px;
+  top: -2px;
   width: 2px;
-  height: 11px;
+  height: 7px;
   margin-left: -1px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.7);
 }
 .ow-tick.is-key {
-  top: -6px;
-  height: 15px;
-  background: rgba(255, 255, 255, 0.9);
+  top: -4px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  background: rgba(14, 14, 13, 0.55);
 }
 /* the needle rides a full-width track moved with transform (a percentage of the track is a
    percentage of the ruler), never with left */

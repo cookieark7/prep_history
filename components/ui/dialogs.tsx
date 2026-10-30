@@ -10,7 +10,7 @@ import { exportMarkdown } from "@/lib/export";
 import { copyLesson } from "@/lib/copy-actions";
 import type { Level } from "@/lib/contracts";
 
-const overlay = "fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]";
+const overlay = "scrim fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]";
 
 /* ---------------- lesson history drawer ---------------- */
 export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
@@ -21,7 +21,7 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
-        <Dialog.Content className="fade-up fixed inset-y-0 right-0 z-50 flex w-full max-w-[400px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
+        <Dialog.Content className="panel-right fixed inset-y-0 right-0 z-50 flex w-full max-w-[400px] flex-col border-l border-rule bg-bg shadow-[var(--shadow-float)] outline-none">
           <div className="flex h-14 items-center justify-between border-b border-rule px-5">
             <Dialog.Title className="font-heading text-[18px] font-semibold">Lesson history</Dialog.Title>
             <Dialog.Close className="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-hover" aria-label="Close"><Icon.close /></Dialog.Close>
@@ -31,7 +31,7 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
             {list.length === 0 && <li className="px-3 py-6 text-[13px] text-muted">No changes yet.</li>}
             {list.map((h) => (
               <li key={h.id} className="flex items-start gap-3 border-b border-rule px-3 py-2.5 last:border-0">
-                <span className="tnum mt-0.5 w-12 shrink-0 text-[11px] text-muted">
+                <span className="tnum mt-0.5 w-12 shrink-0 text-[12px] text-muted">
                   {new Date(h.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
                 <span className={`flex-1 text-[13px] leading-snug ${h.status === "undone" ? "text-muted line-through" : ""}`}>{h.label}</span>
@@ -40,7 +40,7 @@ export function HistoryDrawer({ open, onOpenChange }: { open: boolean; onOpenCha
                     <Icon.undo size={12} /> Undo
                   </button>
                 )}
-                {h.status === "undone" && <span className="text-[11.5px] text-muted">undone</span>}
+                {h.status === "undone" && <span className="text-[12.5px] text-muted">undone</span>}
               </li>
             ))}
           </ol>
@@ -99,7 +99,7 @@ export function CommandPalette({
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
         <Dialog.Content
-          className="fade-up fixed left-1/2 top-[14dvh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-md border border-rule bg-surface shadow-[var(--shadow-float)] outline-none"
+          className="fixed left-1/2 top-[14dvh] z-50 w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-md border border-rule bg-surface shadow-[var(--shadow-float)] outline-none"
           aria-describedby={undefined}
         >
           <Dialog.Title className="sr-only">Command palette</Dialog.Title>
@@ -132,7 +132,7 @@ export function CommandPalette({
                   >
                     <I size={14} className="text-muted" />
                     {c.label}
-                    {c.hint && <span className="ml-auto font-mono text-[11px] text-muted">{c.hint}</span>}
+                    {c.hint && <span className="ml-auto font-mono text-[12px] text-muted">{c.hint}</span>}
                   </button>
                 </li>
               );
@@ -149,11 +149,11 @@ export function CommandPalette({
 // Exactly what components/stage/useShortcuts.ts (and the canvas, rail, composer, quiz) wire up.
 const SHORTCUTS: { group: string; keys: [string, string][] }[] = [
   { group: "Lesson", keys: [
-    ["j / k", "Next / previous block"],
-    ["f", "Fullscreen the current block"],
-    ["c", "Copy the current block"],
-    ["p", "Pin or unpin the current block"],
-    ["u", "Undo the last change to the current block"],
+    ["j / k", "Next / previous part"],
+    ["f", "Fullscreen the current part"],
+    ["c", "Copy the current part"],
+    ["p", "Pin or unpin the current part"],
+    ["u", "Undo the last change to the current part"],
     ["N", "New lesson"],
     ["Esc", "Exit fullscreen, focus or canvas; stop a reply"],
   ] },
@@ -165,7 +165,7 @@ const SHORTCUTS: { group: string; keys: [string, string][] }[] = [
   ] },
   { group: "Composer", keys: [["Enter", "Send"], ["Shift Enter", "New line"]] },
   { group: "Canvas", keys: [["v / n / p", "Select / Note / Highlight path"]] },
-  { group: "Lesson rail", keys: [["↑ / ↓", "Move between blocks"], ["Enter", "Jump to the block"]] },
+  { group: "Lesson line", keys: [["↑ / ↓", "Move between parts"], ["Enter", "Jump to the part"]] },
   { group: "Quiz", keys: [["1-5", "Choose an option"], ["Enter", "Check, then next"]] },
 ];
 
@@ -174,12 +174,12 @@ export function ShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenC
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={overlay} />
-        <Dialog.Content className="fade-up fixed left-1/2 top-[18dvh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
+        <Dialog.Content className="fixed left-1/2 top-[18dvh] z-50 w-[min(420px,calc(100vw-32px))] -translate-x-1/2 rounded-md border border-rule bg-surface p-5 shadow-[var(--shadow-float)] outline-none" aria-describedby={undefined}>
           <Dialog.Title className="mb-3 font-heading text-[18px] font-semibold">Keyboard shortcuts</Dialog.Title>
           <div className="scroll-thin max-h-[60dvh] space-y-4 overflow-y-auto overscroll-contain pr-1">
             {SHORTCUTS.map((g) => (
               <section key={g.group}>
-                <h3 className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">{g.group}</h3>
+                <h3 className="mb-1.5 text-[12.5px] font-medium text-muted">{g.group}</h3>
                 <dl className="space-y-1.5 text-[13.5px]">
                   {g.keys.map(([k, v]) => (
                     <div key={k + v} className="flex items-center justify-between gap-4">

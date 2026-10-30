@@ -43,7 +43,7 @@ export function NodeCard({
       <div className="scroll-thin flex-1 overflow-y-auto overscroll-contain p-4 text-[13.5px] leading-snug">
         {incoming.length > 0 && (
           <>
-            <p className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">Caused by</p>
+            <p className="mb-1.5 text-[12.5px] font-medium text-muted">Caused by</p>
             <ul className="mb-4 space-y-2.5">
               {incoming.map((e) => (
                 <li key={e.from}>
@@ -58,7 +58,7 @@ export function NodeCard({
         )}
         {outgoing.length > 0 && (
           <>
-            <p className="mb-1.5 text-[11.5px] font-medium uppercase tracking-wide text-muted">Led to</p>
+            <p className="mb-1.5 text-[12.5px] font-medium text-muted">Led to</p>
             <ul className="space-y-2.5">
               {outgoing.map((e) => (
                 <li key={e.to}>

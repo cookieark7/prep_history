@@ -30,7 +30,7 @@ export function ChatLog({ compact = false }: { compact?: boolean }) {
             <>
               <p className="text-[13.5px] leading-snug text-muted">{c.text}</p>
               {c.attachment && (
-                <p className="mt-1 inline-flex items-center gap-1.5 rounded-[2px] border border-rule px-1.5 py-0.5 text-[11.5px] text-muted">
+                <p className="mt-1 inline-flex items-center gap-1.5 rounded-[2px] border border-rule px-1.5 py-0.5 text-[12.5px] text-muted">
                   <Icon.article size={11} /> Pasted text, {c.attachment.words.toLocaleString()} words
                 </p>
               )}
@@ -251,7 +251,7 @@ function RememberList({ items }: { items: string[] }) {
         <Icon.check size={12} className="shrink-0 text-accent" />
         <span className="font-medium">To remember</span>
         <span className="text-muted">· {items.length} {ACCOUNTS ? "saved for review" : "ideas"}</span>
-        <span className="ml-auto text-[11px] text-muted group-open:hidden">Show</span>
+        <span className="ml-auto text-[12px] text-muted group-open:hidden">Show</span>
       </summary>
       <ul className="mt-2 space-y-1.5 border-t border-rule pt-2">
         {items.map((f) => <li key={f} className="leading-snug text-muted">{f}</li>)}

@@ -39,7 +39,7 @@ export function RouteLine({ stations, current, started, onSelect, label }: Props
       <div aria-hidden className="absolute inset-x-0 top-[100px] h-[3px] bg-line" />
       <div
         aria-hidden
-        className="absolute left-0 top-0 max-w-[100cqw] transition-transform duration-[320ms] ease-[var(--ease-in-out)]"
+        className="absolute left-0 top-0 max-w-[100cqw] transition-transform duration-[280ms] ease-[var(--ease-in-out)]"
         style={{ transform: `translateX(${x})` }}
       >
         <div className="border-[3px] border-line bg-board px-4 pb-2 pt-2.5 text-board-ink">
@@ -88,7 +88,7 @@ export function RouteList({ stations, current, started, onSelect, label, details
                     <p className="mt-1 text-[13.5px] font-bold tnum">{s.dates}</p>
                   </div>
                 </div>
-                <div className="ml-11 mt-3">{details(s)}</div>
+                <div className="enter-drop ml-11 mt-3">{details(s)}</div>
               </div>
             ) : (
               <button type="button" onClick={() => onSelect(s.id)} className="flex min-h-12 w-full items-center gap-3 rounded-md text-left hover:bg-hover">

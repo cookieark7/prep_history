@@ -51,6 +51,12 @@ export function Landing() {
 
   // Handoffs navigate with Next's router so /study opens without a full reload.
   useEffect(() => setNavigator((href) => router.push(href)), [router]);
+  // the app's "Sign in" link lands here as /?signin=1: open the sign-in card and tidy the URL
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("signin") !== "1") return;
+    useLoginCard.getState().openLogin(null);
+    window.history.replaceState(null, "", "/");
+  }, []);
 
   const signIn = () => useLoginCard.getState().openLogin(null);
 
@@ -80,18 +86,18 @@ export function Landing() {
           <h2 id="moments-h" className="sr-only">From the Big Bang to now, in 35 moments</h2>
           <OpeningWindow
             aside={
-              <button type="button" onClick={() => setReadOpen(true)} className="ml-auto inline-flex min-h-[44px] shrink-0 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline">
+              <button type="button" onClick={() => setReadOpen(true)} className="ml-auto inline-flex min-h-[44px] shrink-0 items-center text-[15px] font-medium text-accent underline-offset-4 hover:underline min-[601px]:hidden">
                 Read all 35 moments as text
               </button>
             }
           />
         </section>
 
-        <section aria-labelledby="hero-h" className={`${WRAP} pb-[clamp(48px,7vw,88px)] pt-[clamp(20px,3vw,40px)]`}>
-          <h1 id="hero-h" className="max-w-[16em] text-[clamp(36px,4.6vw,56px)] font-bold leading-[1.05] tracking-[-0.02em] [text-wrap:balance]">
+        <section aria-labelledby="hero-h" className={`${WRAP} pb-[clamp(48px,7vw,88px)] pt-[clamp(12px,1.6vw,24px)]`}>
+          <h1 id="hero-h" className="max-w-[18em] text-[clamp(34px,3.6vw,50px)] font-bold leading-[1.05] tracking-[-0.02em] [text-wrap:balance]">
             History for UPSC, learned once and kept till exam day.
           </h1>
-          <p className="mt-4 max-w-[44em] text-[clamp(17px,1.5vw,19.5px)] leading-[1.5] text-muted">
+          <p className="mt-3 max-w-[70ch] text-[clamp(17px,1.35vw,19px)] leading-[1.5] text-muted">
             Ask about any topic, person, place or year. You get a lesson built for your question, every claim marked by how certain it is, and a short daily review of what to remember.
           </p>
           <HeroAsk />
@@ -145,7 +151,7 @@ function HeroAsk() {
   };
 
   return (
-    <form onSubmit={submit} className="mt-7 rounded-[14px] border-[1.5px] border-line bg-bg p-[clamp(12px,1.6vw,20px)] transition-shadow focus-within:shadow-[0_0_0_4px_var(--accent-soft)]">
+    <form onSubmit={submit} className="mt-5 rounded-[14px] border-[1.5px] border-line bg-bg p-[clamp(12px,1.6vw,20px)] transition-shadow focus-within:shadow-[0_0_0_4px_var(--accent-soft)]">
       <label htmlFor="hero-ask" className="sr-only">Ask about any topic, person, place or year</label>
       <textarea
         id="hero-ask"

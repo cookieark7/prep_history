@@ -27,7 +27,7 @@ export function MobileChrome() {
           {!open && count > 0 && !streaming && <span>Conversation</span>}
         </button>
         {open && (
-          <ChatScroller className="h-[55dvh] border-t border-rule">
+          <ChatScroller className="enter-rise h-[55dvh] border-t border-rule">
             <ChatLog compact />
           </ChatScroller>
         )}
