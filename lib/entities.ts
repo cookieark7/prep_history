@@ -7,7 +7,7 @@ const ENTITY_TYPES = new Set<string>(["person", "place", "event", "term"]);
 export interface Mention {
   blockId: string;
   node: string | null;
-  where: string; // "Cause graph", "Timeline", ...
+  where: string; // "Cause map", "Timeline", ...
   label: string;
   when?: string;
 }
@@ -23,7 +23,7 @@ export function findMentions(blocks: Block[], name: string): Mention[] {
   for (const b of blocks) {
     if (b.type === "cause_graph") {
       for (const n of b.nodes) if (hit(n.label)) out.push({
-        blockId: b.id, node: n.id, where: "Cause graph", label: n.label,
+        blockId: b.id, node: n.id, where: "Cause map", label: n.label,
         when: n.when != null ? formatYear(n.when) : n.t_offset != null ? `+${n.t_offset} years` : undefined,
       });
     } else if (b.type === "timeline") {

@@ -77,4 +77,9 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "level-advanced", label: "level advanced", req: req("Why did the Late Bronze Age collapse happen?", { level: "advanced" }), expect: { anyType: ["cause_graph", "article"] } },
   { id: "meanwhile", label: "simultaneity", req: req("What was happening in China while Rome fought Carthage?"), expect: { anyType: ["timeline", "callout", "article"] } },
   { id: "vague", label: "vague request", req: req("Tell me about wars.") },
+  // UPSC, many lenses (28 Oct 2026): the lens follows the question, and exam facts are stated
+  { id: "marathas-learn", label: "learn a syllabus period", req: req("I want to understand the Maratha Empire."), expect: { anyType: ["article"], mentions: /Shivaji/ } },
+  { id: "lens-timeline", label: "timeline lens", req: req("The Marathas (1674 – 1818): a timeline of the main events"), expect: { anyType: ["timeline"] } },
+  { id: "lens-people", label: "people lens", req: req("The Marathas (1674 – 1818): the key people and what each did"), expect: { anyType: ["lineage", "article"], mentions: /Peshwa|Baji Rao/ } },
+  { id: "prelims-fact", label: "exam fact question", req: req("What were chauth and sardeshmukhi?"), expect: { anyType: ["article", "callout"], mentions: /one[- ]fourth|25|quarter/i } },
 ];
