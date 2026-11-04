@@ -10,6 +10,8 @@ export interface EvalCase {
   expect?: {
     /** at least one of these block types is added */
     anyType?: BlockType[];
+    /** every one of these block types is added (the exam lesson's parts) */
+    allTypes?: BlockType[];
     /** a layout op to this mode */
     layout?: "reader" | "canvas" | "timeline" | "focus";
     /** must not remove blocks or add at the top of an existing stage */
@@ -24,10 +26,10 @@ export interface EvalCase {
 }
 
 type Stage = TurnRequest["workspace"]["blocks"];
-const req = (message: string | null, opts: { stage?: Stage; level?: TurnRequest["workspace"]["level"]; event?: TurnRequest["event"]; detail?: string; source_text?: string } = {}): TurnRequest => ({
+const req = (message: string | null, opts: { stage?: Stage; level?: TurnRequest["workspace"]["level"]; goal?: TurnRequest["workspace"]["goal"]; event?: TurnRequest["event"]; detail?: string; source_text?: string } = {}): TurnRequest => ({
   message,
   event: opts.event ?? null,
-  workspace: { blocks: opts.stage ?? [], level: opts.level ?? "some", mastery: [] },
+  workspace: { blocks: opts.stage ?? [], level: opts.level ?? "some", ...(opts.goal ? { goal: opts.goal } : {}), mastery: [] },
   ...(opts.detail ? { detail: opts.detail } : {}),
   ...(opts.source_text ? { source_text: opts.source_text } : {}),
 });
@@ -82,4 +84,21 @@ export const EVAL_CASES: EvalCase[] = [
   { id: "lens-timeline", label: "timeline lens", req: req("The Marathas (1674 – 1818): a timeline of the main events"), expect: { anyType: ["timeline"] } },
   { id: "lens-people", label: "people lens", req: req("The Marathas (1674 – 1818): the key people and what each did"), expect: { anyType: ["lineage", "article"], mentions: /Peshwa|Baji Rao/ } },
   { id: "prelims-fact", label: "exam fact question", req: req("What were chauth and sardeshmukhi?"), expect: { anyType: ["article", "callout"], mentions: /one[- ]fourth|25|quarter/i } },
+  // exam prep (31 Oct 2026): a series part in the five exam parts
+  { id: "exam-marathas", label: "exam prep, a series part", req: req("The Marathas, part 1 of 4: Shivaji and the Maratha state (1630 – 1680)", { level: "new", goal: "exam" }), expect: { allTypes: ["article", "timeline", "callout", "quiz"], mentions: /Key facts/ } },
+  { id: "exam-khaljis", label: "exam prep, new sources", req: req("Delhi Sultanate, part 2 of 4: The Khaljis (1290 – 1320)", { level: "new", goal: "exam" }), expect: { allTypes: ["article", "timeline", "callout", "quiz"], mentions: /Alauddin|Ala.?ud.?din/i } },
+  // one per station given sources on 31 Oct (ancient India, world history); every check also
+  // asks that an article cites the passages it was given
+  { id: "src-stone-age", label: "sources: Stone Age", req: req("What do the rock paintings at Bhimbetka show?"), expect: { anyType: ["article"], mentions: /Bhimbetka/ } },
+  { id: "src-harappan", label: "sources: Harappan", req: req("How were Harappan towns planned, and why the drains?"), expect: { anyType: ["article"], mentions: /Mohenjo|Harappa|Dholavira|Lothal/ } },
+  { id: "src-vedic", label: "sources: Vedic age", req: req("How did society change from the early to the later Vedic age?"), expect: { anyType: ["article"], mentions: /Rig ?veda/i } },
+  { id: "src-magadha", label: "sources: Magadha", req: req("Why did Magadha become the strongest of the Mahajanapadas?"), expect: { anyType: ["cause_graph", "article"], mentions: /Bimbisara|Ajatashatru|Rajagriha|Pataliputra|Nanda/ } },
+  { id: "src-kushanas", label: "sources: after the Mauryas", req: req("Who were the Kushanas, and why does Kanishka matter?"), expect: { anyType: ["article", "lineage"], mentions: /Kanishka/ } },
+  { id: "src-gupta-exam", label: "sources: Gupta, exam prep", req: req("Gupta age, part 1 of 3: The Gupta kings (c. 320 – 467 CE)", { level: "new", goal: "exam" }), expect: { allTypes: ["article", "timeline", "callout", "quiz"], mentions: /Samudragupta/ } },
+  { id: "src-american", label: "sources: American Revolution", req: req("What did the American Revolution change?"), expect: { anyType: ["article", "cause_graph"], mentions: /1776|Declaration of Independence/ } },
+  { id: "src-africa", label: "sources: imperialism", req: req("What was the scramble for Africa?"), expect: { anyType: ["article", "cause_graph"], mentions: /Berlin Conference|1884/ } },
+  { id: "src-ww1", label: "sources: First World War", req: req("What caused the First World War?"), expect: { anyType: ["cause_graph"], mentions: /Franz Ferdinand|Sarajevo|July Crisis/ } },
+  { id: "src-russia", label: "sources: between the wars", req: req("What happened in the Russian Revolution of 1917?"), expect: { anyType: ["article", "timeline"], mentions: /Bolshevik|Lenin/ } },
+  { id: "src-ww2", label: "sources: Second World War", req: req("Why did the Second World War begin in 1939?"), expect: { anyType: ["cause_graph", "article"], mentions: /Poland|Munich|Danzig/ } },
+  { id: "src-nam", label: "sources: decolonisation", req: req("What was the Non-Aligned Movement?"), expect: { anyType: ["article"], mentions: /Bandung|Belgrade|Nehru|Tito/ } },
 ];

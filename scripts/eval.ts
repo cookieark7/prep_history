@@ -97,12 +97,14 @@ function checksFor(c: EvalCase, lines: StreamLine[], attempts: Attempt[]): Check
     { name: "say ≤ 2 sentences", pass: says.every((s) => s.t === "say" && sentences(s.text) <= 2), note: says[0]?.t === "say" ? says[0].text : undefined },
     { name: "done last", pass: lines.at(-1)?.t === "done" },
     { name: "≤ 3 followups", pass: lines.filter((l) => l.t === "followup").length <= 3 },
-    { name: "≤ 4 blocks added", pass: adds.length <= 4, note: adds.map((b) => b.type).join(", ") || undefined },
+    // an exam lesson has up to five parts (lib/prompts/director/goals.ts)
+    { name: `≤ ${c.req.workspace.goal === "exam" ? 5 : 4} blocks added`, pass: adds.length <= (c.req.workspace.goal === "exam" ? 5 : 4), note: adds.map((b) => b.type).join(", ") || undefined },
     { name: `new ids from b${next}`, pass: adds.every((b) => Number(b.id.slice(1)) >= next), note: adds.map((b) => b.id).join(", ") || undefined },
     { name: "articles add the brief section only", pass: adds.every((b) => b.type !== "article" || b.sections.length === 1) },
   ];
   const e = c.expect;
   if (e?.anyType) checks.push({ name: `adds one of: ${e.anyType.join(", ")}`, pass: adds.some((b) => e.anyType!.includes(b.type)) });
+  if (e?.allTypes) checks.push({ name: `adds all of: ${e.allTypes.join(", ")}`, pass: e.allTypes.every((t) => adds.some((b) => b.type === t)) });
   if (e?.layout) checks.push({ name: `layout ${e.layout}`, pass: ops.some((o) => o.op === "layout" && o.mode === e.layout) });
   if (e?.someOp) checks.push({ name: "changes the stage", pass: ops.some((o) => o.op === "add" || o.op === "patch") });
   if (e?.noRestart) {

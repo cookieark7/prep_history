@@ -1,6 +1,6 @@
 # Exam prep and explore: design plan
 
-Status: proposal, 22 October 2026. No code yet; this records the design and the decisions it needs.
+Status: proposed 22 October 2026; the first version was built on 31 October 2026 (section 12). The owner's decisions are marked in section 11.
 Product truth lives in `PRODUCT.md`; the prototype it builds on is described in `docs/PROTOTYPE_PLAN.md`.
 
 ## 1. Why
@@ -179,12 +179,12 @@ Each unit is measured by the share of its key facts that a retrieval finds a pas
 
 ## 11. Open questions
 
-1. **One exam mode, or Prelims and Mains separately?** One mode covers both in a single lesson. Two modes make each lesson shorter and sharper but ask the student to choose more often.
-2. **Goal and level: replace, sit beside, or infer?** Two pickers before every lesson is one too many. Options:
+1. ~~**One exam mode, or Prelims and Mains separately?**~~ **Decided 31 Oct: one exam mode**, covering both in the same lesson. One mode covers both in a single lesson. Two modes make each lesson shorter and sharper but ask the student to choose more often.
+2. ~~**Goal and level: replace, sit beside, or infer?**~~ **Decided 31 Oct: the goal replaces the level picker**, and the level is inferred: a first lesson from a station is for someone new to it, a later one is revision, a free question gets the middle level. Two pickers before every lesson is one too many. Options:
    - goal replaces level;
    - goal sits beside level;
    - level is inferred from review history.
-3. **When sources do not cover a topic, what does exam prep do?** Options:
+3. ~~**When sources do not cover a topic, what does exam prep do?**~~ **Decided 31 Oct: show the facts, marked "check this"**; they never become review cards, and the lesson says at the top when its sources are thin. Options:
    - show the facts with "check this" marks;
    - hold the facts list back and teach the explanation only;
    - offer explore instead.
@@ -194,4 +194,16 @@ Each unit is measured by the share of its key facts that a retrieval finds a pas
 7. **Explore and review.** Should explore lessons make review cards automatically, only for the big ideas, or only when the student asks?
 8. **New cards a day.** Is 10 right for exam prep, or should the student set it?
 9. **Switching mid-lesson.** Should an explore lesson be convertible into exam notes, and the other way round?
-10. **What counts as covered?** A part read, a part read with its cards settled, or its practice questions passed?
+10. ~~**What counts as covered?**~~ **Decided 31 Oct: a part read** (its lesson read to the end); settled cards show as a stronger state on Progress. A part read, a part read with its cards settled, or its practice questions passed?
+
+## 12. What was built (31 Oct 2026)
+
+- **Goal.** `Goal` (`exam` | `explore`) in the turn contract, the lesson store and each saved lesson. On `/start` a two-option switch replaces the level picker; it is remembered on the device and starts on Exam prep. Homepage questions explore. In a lesson the goal shows under the title, and an explore lesson has **Make exam notes** (also in ⌘K).
+- **The exam lesson.** A GOAL prompt module: an article headed "Key facts", then the explanation and "How it is asked" (a Mains prompt); a timeline; a "Terms" aside (a new callout kind); "Practice questions" (a quiz, labelled not from a past paper). At most five parts.
+- **Accuracy bar.** Key facts without a citation are marked **Check this**. Fact and term cards without a source are dropped. An exam lesson with fewer than three passages says its sources are thin.
+- **Review.** Card kinds `fact` and `term`; each card stores its goal (migration `0005_card_goal`). `/review` has **All cards / Exam cards only** (`/review?goal=exam`). **Check my answer** judges a typed answer in one sentence, only when asked (`/api/review/check`; a word match stands in under the mock model).
+- **Station series.** `content/series.ts`: two to four parts for each of the 26 stations. The app home lists a station's parts with Read and Started; a part already begun opens its lesson. A part is read once its lesson's reading parts have been read. Progress shows parts read per station.
+- **Warm-up.** Reopening a lesson with a card due from it asks that card first.
+- **Sources.** Every station now has some: 192 more Wikipedia articles, 97 for medieval and modern India and 95 for ancient India and world history (8,531 passages in all).
+- **Not yet:** new cards a day per goal (question 8, still 10 in all), state PSCs, Hindi, Mains answer marking, real past papers (question 4).
+
