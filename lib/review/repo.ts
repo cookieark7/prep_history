@@ -9,11 +9,11 @@ import { isGrade, newCardColumns, preview, schedule, type FsrsColumns } from "./
 const c = schema.cards;
 const r = schema.reviewLogs;
 
-export async function saveCards(db: Db, userId: string, lessonId: string | null, cards: NewCard[], now = new Date()): Promise<number> {
+export async function saveCards(db: Db, userId: string, lessonId: string | null, cards: NewCard[], now = new Date(), goal: "exam" | "explore" = "explore"): Promise<number> {
   if (!cards.length) return 0;
   const rows = cards.map((card) => ({
     id: randomUUID(), userId, lessonId, kind: card.kind, front: card.front, back: card.back,
-    payload: card.payload ?? null, sourceRef: card.sourceRef, cites: card.cites, origin: card.origin,
+    payload: card.payload ?? null, sourceRef: card.sourceRef, cites: card.cites, origin: card.origin, goal,
     frontHash: frontHash(card.front), ...newCardColumns(now),
   }));
   const inserted = await db.insert(c).values(rows).onConflictDoNothing().returning({ id: c.id });
@@ -29,12 +29,17 @@ export interface QueueItem {
   sourceRef: unknown;
   lessonId: string | null;
   lessonTopic: string | null;
+  goal: string;
   isNew: boolean;
   /** when it returns for each answer, e.g. { 3: "4 days" } */
   preview: Record<number, string>;
 }
 
-export interface QueueOptions { now?: Date; limit?: number; newPerDay?: number; dayStart?: Date }
+/**
+ * goal: only cards made in exam prep (the review filter before a test). lessonId: only that
+ * lesson's due cards, no new ones (the warm-up when a lesson is reopened).
+ */
+export interface QueueOptions { now?: Date; limit?: number; newPerDay?: number; dayStart?: Date; goal?: "exam"; lessonId?: string }
 
 /** New cards first seen today (their first review was today). */
 async function newSeenSince(db: Db, userId: string, since: Date): Promise<number> {
@@ -47,20 +52,21 @@ export async function reviewQueue(db: Db, userId: string, o: QueueOptions = {}):
   const now = o.now ?? new Date();
   const limit = o.limit ?? 20;
   const dayStart = o.dayStart ?? startOfUtcDay(now);
-  const newLeft = Math.max(0, (o.newPerDay ?? 10) - (await newSeenSince(db, userId, dayStart)));
+  const newLeft = o.lessonId ? 0 : Math.max(0, (o.newPerDay ?? 10) - (await newSeenSince(db, userId, dayStart)));
+  const only = and(o.goal ? eq(c.goal, o.goal) : undefined, o.lessonId ? eq(c.lessonId, o.lessonId) : undefined);
 
   const select = {
     id: c.id, kind: c.kind, front: c.front, back: c.back, payload: c.payload, sourceRef: c.sourceRef, lessonId: c.lessonId,
-    lessonTopic: schema.lessons.topic,
+    lessonTopic: schema.lessons.topic, goal: c.goal,
     due: c.due, stability: c.stability, difficulty: c.difficulty, elapsedDays: c.elapsedDays, scheduledDays: c.scheduledDays,
     learningSteps: c.learningSteps, reps: c.reps, lapses: c.lapses, state: c.state, lastReview: c.lastReview,
   };
   const due = await db.select(select).from(c).leftJoin(schema.lessons, eq(schema.lessons.id, c.lessonId))
-    .where(and(eq(c.userId, userId), ne(c.state, 0), lte(c.due, now), eq(c.suspended, false)))
+    .where(and(eq(c.userId, userId), ne(c.state, 0), lte(c.due, now), eq(c.suspended, false), only))
     .orderBy(asc(c.due)).limit(limit);
   const fresh = newLeft
     ? await db.select(select).from(c).leftJoin(schema.lessons, eq(schema.lessons.id, c.lessonId))
-      .where(and(eq(c.userId, userId), eq(c.state, 0), eq(c.suspended, false)))
+      .where(and(eq(c.userId, userId), eq(c.state, 0), eq(c.suspended, false), only))
       .orderBy(asc(c.createdAt), asc(c.id)).limit(Math.min(newLeft, limit))
     : [];
 
@@ -72,7 +78,7 @@ export async function reviewQueue(db: Db, userId: string, o: QueueOptions = {}):
   }
   return mixed.map((row) => ({
     id: row.id, kind: row.kind, front: row.front, back: row.back, payload: row.payload, sourceRef: row.sourceRef,
-    lessonId: row.lessonId, lessonTopic: row.lessonTopic, isNew: row.state === 0,
+    lessonId: row.lessonId, lessonTopic: row.lessonTopic, goal: row.goal, isNew: row.state === 0,
     preview: preview(columns(row), now),
   }));
 }

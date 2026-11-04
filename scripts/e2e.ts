@@ -6,12 +6,18 @@
  *   npx tsx scripts/e2e.ts --shots docs/screens/prototype     # also save screenshots (3 widths × 2 themes)
  *
  * Starts its own server on :3300 (MOCK_LLM=1), drives the system Chrome as two devices, reads the
- * sign-in links from the server log, and checks each step. Exits 1 if any step fails.
+ * sign-in links from the server log, and checks each step. Exits 1 if any step fails. One step
+ * reaches into the database to make a card due now, so the warm-up can be seen without waiting.
  */
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
+import { loadEnvConfig } from "@next/env";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { getDb, schema } from "../lib/db/client";
+
+loadEnvConfig(process.cwd(), false, { info: () => {}, error: console.error });
 
 const PORT = 3300;
 const BASE = `http://localhost:${PORT}`;
@@ -82,7 +88,8 @@ async function main() {
       expect(s.guest, "no guest session");
     });
 
-    await step("asking a question streams a lesson", async () => {
+    await step("asking a question streams a lesson (explore)", async () => {
+      await pa.getByRole("radio", { name: "Explore" }).click();
       await pa.getByLabel("Topic or question").fill(QUESTION);
       await pa.getByRole("button", { name: "Start lesson" }).click();
       await pa.waitForURL("**/study");
@@ -145,6 +152,87 @@ async function main() {
       const today = Number(text.match(/(\d+) reviewed today/)?.[1] ?? -1);
       expect(today === due, `reviewed today shows ${today}`);
       return `${today} reviewed today`;
+    });
+
+    // ------------------------------------------------------------ exam prep, series, review extras
+    await step("an exam-prep part from the syllabus comes as exam notes", async () => {
+      await pa.goto(`${BASE}/start`, { waitUntil: "networkidle" });
+      await pa.getByRole("radio", { name: "Exam prep" }).click();
+      await pa.getByRole("button", { name: "Medieval India" }).click();
+      await pa.getByRole("button", { name: /^Marathas/ }).first().click();
+      await pa.getByRole("button", { name: /Shivaji and the Maratha state/ }).first().click();
+      await pa.waitForURL("**/study");
+      await pa.locator('[data-block="b4"]').first().waitFor({ timeout: 30_000 });
+      await pa.getByRole("button", { name: "Stop (Esc)" }).first().waitFor({ state: "detached", timeout: 30_000 }).catch(() => {});
+      const text = await pa.locator("body").innerText();
+      for (const want of ["Exam prep", "Key facts", "How it is asked", "Terms", "Practice questions", "not from a past paper"]) expect(text.includes(want), `no "${want}"`);
+      const checks = await pa.getByText("Check this", { exact: true }).count();
+      expect(checks >= 2, `${checks} facts marked Check this`);
+      return `${await pa.locator("[data-block]").count()} parts, ${checks} facts marked Check this`;
+    });
+
+    await step("reading the part to the end marks it read on the syllabus and on Progress", async () => {
+      for (const id of ["b1", "b2", "b3"]) {
+        await pa.locator(`#block-${id}`).scrollIntoViewIfNeeded();
+        await pa.waitForTimeout(2900); // a part counts as read after 2.5 s in view
+      }
+      await pa.goto(`${BASE}/start`, { waitUntil: "networkidle" });
+      await pa.getByText("1 of 4 read").filter({ visible: true }).first().waitFor({ timeout: 10_000 });
+      await pa.goto(`${BASE}/stats`, { waitUntil: "networkidle" });
+      await pa.getByText(/1 of 4 parts read/).first().waitFor({ timeout: 10_000 });
+      return "1 of 4 parts read";
+    });
+
+    await step("exam cards: no unsourced fact, and the exam-only filter", async () => {
+      let items: { kind: string; front: string; goal: string }[] = [];
+      for (let i = 0; i < 20 && !items.length; i++) {
+        items = (await pa.evaluate(() => fetch(`/api/review/queue?goal=exam&limit=50`).then((r) => r.json()))).items ?? [];
+        if (!items.length) await pa.waitForTimeout(500);
+      }
+      expect(items.length > 0, "no exam cards");
+      expect(items.every((c) => c.goal === "exam"), "a card from an explore lesson is in the exam filter");
+      expect(!items.some((c) => c.front.startsWith("Which treaty ended the First Anglo-Maratha War")), "an unsourced fact became a card");
+      await pa.goto(`${BASE}/review?goal=exam`, { waitUntil: "networkidle" });
+      await pa.getByRole("radio", { name: "Exam cards only", checked: true }).waitFor({ timeout: 10_000 });
+      return `${items.length} exam cards (${[...new Set(items.map((c) => c.kind))].join(", ")})`;
+    });
+
+    await step("Check my answer judges a typed answer", async () => {
+      const { items } = await pa.evaluate(() => fetch(`/api/review/queue?limit=50`).then((r) => r.json()));
+      const card = (items as { id: string; kind: string; back: string }[]).find((c) => !["mcq", "chronology", "match"].includes(c.kind));
+      expect(card, "no free-recall card to check");
+      const res = await pa.evaluate(([id, answer]) => fetch("/api/review/check", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cardId: id, answer }) }).then((r) => r.json()), [card!.id, card!.back]);
+      expect(res.verdict === "right", `the card's own answer was judged ${res.verdict}`);
+      const wrong = await pa.evaluate((id) => fetch("/api/review/check", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cardId: id, answer: "no idea" }) }).then((r) => r.json()), card!.id);
+      expect(wrong.verdict === "missed", `"no idea" was judged ${wrong.verdict}`);
+      return "right for the answer, missed for a guess";
+    });
+
+    await step("reopening a lesson with a card due starts with a warm-up", async () => {
+      const db = getDb();
+      expect(db, "no DATABASE_URL for the test");
+      const list = await pa.evaluate(() => fetch("/api/lessons").then((r) => r.json()));
+      const carthage = (list.lessons as { id: string; topic: string }[]).find((l) => l.topic.includes("Carthage"));
+      expect(carthage, "the Carthage lesson is gone");
+      const c = schema.cards;
+      const [card] = await db!.select({ id: c.id }).from(c)
+        .where(and(eq(c.lessonId, carthage!.id), inArray(c.kind, ["why", "consequence", "sequence", "anchor", "significance"]))).limit(1);
+      expect(card, "no recall card from the Carthage lesson");
+      await db!.update(c).set({ due: sql`now() - interval '1 minute'` }).where(eq(c.id, card.id));
+      await pa.goto(`${BASE}/start`, { waitUntil: "networkidle" });
+      await pa.getByRole("button", { name: /Carthage/ }).first().click();
+      await pa.waitForURL("**/study");
+      await pa.getByRole("heading", { name: "Warm-up from this lesson" }).waitFor({ timeout: 15_000 });
+      await pa.getByRole("button", { name: "Show answer" }).first().click();
+      await pa.getByRole("button", { name: "Got it" }).click();
+      await pa.getByText(/Saved\. It comes back/).waitFor();
+      return "asked, answered and saved";
+    });
+
+    await step("an explore lesson turns into exam notes", async () => {
+      await pa.getByRole("button", { name: "Make exam notes" }).click();
+      await pa.getByText("Exam prep", { exact: true }).first().waitFor({ timeout: 10_000 });
+      return "the lesson is now exam prep";
     });
 
     const signedIn = await a.storageState();

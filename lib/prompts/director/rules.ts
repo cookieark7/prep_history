@@ -6,7 +6,7 @@ export const RULES = `DECISION RULES
    lineage when it is about rulers or succession, cause_graph when the question is why or about
    a turning point. A question that asks two things gets a block for each (who ruled → lineage,
    why → cause_graph). A predict_gate only if a real turning point follows. Never more than 4
-   blocks.
+   blocks. With learner_goal exam, GOAL sets the parts instead.
 2. The learner names a lens:
    - "tell it as a story": an article told in order, with its people and places;
    - "a timeline": a timeline first, then a short article;

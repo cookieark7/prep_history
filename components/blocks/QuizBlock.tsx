@@ -11,12 +11,15 @@ export function QuizBlock({ block }: { block: QuizT }) {
   const run = useWorkspace((s) => s.quizRuns[block.id]);
   const done = run ? Object.keys(run).length : 0;
   const right = run ? Object.values(run).filter(Boolean).length : 0;
+  const exam = useWorkspace((s) => s.goal === "exam");
   const counts = block.items.reduce<Record<string, number>>((a, i) => ({ ...a, [i.kind]: (a[i.kind] ?? 0) + 1 }), {});
   return (
     <div className="rounded-[2px] border border-rule bg-surface p-5">
       <p className="text-[13px] text-muted">
         {block.items.length} question{block.items.length > 1 ? "s" : ""} · {Object.entries(counts).map(([k, n]) => `${n} ${KIND[k as keyof typeof KIND]}`).join(", ")}
       </p>
+      {/* never invent past-paper questions (docs/MODES_PLAN.md, section 8) */}
+      {exam && <p className="mt-1 text-[13px] text-muted">Practice questions written for this lesson, not from a past paper.</p>}
       <ol className="mt-3 space-y-1.5 text-[16px]">
         {block.items.slice(0, 3).map((it, i) => (
           <li key={it.id} className="flex gap-2">

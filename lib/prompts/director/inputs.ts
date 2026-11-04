@@ -1,6 +1,6 @@
 // What arrives each turn (lib/director/context.ts) and how to answer UI events.
 export const INPUTS = `WHAT YOU RECEIVE EACH TURN
-A <context> block (learner level, blocks on the stage as id/type/title, next_block_id,
+A <context> block (learner level and goal, blocks on the stage as id/type/title, next_block_id,
 lowest mastery refs, and sometimes lesson_topic and recent_exchanges: the last few turns of
 this lesson, oldest first, to keep the thread) and an <input> block (the learner's message
 or a UI event).

@@ -8,7 +8,7 @@ import { sendTurn } from "@/lib/stream-client";
 import { Icon, type IconName } from "./icons";
 import { exportMarkdown } from "@/lib/export";
 import { copyLesson } from "@/lib/copy-actions";
-import type { Level } from "@/lib/contracts";
+import { makeExamNotes } from "@/lib/goal";
 
 const overlay = "scrim fixed inset-0 z-40 bg-[color-mix(in_srgb,var(--text)_18%,transparent)]";
 
@@ -59,12 +59,12 @@ export function CommandPalette({
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
   const router = useRouter();
-  const level = useWorkspace((s) => s.level);
+  const goal = useWorkspace((s) => s.goal);
+  const streaming = useWorkspace((s) => s.streaming);
   const theme = useWorkspace((s) => s.theme);
 
   const commands = useMemo<Cmd[]>(() => {
     const st = useWorkspace.getState();
-    const levels: [Level, string][] = [["new", "New to this"], ["some", "Some background"], ["advanced", "Revising / advanced"]];
     const themes: [Theme, string][] = [["light", "Light"], ["dark", "Dark"]];
     return [
       { id: "test", label: "Test me", icon: "test", run: () => void sendTurn({ message: "Quiz me on what we covered." }) },
@@ -72,7 +72,7 @@ export function CommandPalette({
       { id: "canvas", label: "Open canvas", icon: "cause_graph", run: () => st.setMode("canvas") },
       { id: "timeline", label: "Open timeline view", icon: "timeline", run: () => st.setMode("timeline") },
       { id: "reader", label: "Back to reader", icon: "article", run: () => st.setMode("reader") },
-      ...levels.map(([l, name]): Cmd => ({ id: `level-${l}`, label: `Change level: ${name}`, icon: "chevronRight", hint: l === level ? "current" : undefined, run: () => st.setLevel(l) })),
+      ...(goal === "explore" && st.blocks.length && !streaming ? [{ id: "exam-notes", label: "Make exam notes", icon: "test", run: () => void makeExamNotes() } satisfies Cmd] : []),
       ...themes.map(([t, name]): Cmd => ({ id: `theme-${t}`, label: `Switch theme: ${name}`, icon: "theme", hint: t === theme ? "current" : undefined, run: () => st.setTheme(t) })),
       { id: "history", label: "Lesson history", icon: "clock", run: onHistory },
       { id: "notes", label: "Notes", icon: "note", run: onNotes },
@@ -84,7 +84,7 @@ export function CommandPalette({
       { id: "review", label: "Review cards", icon: "test", run: () => router.push("/review") },
       { id: "progress", label: "Your progress", icon: "clock", run: () => router.push("/stats") },
     ];
-  }, [level, theme, onHistory, onNotes, onShortcuts, router]);
+  }, [goal, streaming, theme, onHistory, onNotes, onShortcuts, router]);
 
   const filtered = commands.filter((c) => c.label.toLowerCase().includes(q.trim().toLowerCase()));
   const run = (c: Cmd | undefined) => {

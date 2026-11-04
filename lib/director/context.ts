@@ -46,6 +46,7 @@ export function buildContext(req: TurnRequest, extras: ContextExtras = {}): stri
   return [
     "<context>",
     `learner_level: ${workspace.level}`,
+    `learner_goal: ${workspace.goal ?? "explore"}`,
     ...(req.topic ? [`lesson_topic: ${JSON.stringify(req.topic)}`] : []),
     "stage_blocks:",
     stage,

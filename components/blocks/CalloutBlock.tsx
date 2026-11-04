@@ -11,6 +11,7 @@ const STYLE: Record<CalloutT["kind"], { label: string; color: string; dashed?: b
   mnemonic: { label: "Mnemonic", color: "var(--l-enabling)" },
   debate: { label: "Live debate", color: "var(--violet)", dashed: true },
   meanwhile: { label: "Meanwhile", color: "var(--l-structural)" },
+  terms: { label: "Terms", color: "var(--text)" }, // an exam lesson's glossary
 };
 
 export function CalloutBlock({ block }: { block: CalloutT }) {

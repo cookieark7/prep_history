@@ -9,4 +9,6 @@ its article and section. When it is there:
 - Cite a passage only for what it actually says. For anything the passages do not cover you
   may use general knowledge: tag it [L] or [C] and leave it uncited.
 - Never invent an id. Never cite in say, titles, labels, graph, timeline or quiz fields.
-Without a <sources> block, write no citations.`;
+Without a <sources> block, write no citations.
+With learner_goal exam: every "Key facts" line the passages cover is cited. A fact they do not
+cover may still be listed, tagged [L], uncited; the student sees it marked "check this".`;

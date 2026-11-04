@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useWorkspace } from "@/lib/store/workspace";
 import { BlockFrame } from "./BlockFrame";
@@ -16,7 +16,9 @@ import { startSync } from "@/lib/store/sync";
 import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
 import { Icon } from "@/components/ui/icons";
 import { LessonLine } from "./LessonLine";
-import { useDwellCompletion, useRailItems } from "./LessonRail";
+import { makeExamNotes } from "@/lib/goal";
+import { THIN_SOURCES } from "@/lib/exam";
+import { useDwellCompletion, useRailItems, useSeriesRead } from "./LessonRail";
 
 /** Ids of blocks still hidden behind an unanswered prediction gate. */
 export function useBlurred(): Set<string> {
@@ -76,12 +78,14 @@ export function ReaderStage({ margin }: { margin?: React.ReactNode }) {
   const current = useCurrentBlock(list.map((b) => b.id));
   const rail = useRailItems();
   useDwellCompletion(rail);
+  useSeriesRead(rail);
 
   return (
     <div className="mx-auto flex w-full max-w-[1080px] gap-6 px-4 pb-40 pt-8 md:px-8 md:pt-10">
       <LessonLine items={rail} blocks={list} current={current} />
       <div className="min-w-0 max-w-[680px] flex-1">
         <LessonHeader read={rail.filter((r) => r.complete).length} />
+        <WarmUp />
         {list.length === 0 && (
           streaming ? <WaitPanel /> : (
             <p className="py-12 text-[16px] text-muted">Nothing here yet. Ask about a period, an event or a person, and the lesson builds here.</p>
@@ -109,6 +113,9 @@ function LessonHeader({ read }: { read: number }) {
   const topic = useWorkspace((s) => s.topic);
   const lessonId = useWorkspace((s) => s.lessonId);
   const blocks = useWorkspace((s) => s.blocks);
+  const goal = useWorkspace((s) => s.goal);
+  const streaming = useWorkspace((s) => s.streaming);
+  const sourceCount = useWorkspace((s) => s.sources.length);
   const routeReady = useRouteHydrated();
   const stationId = useRoute((s) => s.lessons[lessonId]);
   const station = routeReady ? stationById(stationId) : null;
@@ -142,6 +149,21 @@ function LessonHeader({ read }: { read: number }) {
             </Link>
           )}
           {blocks.length > 0 && <span className="tnum">{blocks.length} {blocks.length === 1 ? "part" : "parts"} · {read} read</span>}
+          {blocks.length > 0 && (
+            <span className="inline-flex items-center gap-2">
+              <span className="rounded-[3px] bg-sunk px-1.5 py-0.5 text-[13px] font-medium text-text">{goal === "exam" ? "Exam prep" : "Explore"}</span>
+              {goal === "explore" && !streaming && (
+                <button type="button" onClick={() => void makeExamNotes()} className="text-[13.5px] font-semibold text-accent underline-offset-4 hover:underline">
+                  Make exam notes
+                </button>
+              )}
+            </span>
+          )}
+        </p>
+      )}
+      {goal === "exam" && blocks.length > 0 && !streaming && sourceCount < THIN_SOURCES && (
+        <p className="mt-4 rounded-lg bg-frame px-4 py-3 text-[14.5px]">
+          {sourceCount === 0 ? "None of Chronicle's sources covers this topic yet" : "Only a few of Chronicle's sources cover this topic"}, so key facts without a source are marked <span className="font-medium text-ochre">Check this</span>. Confirm them in your book before you learn them; they won&rsquo;t come back in review.
         </p>
       )}
     </header>
@@ -215,6 +237,39 @@ function WaitPanel() {
 type WaitItem = { id: string; front: string; back: string; kind: string };
 
 /** Up to two recall cards from today's queue (quiz-style cards need their own screen, so they're skipped). */
+/**
+ * Reopening a lesson with cards due from it: one of them first, as a warm-up (docs/PROTOTYPE_PLAN.md,
+ * section 7.4). Asked once per visit; a lesson just written has nothing due yet.
+ */
+function WarmUp() {
+  const lessonId = useWorkspace((s) => s.lessonId);
+  const ready = useWorkspace((s) => s.blocks.length > 0 && !s.streaming);
+  const asked = useRef<string | null>(null);
+  const [card, setCard] = useState<{ lesson: string; item: WaitItem } | null>(null);
+  useEffect(() => {
+    if (!ACCOUNTS || !ready || asked.current === lessonId) return;
+    asked.current = lessonId;
+    let live = true;
+    void startSync()
+      .then(() => fetch(`/api/review/queue?tz=${-new Date().getTimezoneOffset()}&limit=4&lesson=${encodeURIComponent(lessonId)}`))
+      .then((r) => (r.ok ? (r.json() as Promise<{ items: WaitItem[] }>) : null))
+      .then((d) => {
+        const item = d?.items.find((i) => !["mcq", "chronology", "match"].includes(i.kind));
+        if (live && item) setCard({ lesson: lessonId, item });
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [lessonId, ready]);
+  if (!card || card.lesson !== lessonId) return null;
+  return (
+    <section aria-labelledby="warmup-h" className="-mt-6 mb-12">
+      <h2 id="warmup-h" className="text-[16px] font-semibold">Warm-up from this lesson</h2>
+      <p className="mt-0.5 text-[14px] text-muted">This card is due for review. Recall it before you read on.</p>
+      <ul className="mt-3"><WaitCard card={card.item} /></ul>
+    </section>
+  );
+}
+
 function useWaitCards(): WaitItem[] {
   const [cards, setCards] = useState<WaitItem[]>([]);
   useEffect(() => {

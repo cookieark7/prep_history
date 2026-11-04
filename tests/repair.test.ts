@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { validateLine, type StreamLine } from "@/lib/contracts";
 import { newLineStats, validLines } from "@/lib/director/pipeline";
-import { clip, repairLine } from "@/lib/director/repair";
+import { clip, mendJson, rebalanceJson, repairLine } from "@/lib/director/repair";
 
 const graphLine = (nodeConf: string, edgeConf = "high") => ({
   t: "op",
@@ -91,6 +91,48 @@ describe("repairLine", () => {
   it("clips at a word boundary", () => {
     expect(clip("short", 10)).toBe("short");
     expect(clip("the quick brown fox jumps over", 16)).toBe("the quick brown…");
+  });
+});
+
+describe("article section depth", () => {
+  it("makes a new article's first section brief and any other standard, and lowercases the word", () => {
+    const add = { t: "op", op: { op: "add", after: null, block: { id: "b1", type: "article", title: "Khaljis", because: "x", sections: [{ h: "Key facts", md: "- 1290 [E]" }, { h: "Rise", md: "x", depth: "Standard" }] } } };
+    const r = repairLine(add);
+    const sections = (r.value as { op: { block: { sections: { depth: string }[] } } }).op.block.sections;
+    expect(sections.map((s) => s.depth)).toEqual(["brief", "standard"]);
+    expect(r.fixes).toContain("section depth");
+    const patch = repairLine({ t: "op", op: { op: "patch", id: "b1", set: { sections: [{ h: "Decline", md: "x" }] } } });
+    expect((patch.value as { op: { set: { sections: { depth: string }[] } } }).op.set.sections[0].depth).toBe("standard");
+  });
+});
+
+describe("mendJson", () => {
+  it("removes the stray quote free models put between two quiz items", () => {
+    const broken = '{"items":[{"id":"q1","ref":{"b":1}},"},{"id":"q2"}]}';
+    const m = mendJson(broken)!;
+    expect(JSON.parse(m.text)).toEqual({ items: [{ id: "q1", ref: { b: 1 } }, { id: "q2" }] });
+    expect(m.fixes).toEqual(["removed a stray quote between items"]);
+  });
+
+  it("falls back to balancing brackets, and gives up on text it can't mend", () => {
+    expect(mendJson('{"a":[{"b":1}}]}')!.fixes).toEqual(["balanced its brackets"]);
+    expect(mendJson('{"a": nonsense}')).toBeNull();
+  });
+});
+
+describe("rebalanceJson", () => {
+  it("drops a closing bracket that closes nothing open", () => {
+    const broken = '{"items":[{"id":"q1","ref":{"b":1}}},{"id":"q2"}]}';
+    expect(JSON.parse(rebalanceJson(broken)!)).toEqual({ items: [{ id: "q1", ref: { b: 1 } }, { id: "q2" }] });
+  });
+
+  it("closes what is still open, and ignores brackets inside strings", () => {
+    expect(JSON.parse(rebalanceJson('{"md":"a } and ] here","x":[1,2')!)).toEqual({ md: "a } and ] here", x: [1, 2] });
+  });
+
+  it("leaves balanced text alone, and gives up inside an open string", () => {
+    expect(rebalanceJson('{"a":[1]}')).toBeNull();
+    expect(rebalanceJson('{"a":"open')).toBeNull();
   });
 });
 

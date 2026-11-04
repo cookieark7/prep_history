@@ -1,0 +1,1 @@
+ALTER TABLE "cards" ADD COLUMN "goal" text DEFAULT 'explore' NOT NULL;

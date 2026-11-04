@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { DEFAULT_SOURCE_PROMPT } from "@/lib/composer";
 import { PasteCard, useComposer, type ComposerSubmit } from "@/components/chat/useComposer";
-import type { Level } from "@/lib/contracts";
+import type { Goal } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { useHydrated } from "@/components/ui/hydration";
 import { openLesson, useLessonList } from "@/lib/store/sync";
@@ -16,32 +16,38 @@ import { AppShell } from "@/components/shell/AppShell";
 import { RouteLine, RouteList } from "@/components/route/RouteLine";
 import { StationDetails } from "@/components/route/StationDetails";
 import { PARTS, STATIONS, stationById, stationsOf, type Station } from "@/content/syllabus";
-import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
+import { levelFor, useRoute, useRouteHydrated } from "@/lib/syllabus/route";
+import { partAsk } from "@/content/series";
 import { useReviewStats, waitingCount, type ReviewStatus } from "@/lib/review/useReviewStats";
 import { quotaText, useQuota } from "@/lib/turns/useQuota";
 
-const LEVELS: { id: Level; label: string }[] = [
-  { id: "new", label: "New to this" },
-  { id: "some", label: "Some background" },
-  { id: "advanced", label: "Revising" },
+// What the lesson is for (docs/MODES_PLAN.md). It replaces the level picker: the level is worked
+// out from where the lesson starts (lib/syllabus/route.ts levelFor).
+const GOALS: { id: Goal; label: string; says: string }[] = [
+  { id: "exam", label: "Exam prep", says: "Key facts, the explanation, a timeline, terms and practice questions" },
+  { id: "explore", label: "Explore", says: "Led by the story and your questions" },
 ];
 
 export function Home() {
   const hydrated = useHydrated();
   const routeReady = useRouteHydrated();
   const router = useRouter();
-  const [level, setLevel] = useState<Level>("some");
 
   const part = useRoute((s) => s.part);
   const stationId = useRoute((s) => s.station);
   const started = useRoute((s) => s.started);
+  const goal = useRoute((s) => s.goal);
+  const read = useRoute((s) => s.read);
+  const partsStarted = useRoute((s) => s.parts);
+  const lessonStations = useRoute((s) => s.lessons);
   const review = useReviewStats(hydrated);
   const quota = useQuota(hydrated);
 
-  const begin = (message: string, opts: { topic?: string; card?: ComposerSubmit["card"]; station?: string } = {}) => {
-    useWorkspace.getState().startLesson(opts.topic ?? message, level);
+  const begin = (message: string, opts: { topic?: string; card?: ComposerSubmit["card"]; station?: string; part?: string } = {}) => {
+    const route = useRoute.getState();
+    useWorkspace.getState().startLesson(opts.topic ?? message, levelFor(opts.station, route.started), route.goal);
     void sendTurn({ message, sourceText: opts.card?.text, attachmentWords: opts.card?.words });
-    if (opts.station) useRoute.getState().markStarted(opts.station, useWorkspace.getState().lessonId);
+    if (opts.station) route.markStarted(opts.station, useWorkspace.getState().lessonId, opts.part);
     router.push("/study");
   };
 
@@ -60,7 +66,25 @@ export function Home() {
   const here = stationById(stationId) ?? stations[0];
   const startedCount = STATIONS.filter((s) => started[s.id]).length;
   const partLabel = PARTS.find((p) => p.id === part)?.label ?? "";
-  const details = (s: Station) => <StationDetails station={s} onAsk={(q, topic) => begin(q, { topic, station: s.id })} />;
+  // parts of this station's series with a lesson started, to tell "started" from "not yet"
+  const startedParts = (s: Station) => new Set(Object.entries(partsStarted).filter(([lid]) => lessonStations[lid] === s.id).map(([, p]) => p));
+  const details = (s: Station) => (
+    <StationDetails
+      station={s}
+      onAsk={(q, topic) => begin(q, { topic, station: s.id })}
+      series={{
+        read, started: startedParts(s),
+        onStart: (p) => {
+          // a part already begun opens its latest lesson; otherwise its lesson starts now
+          const lid = Object.keys(partsStarted).filter((id) => partsStarted[id] === p.id && lessonStations[id] === s.id).pop();
+          const fresh = () => { const a = partAsk(s, p); begin(a.message, { topic: a.topic, station: s.id, part: p.id }); };
+          if (!lid) return fresh();
+          if (lid === useWorkspace.getState().lessonId) return router.push("/study");
+          void openLesson(lid).then((ok) => (ok ? router.push("/study") : fresh()));
+        },
+      }}
+    />
+  );
 
   return (
     <AppShell place="learn">
@@ -87,17 +111,17 @@ export function Home() {
               className="block min-h-[64px] w-full resize-none bg-transparent px-4 pt-3.5 text-[17px] leading-[25px] outline-none! placeholder:text-muted"
             />
             <div className="flex flex-wrap items-center justify-between gap-2 px-2.5 pb-2.5 pt-1">
-              <div className="flex gap-0.5" role="radiogroup" aria-label="Your level">
-                {LEVELS.map((l) => (
+              <div className="flex gap-0.5" role="radiogroup" aria-label="What this lesson is for">
+                {GOALS.map((g) => (
                   <button
-                    key={l.id}
+                    key={g.id}
                     type="button"
                     role="radio"
-                    aria-checked={level === l.id}
-                    onClick={() => setLevel(l.id)}
-                    className={`h-9 rounded-md px-2.5 text-[13.5px] ${level === l.id ? "bg-sunk font-semibold text-text" : "text-muted hover:bg-hover hover:text-text"}`}
+                    aria-checked={routeReady && goal === g.id}
+                    onClick={() => useRoute.getState().setGoal(g.id)}
+                    className={`h-9 rounded-md px-2.5 text-[13.5px] ${routeReady && goal === g.id ? "bg-sunk font-semibold text-text" : "text-muted hover:bg-hover hover:text-text"}`}
                   >
-                    {l.label}
+                    {g.label}
                   </button>
                 ))}
               </div>
@@ -110,7 +134,10 @@ export function Home() {
               </button>
             </div>
           </div>
-          {quota && <p className={`mt-2 px-1 text-[13px] tnum ${quota.left <= 3 ? "text-brick" : "text-muted"}`}>{quotaText(quota)}</p>}
+          <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 px-1 text-[13px] text-muted">
+            {routeReady && <span>{GOALS.find((g) => g.id === goal)?.says}</span>}
+            {quota && <span className={`tnum ${quota.left <= 3 ? "text-brick" : ""}`}>{quotaText(quota)}</span>}
+          </p>
         </form>
 
         <div className="mt-5 lg:hidden">

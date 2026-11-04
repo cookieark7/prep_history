@@ -27,6 +27,8 @@ export function cardsFromTurn(lines: StreamLine[]): NewCard[] {
 
   for (const l of lines) {
     if (l.t !== "card") continue;
+    // an exam fact or term with no passage behind it is shown as "check this", never reviewed
+    if ((l.card.kind === "fact" || l.card.kind === "term") && !l.card.cites?.length) continue;
     out.push({ kind: l.card.kind, front: l.card.front, back: l.card.back, sourceRef: l.card.source_ref, cites: l.card.cites ?? [], origin: "model" });
   }
   for (const b of added) {

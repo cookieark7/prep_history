@@ -4,6 +4,7 @@ import type { ArticleBlock as ArticleT, Depth } from "@/lib/contracts";
 import { useWorkspace } from "@/lib/store/workspace";
 import { Markdown } from "./Markdown";
 import { InlineNotes } from "@/components/notes/NotesMargin";
+import { isKeyFacts, markUnsourced } from "@/lib/exam";
 
 const RANK: Record<Depth, number> = { brief: 0, standard: 1, deep: 2 };
 
@@ -14,6 +15,7 @@ export function visibleSections(block: ArticleT, depth: Depth) {
 
 export function ArticleBlock({ block }: { block: ArticleT }) {
   const depth = useWorkspace((s) => s.depth);
+  const exam = useWorkspace((s) => s.goal === "exam");
   const sections = visibleSections(block, depth);
   const hidden = block.sections.length - sections.length;
 
@@ -30,7 +32,7 @@ export function ArticleBlock({ block }: { block: ArticleT }) {
                 )}
               </h3>
             )}
-            <Markdown md={s.md} blockId={block.id} />
+            <Markdown md={exam && isKeyFacts(s.h) ? markUnsourced(s.md) : s.md} blockId={block.id} />
             <InlineNotes blockId={block.id} section={s.h} />
           </section>
         );

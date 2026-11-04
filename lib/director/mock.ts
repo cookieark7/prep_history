@@ -57,6 +57,11 @@ function pickFixture(req: TurnRequest): { file?: string; say?: string } {
 
   const wantsQuiz = /\b(quiz|test me|test)\b/.test(msg);
   const wantsDeeper = /\b(deeper|go deep|more detail|why did the allies|east survive|aurangzeb win)\b/.test(msg);
+  // exam prep (docs/MODES_PLAN.md): the mock has one exam lesson, the Marathas in the five parts
+  if (req.workspace.goal === "exam") {
+    if (msg.startsWith("make exam notes")) return { say: "Mock mode writes exam notes only for the Marathas lesson. With a live model, the missing exam parts are added to this lesson." };
+    if (!req.workspace.blocks.length && !wantsQuiz) return { file: "mock/marathas.exam.ndjson" };
+  }
   if (topic && wantsQuiz) return { file: `mock/${topic}.quiz.ndjson` };
   if (topic && wantsDeeper) return { file: `mock/${topic}.deeper.ndjson` };
 

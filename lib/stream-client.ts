@@ -111,7 +111,10 @@ export async function sendTurn(input: {
         case "op": return s().applyDirectorOp(entryId, line.op, turn);
         case "followup": return s().followup(entryId, { kind: line.kind, label: line.label });
         case "sources": return s().addSources(line.items);
-        case "card": return s().remember(entryId, line.card.front);
+        case "card":
+          // an exam fact or term without a source is not saved for review (lib/review/cards.ts)
+          if ((line.card.kind === "fact" || line.card.kind === "term") && !line.card.cites?.length) return;
+          return s().remember(entryId, line.card.front);
         case "done": return;
       }
     }, (raw) => console.warn("[chronicle] ignored invalid line", raw.slice(0, 160)));

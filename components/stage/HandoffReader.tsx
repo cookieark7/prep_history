@@ -44,6 +44,6 @@ async function startLesson(question: string) {
   await startSync();
   const ws = useWorkspace.getState();
   ws.setChatOpen(true);
-  ws.startLesson(question, ws.level);
+  ws.startLesson(question, "some", "explore"); // a homepage question explores; the lesson offers exam notes
   void sendTurn({ message: question });
 }

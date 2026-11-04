@@ -28,7 +28,8 @@ export const SourceItem = z.object({
 export type SourceItem = z.infer<typeof SourceItem>;
 
 /** Memory cards (docs/PROTOTYPE_PLAN.md, section 7.2): the ideas from a lesson worth remembering. */
-export const CardKind = z.enum(["why", "consequence", "sequence", "anchor", "significance"]);
+// fact and term (docs/MODES_PLAN.md, 5.3): exam-prep cards for what Prelims asks; they need a source
+export const CardKind = z.enum(["why", "consequence", "sequence", "anchor", "significance", "fact", "term"]);
 export type CardKind = z.infer<typeof CardKind>;
 export const MemoryCard = z.object({
   id: z.string().max(16),
@@ -67,12 +68,17 @@ export type UiEvent = z.infer<typeof UiEvent>;
 export const Level = z.enum(["new", "some", "advanced"]);
 export type Level = z.infer<typeof Level>;
 
+/** Why the student is here (docs/MODES_PLAN.md): exam prep, with its five parts, or explore. */
+export const Goal = z.enum(["exam", "explore"]);
+export type Goal = z.infer<typeof Goal>;
+
 export const TurnRequest = z.object({
   message: z.string().max(1000).nullable(),
   event: UiEvent.nullable(),
   workspace: z.object({
     blocks: z.array(z.object({ id: z.string(), type: z.string(), title: z.string() })),
     level: Level,
+    goal: Goal.optional(), // additive: older clients send none, which means explore
     mastery: z.array(z.object({ ref: z.string(), strength: z.number().min(0).max(1) })).max(20),
   }),
   // Extra context for ask_why / expand_node (e.g. the node's incident edges). Not in the

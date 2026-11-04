@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useWorkspace } from "@/lib/store/workspace";
+import { useRoute } from "@/lib/syllabus/route";
 import { DWELL_MS, PASSIVE, railItems, type RailItem } from "@/lib/rail";
 import { TYPE_LABEL } from "@/lib/store/reducer";
 import { Icon } from "@/components/ui/icons";
@@ -41,6 +42,24 @@ export function useDwellCompletion(items: RailItem[]) {
     }
     return () => { io.disconnect(); timers.forEach(clearTimeout); };
   }, [key]);
+}
+
+/**
+ * A lesson started for a part of a station's series counts as read once every part of it to be
+ * read (not the quizzes) has been read; the syllabus then shows that part as covered.
+ */
+export function useSeriesRead(items: RailItem[]) {
+  const lessonId = useWorkspace((s) => s.lessonId);
+  const streaming = useWorkspace((s) => s.streaming);
+  const passive = items.filter((i) => PASSIVE.includes(i.type));
+  const done = !streaming && passive.length > 0 && passive.every((i) => i.complete);
+  useEffect(() => {
+    if (!done) return;
+    void (async () => {
+      if (!useRoute.persist.hasHydrated()) await useRoute.persist.rehydrate();
+      useRoute.getState().markRead(lessonId);
+    })();
+  }, [done, lessonId]);
 }
 
 /** Mobile: a compact progress bar (one segment per block). */

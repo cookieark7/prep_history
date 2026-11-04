@@ -33,7 +33,9 @@ export function blockPeriod(b: Block): [number, number] | null {
  * with no era takes the text's: in a passage that marks BCE and never CE or AD, "in 264" is
  * 264 BCE, not 264 CE.
  */
-export function yearsInText(md: string): [number, number] | null {
+export function yearsInText(text: string): [number, number] | null {
+  // citation markers ([S:4446], or [S2] before the server maps them) are passage ids, not years
+  const md = text.replace(/\[S:?\d+\]/g, " ");
   const years: number[] = [];
   const range = /(\d{2,4})\s*[-–]\s*(\d{2,4})\s*(BCE|BC|CE|AD)?/g;
   const single = /\b(\d{3,4})\s*(BCE|BC|CE|AD)?\b/g;

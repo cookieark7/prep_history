@@ -46,7 +46,9 @@ BLOCK TYPES (use only these; if none fit, use "article")
    - {"kind":"match","id","stem","pairs":[{"left","right"}],"explain","source_ref"}
    - source_ref: {"block":"<block id>","node":"<node id or null>"}.
    Prefer relation questions (what led to what, what did X cause) over date recall.
-7. callout: {"kind":"anchor|mnemonic|debate|meanwhile","md":""}
+7. callout: {"kind":"anchor|mnemonic|debate|meanwhile|terms","md":""}
    - anchor: a relative-time hook ("about two generations after X"), not a raw date.
    - meanwhile: what was happening elsewhere at the same time.
-   - debate: one live disagreement among historians, in two sentences.`;
+   - debate: one live disagreement among historians, in two sentences.
+   - terms: exam lessons only. A markdown list, one term per line: "**Chauth**: a levy of a
+     quarter of the revenue [E][S2]".`;

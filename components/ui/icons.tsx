@@ -42,6 +42,9 @@ export const Icon = {
   anchor: (p: P) => (
     <Svg {...p}><circle cx="8" cy="3.5" r="1.5" /><path d="M8 5v9M4.5 8h7M2.5 10a5.5 5.5 0 0 0 11 0" /></Svg>
   ),
+  terms: (p: P) => (
+    <Svg {...p}><path d="M2 3.5h4.5A1.5 1.5 0 0 1 8 5v8.5A1.5 1.5 0 0 0 6.5 12H2zM14 3.5H9.5A1.5 1.5 0 0 0 8 5v8.5a1.5 1.5 0 0 1 1.5-1.5H14z" /></Svg>
+  ),
   mnemonic: (p: P) => (
     <Svg {...p}><path d="M8 2a4 4 0 0 0-2.5 7.1V11h5V9.1A4 4 0 0 0 8 2z" /><path d="M6 13.5h4" /></Svg>
   ),

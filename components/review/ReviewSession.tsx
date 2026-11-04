@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import type { ChronologyItem, MatchItem, McqItem } from "@/lib/contracts";
 import { ACCOUNTS } from "@/lib/auth";
@@ -28,7 +28,10 @@ interface Item {
 const AUTO = new Set(["mcq", "chronology", "match"]);
 const KIND_LABEL: Record<string, string> = {
   why: "Why", consequence: "What it led to", sequence: "In what order", anchor: "When", significance: "Why it matters",
-  mcq: "Question", chronology: "Put in order", match: "Match",
+  fact: "Fact", term: "Term", mcq: "Question", chronology: "Put in order", match: "Match",
+};
+const VERDICT: Record<string, { label: string; tone: string }> = {
+  right: { label: "Right", tone: "text-ok" }, partly: { label: "Partly", tone: "text-ochre" }, missed: { label: "Missed", tone: "text-brick" },
 };
 const RATINGS: { grade: 1 | 2 | 3 | 4; label: string; hint: string }[] = [
   { grade: 1, label: "Again", hint: "I didn't remember" },
@@ -37,6 +40,7 @@ const RATINGS: { grade: 1 | 2 | 3 | 4; label: string; hint: string }[] = [
   { grade: 4, label: "Easy", hint: "instantly" },
 ];
 const tz = () => -new Date().getTimezoneOffset();
+const noSubscribe = () => () => {};
 
 export function ReviewSession() {
   const hydrated = useHydrated();
@@ -45,17 +49,26 @@ export function ReviewSession() {
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState({ reviewed: 0, remembered: 0 });
   const [attempt, setAttempt] = useState(0);
+  // before a test: only the cards made in exam prep (docs/MODES_PLAN.md, 5.3); ?goal=exam opens it
+  const fromUrl = useSyncExternalStore(noSubscribe, () => new URLSearchParams(window.location.search).get("goal") === "exam", () => null);
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const examOnly = choice ?? fromUrl;
+  const filter = (exam: boolean) => {
+    if (exam === examOnly) return;
+    window.history.replaceState(null, "", exam ? "/review?goal=exam" : "/review");
+    setChoice(exam); setItems(null); setIndex(0); setDone({ reviewed: 0, remembered: 0 });
+  };
 
   useEffect(() => {
-    if (!hydrated || !ACCOUNTS) return;
+    if (!hydrated || !ACCOUNTS || examOnly === null) return;
     let live = true;
     void startSync()
-      .then(() => fetch(`/api/review/queue?tz=${tz()}&limit=30`))
+      .then(() => fetch(`/api/review/queue?tz=${tz()}&limit=30${examOnly ? "&goal=exam" : ""}`))
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((d: { items: Item[] }) => { if (live) setItems(d.items); })
       .catch(() => { if (live) setError("Check your connection, then try again."); });
     return () => { live = false; };
-  }, [hydrated, attempt]);
+  }, [hydrated, attempt, examOnly]);
 
   const answered = useCallback((grade: number) => {
     setDone((d) => ({ reviewed: d.reviewed + 1, remembered: d.remembered + (grade >= 2 ? 1 : 0) }));
@@ -66,6 +79,16 @@ export function ReviewSession() {
   return (
     <AppShell place="review">
       <main className="mx-auto flex max-w-[640px] flex-col px-4 pb-10 pt-6 md:px-6 md:pt-10">
+        {ACCOUNTS && !error && examOnly !== null && (index === 0 || !items?.[index]) && (
+          <div className="flex gap-0.5 self-start rounded-md border border-rule p-0.5" role="radiogroup" aria-label="Which cards">
+            {([[false, "All cards"], [true, "Exam cards only"]] as const).map(([exam, label]) => (
+              <button key={label} type="button" role="radio" aria-checked={examOnly === exam} onClick={() => filter(exam)}
+                className={`h-8 rounded-[4px] px-3 text-[13.5px] ${examOnly === exam ? "bg-text font-semibold text-bg" : "text-muted hover:text-text"}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {/* without accounts (a local copy with no database) cards are not stored */}
         {!ACCOUNTS ? (
           <Empty title="Review isn't available here" text="This copy of Chronicle doesn't keep cards, so there is nothing to review." />
@@ -81,7 +104,7 @@ export function ReviewSession() {
             <ReviewCard key={item.id} item={item} onAnswered={answered} />
           </>
         ) : items.length === 0 ? (
-          <Empty title="Nothing to review right now" text="Cards come from your lessons and return just before you'd forget them. Learn something new, and come back tomorrow.">
+          <Empty title={examOnly ? "No exam cards to review right now" : "Nothing to review right now"} text={examOnly ? "Exam cards come from lessons started in exam prep: their key facts, terms and practice questions." : "Cards come from your lessons and return just before you'd forget them. Learn something new, and come back tomorrow."}>
             <Link href="/start" className="mt-6 inline-flex h-10 items-center rounded-md bg-accent px-4 text-[14.5px] font-semibold text-bg hover:bg-accent-ink active:scale-[0.97]">Start a lesson</Link>
           </Empty>
         ) : (
@@ -108,7 +131,19 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
   const [result, setResult] = useState<boolean | null>(null); // auto-checked kinds
   const [autoGrade, setAutoGrade] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
+  const [check, setCheck] = useState<{ state: "idle" | "checking" } | { state: "done"; verdict: string; feedback: string } | { state: "error"; text: string }>({ state: "idle" });
   const auto = AUTO.has(item.kind) && !!item.payload;
+
+  const checkAnswer = async () => {
+    setCheck({ state: "checking" });
+    try {
+      const r = await fetch("/api/review/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cardId: item.id, answer: answer.trim() }) });
+      const d = await r.json();
+      setCheck(r.ok ? { state: "done", verdict: d.verdict, feedback: d.feedback } : { state: "error", text: d.error ?? "The checker couldn't answer. Compare with the answer yourself." });
+    } catch {
+      setCheck({ state: "error", text: "The checker couldn't be reached. Compare with the answer yourself." });
+    }
+  };
 
   useEffect(() => { shownAt.current = Date.now(); }, []);
 
@@ -183,6 +218,18 @@ function ReviewCard({ item, onAnswered }: { item: Item; onAnswered: (grade: numb
             <div className="mb-3 rounded-lg border border-rule px-4 py-3">
               <p className="text-[12.5px] font-medium text-muted">You wrote</p>
               <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-relaxed">{answer.trim()}</p>
+              {check.state === "idle" && (
+                <button type="button" onClick={() => void checkAnswer()} className="mt-2 text-[13.5px] font-semibold text-accent underline-offset-4 hover:underline">
+                  Check my answer
+                </button>
+              )}
+              {check.state === "checking" && <p className="mt-2 text-[13.5px] text-muted">Checking…</p>}
+              {check.state === "done" && (
+                <p className="fade-up mt-2 text-[14.5px] leading-relaxed">
+                  <span className={`font-semibold ${VERDICT[check.verdict]?.tone ?? ""}`}>{VERDICT[check.verdict]?.label ?? "Checked"}.</span> {check.feedback}
+                </p>
+              )}
+              {check.state === "error" && <p className="mt-2 text-[13.5px] text-muted">{check.text}</p>}
             </div>
           )}
           <div className="fade-up rounded-lg bg-frame px-4 py-3.5">

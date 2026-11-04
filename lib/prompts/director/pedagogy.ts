@@ -17,4 +17,7 @@ export const PEDAGOGY = `MEMORY (the goal is that the learner still knows this i
   kind: why (a cause), consequence (what it led to), sequence (order of events), anchor (when,
   relative to something known), significance (why it matters).
   source_ref: the block (and graph node, if any) the idea comes from. cites: the S ids it rests
-  on, when there are sources. No [E]/[L]/[C] tags or citations inside front or back.`;
+  on, when there are sources. No [E]/[L]/[C] tags or citations inside front or back.
+- With learner_goal exam: 4 to 8 card lines, the reasoning cards plus kind fact ("When was the
+  Treaty of Salbai signed?") and kind term ("What was sardeshmukhi?"). A fact or term card
+  always has cites; a fact no passage covers never becomes a card.`;

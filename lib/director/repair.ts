@@ -2,8 +2,10 @@
 // make a few slips that have exactly one sensible fix; fixing them saves the whole block instead
 // of dropping it. Only these are touched: confidence words, over-long short fields, a callout
 // without a title, years written as text, importance out of range, and cause-graph nodes that
-// leave out "when" or "t_offset" (both mean "unknown" when null). Everything else is left for
-// validation to accept or drop. Every fix is reported, so evals show how much a model needs this.
+// leave out "when" or "t_offset" (both mean "unknown" when null), an article section without a
+// depth (the first of a new article is brief, any other standard), and, in text that does not
+// parse, a stray quote between two items and brackets that do not match (mendJson). Everything else is left for validation to
+// accept or drop. Every fix is reported, so evals show how much a model needs this.
 
 type Obj = Record<string, unknown>;
 
@@ -13,10 +15,58 @@ const CONFIDENCE: Record<string, "E" | "L" | "C"> = {
   c: "C", contested: "C", low: "C", disputed: "C", debated: "C", uncertain: "C", weak: "C",
 };
 const CALLOUT_TITLE: Record<string, string> = {
-  anchor: "Remember this", mnemonic: "Mnemonic", debate: "Live debate", meanwhile: "Meanwhile",
+  anchor: "Remember this", mnemonic: "Mnemonic", debate: "Live debate", meanwhile: "Meanwhile", terms: "Terms",
 };
 
 export interface Repaired { value: unknown; fixes: string[] }
+
+const DEPTHS = new Set(["brief", "standard", "deep"]);
+
+/**
+ * JSON text that doesn't parse, mended for the two slips free models make in long quiz lines: a
+ * stray `"},` between two items (`…}},"},{"kind"…`), and brackets that don't match. Null when
+ * neither applies.
+ */
+export function mendJson(text: string): { text: string; fixes: string[] } | null {
+  const fixes: string[] = [];
+  let t = text.replace(/\}(\s*),(\s*)"\}(\s*),(\s*)\{/g, "},{");
+  if (t !== text) fixes.push("removed a stray quote between items");
+  try {
+    JSON.parse(t);
+  } catch {
+    const balanced = rebalanceJson(t);
+    if (balanced !== null) { t = balanced; fixes.push("balanced its brackets"); }
+  }
+  return fixes.length ? { text: t, fixes } : null;
+}
+
+/**
+ * JSON whose brackets don't match, as free models write long quiz lines: a closing bracket that
+ * doesn't close the innermost open one is dropped ("null}}},{" with one brace too many), and
+ * whatever is still open at the end is closed. Null when nothing needed changing.
+ */
+export function rebalanceJson(text: string): string | null {
+  const open: string[] = [];
+  let out = "", changed = false, inString = false, escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      out += ch;
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") open.push(ch === "{" ? "}" : "]");
+    else if (ch === "}" || ch === "]") {
+      if (open.at(-1) !== ch) { changed = true; continue; }
+      open.pop();
+    }
+    out += ch;
+  }
+  if (inString || (!changed && !open.length)) return null;
+  return out + open.reverse().join("");
+}
 
 export function repairLine(input: unknown): Repaired {
   const fixes: string[] = [];
@@ -51,6 +101,13 @@ function repairBlock(b: Obj, whole: boolean, fix: (what: string) => void) {
   }
   clipField(b, "title", 80, fix);
   clipField(b, "because", 80, fix);
+
+  for (const [i, s] of objs(b.sections).entries()) {
+    const d = typeof s.depth === "string" ? s.depth.trim().toLowerCase() : "";
+    if (d === s.depth && DEPTHS.has(d)) continue;
+    s.depth = DEPTHS.has(d) ? d : whole && i === 0 ? "brief" : "standard";
+    fix("section depth");
+  }
 
   for (const n of objs(b.nodes)) {
     if (whole) {

@@ -98,7 +98,7 @@ export const QuizBlock = z.object({
 
 export const CalloutBlock = z.object({
   ...Common, type: z.literal("callout"),
-  kind: z.enum(["anchor", "mnemonic", "debate", "meanwhile"]),
+  kind: z.enum(["anchor", "mnemonic", "debate", "meanwhile", "terms"]), // terms: an exam lesson's glossary
   md: z.string(),
 });
 

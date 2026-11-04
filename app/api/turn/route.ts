@@ -101,7 +101,7 @@ export async function POST(request: Request) {
         .catch((e) => console.error("[turn] could not complete the turn log", e));
       // the ideas worth remembering go into the learner's review queue
       if (user && status === "ok") {
-        void saveCards(db, user.id, lessonId, cardsFromTurn(sent))
+        void saveCards(db, user.id, lessonId, cardsFromTurn(sent), new Date(), turn.workspace.goal ?? "explore")
           .then((n) => { if (n) console.log(`[turn] ${n} cards saved for review`); })
           .catch((e) => console.error("[turn] could not save cards", e));
       }

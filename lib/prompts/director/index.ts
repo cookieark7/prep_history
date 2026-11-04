@@ -1,5 +1,6 @@
 import { BLOCKS } from "./blocks";
 import { EXAMPLE } from "./example";
+import { GOALS } from "./goals";
 import { GROUNDING } from "./grounding";
 import { HONESTY } from "./honesty";
 import { INPUTS } from "./inputs";
@@ -15,7 +16,7 @@ import { STYLE } from "./style";
 // the user message (lib/director/context.ts). Each turn logs PROMPT_VERSION, so a prompt change
 // shows up in the logs and the eval reports.
 
-export const DIRECTOR_MODULES = { ROLE, PROTOCOL, BLOCKS, INPUTS, RULES, PEDAGOGY, HONESTY, GROUNDING, LEVELS, STYLE, EXAMPLE };
+export const DIRECTOR_MODULES = { ROLE, PROTOCOL, BLOCKS, INPUTS, RULES, GOALS, PEDAGOGY, HONESTY, GROUNDING, LEVELS, STYLE, EXAMPLE };
 
 export const DIRECTOR_SYSTEM_PROMPT = Object.values(DIRECTOR_MODULES).join("\n\n");
 

@@ -5,7 +5,7 @@ import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { z } from "zod";
 import {
-  Block, type Depth, type FollowupKind, type Level, type Mode, type NoteKind, type Op, type QuizBlock, type SourceItem,
+  Block, type Depth, type FollowupKind, type Goal, type Level, type Mode, type NoteKind, type Op, type QuizBlock, type SourceItem,
 } from "@/lib/contracts";
 import { applyInverse, applyOp, type HistoryEntry, type StageState, type TurnContext } from "./reducer";
 import { archiveLesson } from "./lessons";
@@ -57,6 +57,8 @@ export interface WorkspaceState extends StageState {
   topic: string;
   depth: Depth;
   level: Level;
+  /** exam prep or explore (docs/MODES_PLAN.md); saves from before goals were added are explore */
+  goal: Goal;
   theme: Theme;
   /** reading aids (fullscreen reading) */
   lineHeight: number;
@@ -89,12 +91,13 @@ export interface WorkspaceState extends StageState {
 }
 
 interface Actions {
-  startLesson: (topic: string, level: Level) => void;
+  startLesson: (topic: string, level: Level, goal?: Goal) => void;
   loadSnapshot: (snap: PersistedWorkspace) => void;
   setTopic: (topic: string) => void;
   setMode: (mode: Mode) => void;
   setDepth: (depth: Depth) => void;
   setLevel: (level: Level) => void;
+  setGoal: (goal: Goal) => void;
   setTheme: (theme: Theme) => void;
   setChatOpen: (open: boolean) => void;
   setDockWidth: (w: number) => void;
@@ -128,7 +131,7 @@ interface Actions {
 
 const uid = (p: string) => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-const fresh = (): Omit<WorkspaceState, "theme" | "level" | "depth" | "chatOpen" | "lineHeight" | "focusParagraph" | "dockWidth"> => ({
+const fresh = (): Omit<WorkspaceState, "theme" | "level" | "goal" | "depth" | "chatOpen" | "lineHeight" | "focusParagraph" | "dockWidth"> => ({
   lessonId: uid("l"),
   topic: "",
   blocks: [],
@@ -178,23 +181,24 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       ...fresh(),
       depth: "standard",
       level: "some",
+      goal: "explore",
       theme: initialTheme(),
       chatOpen: true,
       lineHeight: 1.7,
       focusParagraph: false,
       dockWidth: DOCK_DEFAULT,
 
-      startLesson: (topic, level) => {
+      startLesson: (topic, level, goal = "explore") => {
         const cur = get();
         if (cur.blocks.length) archiveLesson(snapshot(cur));
-        set(() => ({ ...fresh(), topic, level, depth: "standard" }));
+        set(() => ({ ...fresh(), topic, level, goal, depth: "standard" }));
       },
       loadSnapshot: (snap) => {
         const cur = get();
         if (cur.blocks.length && cur.lessonId !== snap.lessonId) archiveLesson(snapshot(cur));
         // a lesson (perhaps from another device) never changes this device's own settings
         const device = { theme: cur.theme, lineHeight: cur.lineHeight, focusParagraph: cur.focusParagraph, chatOpen: cur.chatOpen, dockWidth: cur.dockWidth };
-        set(() => ({ ...snap, sources: snap.sources ?? [], ...device, streaming: false, flash: null, arrivals: {} }));
+        set(() => ({ ...snap, sources: snap.sources ?? [], goal: snap.goal ?? "explore", ...device, streaming: false, flash: null, arrivals: {} }));
       },
       setTopic: (topic) => set((s) => { s.topic = topic; }),
       setMode: (mode) => set((s) => {
@@ -203,6 +207,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
       }),
       setDepth: (depth) => set((s) => { s.depth = depth; }),
       setLevel: (level) => set((s) => { s.level = level; }),
+      setGoal: (goal) => set((s) => { s.goal = goal; }),
       setTheme: (theme) => set((s) => { s.theme = theme; }),
       setChatOpen: (open) => set((s) => { s.chatOpen = open; }),
       setDockWidth: (w) => set((s) => { s.dockWidth = clampDock(w); }),
@@ -352,7 +357,7 @@ export const useWorkspace = create<WorkspaceState & Actions>()(
           return current;
         }
         const saved = persisted as Partial<WorkspaceState>;
-        return { ...current, ...saved, sources: saved.sources ?? [], theme: saved.theme ? normalizeTheme(saved.theme) : current.theme, streaming: false };
+        return { ...current, ...saved, sources: saved.sources ?? [], goal: saved.goal ?? "explore", theme: saved.theme ? normalizeTheme(saved.theme) : current.theme, streaming: false };
       },
     },
   ),
@@ -381,6 +386,7 @@ export function workspaceSummary(s: WorkspaceState) {
   return {
     blocks: s.blocks.map((b) => ({ id: b.id, type: b.type, title: b.title })),
     level: s.level,
+    goal: s.goal,
     mastery: Object.entries(s.mastery)
       .sort((a, b) => a[1] - b[1])
       .slice(0, 20)

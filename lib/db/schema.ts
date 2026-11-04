@@ -156,6 +156,8 @@ export const cards = pgTable("cards", {
   cites: jsonb("cites").notNull().default([]),
   /** model | timeline | quiz | graph | note */
   origin: text("origin").notNull(),
+  /** the lesson's goal when the card was made: exam | explore (docs/MODES_PLAN.md, 5.3) */
+  goal: text("goal").notNull().default("explore"),
   frontHash: text("front_hash").notNull(),
   // FSRS state (ts-fsrs Card)
   due: timestamp("due", { withTimezone: true }).notNull(),

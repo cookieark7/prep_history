@@ -1,5 +1,5 @@
 import { validateLine, type StreamLine } from "@/lib/contracts";
-import { repairLine } from "./repair";
+import { mendJson, repairLine } from "./repair";
 import { ObjectStreamParser } from "./stream-parser";
 
 export const ERROR_SAY: StreamLine = { t: "say", text: "Something went wrong. Please try again." };
@@ -60,13 +60,22 @@ export async function* validLines(
 /** The object text after light repair; unparseable text is passed on for validateLine to report. */
 function repaired(text: string): { text: string; fixes: string[] } {
   let value: unknown;
+  const fixes: string[] = [];
   try {
     value = JSON.parse(text);
   } catch {
-    return { text, fixes: [] };
+    const mended = mendJson(text);
+    try {
+      if (!mended) throw new Error("no fix");
+      value = JSON.parse(mended.text);
+      fixes.push(...mended.fixes);
+    } catch {
+      return { text, fixes: [] };
+    }
   }
   const r = repairLine(value);
-  return r.fixes.length ? { text: JSON.stringify(r.value), fixes: r.fixes } : { text, fixes: [] };
+  fixes.push(...r.fixes);
+  return fixes.length ? { text: JSON.stringify(r.value), fixes } : { text, fixes: [] };
 }
 
 /**

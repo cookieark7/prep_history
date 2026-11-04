@@ -8,6 +8,7 @@ import { useHydrated } from "@/components/ui/hydration";
 import { AppShell } from "@/components/shell/AppShell";
 import { Icon } from "@/components/ui/icons";
 import { PARTS, stationsOf } from "@/content/syllabus";
+import { partsRead, seriesOf } from "@/content/series";
 import { useRoute, useRouteHydrated } from "@/lib/syllabus/route";
 import type { ReviewStats } from "@/lib/review/repo";
 import { stationState, type StationState } from "@/lib/review/station-state";
@@ -150,6 +151,7 @@ function SyllabusProgress({ byLesson }: { byLesson: ReviewStats["lessons"] }) {
   const lessonsMap = useRoute((s) => s.lessons);
   const started = useRoute((s) => s.started);
   const here = useRoute((s) => s.station);
+  const read = useRoute((s) => s.read);
   if (!ready) return <div aria-hidden className="mt-12 h-[320px]" />;
 
   const perStation = new Map<string, { cards: number; learned: number; overdue: number }>();
@@ -178,6 +180,7 @@ function SyllabusProgress({ byLesson }: { byLesson: ReviewStats["lessons"] }) {
               <span aria-hidden className="absolute bottom-[22px] left-[13px] top-[22px] w-[3px] bg-line" />
               {stationsOf(p.id).map((s) => {
                 const n = started[s.id] ?? 0;
+                const partsDone = partsRead(s.id, read), partsAll = seriesOf(s.id).length;
                 const c = perStation.get(s.id);
                 const isHere = s.id === here;
                 const state = stationState(isHere, { lessons: n, cards: c?.cards ?? 0, learned: c?.learned ?? 0, overdue: c?.overdue ?? 0 });
@@ -191,7 +194,11 @@ function SyllabusProgress({ byLesson }: { byLesson: ReviewStats["lessons"] }) {
                       <span className={`flex-1 text-[15px] ${n ? "font-semibold" : "text-muted"}`}>{s.name}{STATE_WORD[state] ? <span className="sr-only">, {STATE_WORD[state]}</span> : null}</span>
                     )}
                     <span className="text-right text-[13.5px] text-muted tnum">
-                      {n ? `${n} ${n === 1 ? "lesson" : "lessons"}${c ? ` · ${c.learned} of ${c.cards} settled` : ""}` : ""}
+                      {[
+                        partsDone ? `${partsDone} of ${partsAll} parts read` : null,
+                        n ? `${n} ${n === 1 ? "lesson" : "lessons"}` : null,
+                        c ? `${c.learned} of ${c.cards} settled` : null,
+                      ].filter(Boolean).join(" · ")}
                     </span>
                   </li>
                 );

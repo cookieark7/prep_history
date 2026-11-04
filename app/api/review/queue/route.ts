@@ -4,7 +4,10 @@ import { requireUser } from "@/lib/lessons/http";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** The cards to review now: due ones first, with today's new cards mixed in. ?tz= is the UTC offset in minutes. */
+/**
+ * The cards to review now: due ones first, with today's new cards mixed in. ?tz= is the UTC offset
+ * in minutes; ?goal=exam keeps only cards made in exam prep; ?lesson= only that lesson's due cards.
+ */
 export async function GET(request: Request) {
   const ctx = await requireUser(request);
   if (ctx instanceof Response) return ctx;
@@ -14,6 +17,8 @@ export async function GET(request: Request) {
   const items = await reviewQueue(ctx.db, ctx.user.id, {
     now, limit: Math.min(50, Number(q.get("limit") ?? 20) || 20),
     newPerDay: Number(process.env.REVIEW_NEW_PER_DAY ?? 10), dayStart: startOfLocalDay(now, tz),
+    goal: q.get("goal") === "exam" ? "exam" : undefined,
+    lessonId: q.get("lesson") || undefined,
   });
   return Response.json({ items });
 }

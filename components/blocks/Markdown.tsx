@@ -12,7 +12,7 @@ import { TYPE_LABEL } from "@/lib/store/reducer";
 import { scrollToEl } from "@/lib/scroll";
 
 const urlTransform = (url: string) =>
-  /^(entity|conf|src):/.test(url) ? url : defaultUrlTransform(url);
+  /^(entity|conf|src|check):/.test(url) ? url : defaultUrlTransform(url);
 
 export function Markdown({ md, blockId }: { md: string; blockId: string }) {
   const source = preprocessMarkdown(md);
@@ -23,6 +23,7 @@ export function Markdown({ md, blockId }: { md: string; blockId: string }) {
         a: ({ href = "", children }) => {
           if (href.startsWith("conf:")) return <ConfidenceTag c={href.slice(5) as Confidence} />;
           if (href.startsWith("src:")) return <SourceMark id={href.slice(4)} />;
+          if (href.startsWith("check:")) return <CheckThis />;
           if (href.startsWith("entity:")) {
             return <Entity name={String(children)} type={href.slice(7) as EntityType} blockId={blockId} />;
           }
@@ -32,6 +33,18 @@ export function Markdown({ md, blockId }: { md: string; blockId: string }) {
     >
       {source}
     </ReactMarkdown>
+  );
+}
+
+/** An exam fact no source in Chronicle backs (lib/exam.ts): shown, but flagged and never reviewed. */
+function CheckThis() {
+  return (
+    <span
+      title="None of Chronicle's sources covers this fact. Check it in your book before you learn it."
+      className="ml-1 inline-block whitespace-nowrap rounded-[3px] border border-ochre px-1 align-[1px] font-sans text-[12px] font-medium leading-[18px] text-ochre"
+    >
+      Check this
+    </span>
   );
 }
 
