@@ -50,7 +50,7 @@ export function getAuth(): Auth | null {
   return g.__chronicleAuth;
 }
 
-export const googleEnabled = () => !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+export { googleEnabled } from "./providers";
 
 export interface CurrentUser { id: string; email: string; isAnonymous: boolean }
 

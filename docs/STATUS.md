@@ -1,6 +1,6 @@
 # Chronicle: where things stand
 
-Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6), 30 Oct after the leftover fixes and commits, and 31 Oct after exam prep (section 1). Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
+Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6), 30 Oct after the leftover fixes and commits, 31 Oct after exam prep (section 1), 4 Nov when it was pushed to GitHub, and 16 Nov. Sources: the git history, the docs (`README.md`, `PRODUCT.md`, `docs/*`), the design critique in `.impeccable/`, the session transcripts, and fresh checks run that day. Update this file when an item moves; it replaces re-asking "what's done?".
 
 **Health on 31 Oct:**
 - **Passing:** typecheck, lint, 262 tests (32 files), `next build`, and all 15 end-to-end steps (exam prep, series, review filter, Check my answer and the warm-up are steps 8 to 13).
@@ -10,9 +10,10 @@ Audit of 27 Oct 2026, updated 28 Oct after the checklist pass (section 6), 30 Oc
 **Committed:** the work is on `chronicle-v0.1` in chunks:
 - 27 Oct: prototype, redesign, homepage, docs, then the phone fixes;
 - 28 Oct: homepage questions start at once, and the old timeline tree is retired;
-- 30 Oct: lesson writing for UPSC, the redesign checklist, and `DESIGN.md` with the review captures.
+- 30 Oct: lesson writing for UPSC, the redesign checklist, and `DESIGN.md` with the review captures;
+- 4 Nov: sources for every station, and exam prep with answer checks.
 
-Nothing is pushed: the repository has no remote yet. Some things stay local only and are ignored by git, because they're large:
+**Pushed (4 Nov):** to [github.com/cookieark7/prep_history](https://github.com/cookieark7/prep_history), a **public** repository. `chronicle-v0.1` is its default branch; `main` is only the original scaffold and isn't pushed. Some things stay local only and are ignored by git, because they're large:
 - raw image-generation output (`image_gen/out/`, about 300 MB, regenerable);
 - screen recordings (`docs/**/*.mp4`, about 100 MB).
 
@@ -116,7 +117,7 @@ Nothing is pushed: the repository has no remote yet. Some things stay local only
 - [x] **Maratha sources:** 14 articles, 216 passages.
 - [x] **Full eval run** with 4 new UPSC cases (`docs/evals/2026-10-28-*`). Its results and what still fails are under "Lesson quality" in section 2.
 
-### Exam prep, series and review (31 Oct, not committed)
+### Exam prep, series and review (31 Oct, committed 4 Nov)
 Built to the owner's answers of 31 Oct (`docs/MODES_PLAN.md` §11 and §12):
 - [x] **Goal switch:** Exam prep or Explore on `/start`, in place of the level picker; the level is worked out from where the lesson starts. Homepage questions explore; an explore lesson has **Make exam notes**.
 - [x] **The exam lesson:** Key facts, the explanation, "How it is asked", a timeline, a Terms aside and practice questions (labelled not from a past paper). Key facts without a source are marked **Check this**, and a lesson with few sources says so at the top.
@@ -188,8 +189,8 @@ Started, with something still missing. The table is the short version; each item
 These need accounts and keys that only you can create. Until they exist, a deployed copy lets people in as guests only, and nobody can open the turn log.
 - [ ] **Google sign-in.**
   - Have: the code (`lib/auth/server.ts`); it switches on when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
-  - Missing: the keys. "Continue with Google" is still the first button on the sign-in card, and pressing it says "Google sign-in isn't set up yet. Use your email."
-  - Next (you): create an OAuth client in Google Cloud with the redirect address `<site>/api/auth/callback/google`, then set the two keys. Until then, Claude could hide the button.
+  - Missing: the keys. Since 16 Nov the sign-in card hides "Continue with Google" until both keys are set (checked when the homepage is built, `lib/auth/providers.ts`), so email is the one way in for now.
+  - Next (you): create an OAuth client in Google Cloud with the redirect address `<site>/api/auth/callback/google`, set the two keys, and rebuild.
 - [ ] **Email sign-in.**
   - Have: the sign-in link works in development, where it's printed in the server log.
   - Missing: `RESEND_API_KEY` and `EMAIL_FROM`. On a deployed copy without them, email sign-in stops with "Email sign-in is not set up yet."
@@ -256,7 +257,7 @@ These need accounts and keys that only you can create. Until they exist, a deplo
 - [ ] **Terms and Privacy pages** (`TODO(legal)`).
 
 ### Shipping
-- [x] Commit the work, in logical chunks (27 to 30 Oct; not pushed, as there is no remote yet).
+- [x] Commit the work, in logical chunks (27 Oct to 4 Nov), and push it to GitHub (4 Nov).
 - [x] Test on a real phone (homepage, lesson, review). Passed on the owner's phone, 27 Oct.
   - **Done 27 Oct:** the phone-feel fixes are in, and checked on a phone profile. All 9 end-to-end steps pass with them.
     - 16 px text fields, so iOS no longer zooms in;
@@ -275,7 +276,7 @@ These need accounts and keys that only you can create. Until they exist, a deplo
 
 ## 4. Decisions waiting on you
 
-1. **Pushing:** `chronicle-v0.1` is committed locally but not pushed or merged into `main`. The repository has no remote yet, so pushing first needs a GitHub repository added as `origin`.
+1. ~~**Pushing**~~ Done 4 Nov: `chronicle-v0.1` is on GitHub and is the default branch. Still open: whether `main` should take this work (a fast-forward), or be retired.
 2. **Exam prep and explore:** the big questions were decided 31 Oct (one exam mode; the goal replaces the level; thin sources show "check this"; a part counts when read). Still open in `docs/MODES_PLAN.md` §11: whether explore lessons make cards (7), new cards a day (8), switching from exam back to explore (9), which state PSCs (5) and Hindi (6).
 3. ~~**Handoff**~~ Decided 28 Oct: guests go straight in and the question sends itself.
 4. ~~**The timeline events**~~ Decided 28 Oct: retired, with their questions moved into matching stations.
@@ -295,7 +296,7 @@ These need accounts and keys that only you can create. Until they exist, a deplo
 2. ~~**Real phone pass** on the LAN build, and fix what shows up.~~ Done 27 Oct.
 3. ~~**Close the redesign:** onboarding, the final design review, `DESIGN.md`, the animation pass.~~ Done 28 Oct (see section 6); the lesson-line decision was made 29 Oct. Still yours: `/review-animations`.
 4. ~~**Sources for the rest of the syllabus.**~~ Every station has sources (31 Oct). Next: deepen the thin ones as the evals show them.
-5. ~~**Exam prep, first version**~~ Built 31 Oct with station series, Check my answer and the warm-up (section 1); not committed.
+5. ~~**Exam prep, first version**~~ Built 31 Oct with station series, Check my answer and the warm-up (section 1); committed 4 Nov.
 6. **Deploy and invite five testers.**
 
 ---

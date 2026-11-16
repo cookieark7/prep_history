@@ -10,6 +10,8 @@ import { PlateWall } from "./PlateWall";
 import { LANDING_THEME } from "../theme";
 
 const DONE_MS = 300;
+const PRIMARY = "inline-flex h-11 w-full items-center justify-center rounded-[6px] bg-[color:var(--lp-accent)] font-sans text-[14px] font-medium text-[color:var(--lp-bg)] hover:bg-[var(--lp-accent-ink)] disabled:opacity-60";
+const SECONDARY = "inline-flex h-11 w-full items-center justify-center rounded-[6px] border border-[color:var(--lp-rule-strong)] bg-[color:var(--lp-card)] font-sans text-[14px] font-medium text-[color:var(--lp-ink)] hover:bg-[color:var(--lp-bg)] disabled:opacity-50";
 
 /**
  * The sign-in card, opened from the header: a calm white card over a slowly drifting wall of
@@ -17,7 +19,7 @@ const DONE_MS = 300;
  * when configured, guest), the localStorage placeholder otherwise. Questions asked on the
  * homepage don't come through here any more; they start as a guest (lib/landing/start.ts).
  */
-export function LoginCard() {
+export function LoginCard({ google = false }: { google?: boolean }) {
   const open = useLoginCard((s) => s.open);
   return (
     <Dialog.Root open={open} onOpenChange={(o) => { if (!o) { cancelStart(); useLoginCard.getState().close(); } }}>
@@ -35,14 +37,14 @@ export function LoginCard() {
           }}
         >
           {/* Keyed on open so every opening starts fresh (no stale "busy" or error). */}
-          {open && <CardBody />}
+          {open && <CardBody google={google} />}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );
 }
 
-function CardBody() {
+function CardBody({ google }: { google: boolean }) {
   const pending = useLoginCard((s) => s.pending);
   const [busy, setBusy] = useState<"google" | "email" | "guest" | null>(null);
   const [done, setDone] = useState(false);
@@ -118,22 +120,27 @@ function CardBody() {
         Chronicle turns any history question into a lesson you can explore: causes, timelines, family trees and quizzes.
       </Dialog.Description>
 
-      <button
-        type="button"
-        disabled={!!busy}
-        onClick={() => void signIn("google")}
-        className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-[6px] bg-[color:var(--lp-accent)] font-sans text-[14px] font-medium text-[color:var(--lp-bg)] hover:bg-[var(--lp-accent-ink)] disabled:opacity-60"
-      >
-        {busy === "google" ? "Signing in…" : "Continue with Google"}
-      </button>
+      {/* Google only when the server has its keys; otherwise email is the one way in. */}
+      {google && (
+        <>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={() => void signIn("google")}
+            className={`mt-6 ${PRIMARY}`}
+          >
+            {busy === "google" ? "Signing in…" : "Continue with Google"}
+          </button>
 
-      <div className="my-5 flex items-center gap-3 font-sans text-[12px] text-[color:var(--lp-muted)]" aria-hidden>
-        <span className="h-px flex-1 bg-[color:var(--lp-rule)]" />
-        or
-        <span className="h-px flex-1 bg-[color:var(--lp-rule)]" />
-      </div>
+          <div className="my-5 flex items-center gap-3 font-sans text-[12px] text-[color:var(--lp-muted)]" aria-hidden>
+            <span className="h-px flex-1 bg-[color:var(--lp-rule)]" />
+            or
+            <span className="h-px flex-1 bg-[color:var(--lp-rule)]" />
+          </div>
+        </>
+      )}
 
-      <form onSubmit={onEmail} className="space-y-2.5" noValidate>
+      <form onSubmit={onEmail} className={`space-y-2.5 ${google ? "" : "mt-6"}`} noValidate>
         <label htmlFor="login-email" className="sr-only">Email address</label>
         <input
           id="login-email"
@@ -150,7 +157,7 @@ function CardBody() {
         <button
           type="submit"
           disabled={!!busy || !email.trim()}
-          className="inline-flex h-11 w-full items-center justify-center rounded-[6px] border border-[color:var(--lp-rule-strong)] bg-[color:var(--lp-card)] font-sans text-[14px] font-medium text-[color:var(--lp-ink)] hover:bg-[color:var(--lp-bg)] disabled:opacity-50"
+          className={google ? SECONDARY : PRIMARY}
         >
           {busy === "email" ? "Signing in…" : "Continue with email"}
         </button>

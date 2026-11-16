@@ -44,7 +44,8 @@ const WRAP = "mx-auto w-full max-w-[1240px] px-[clamp(16px,4vw,40px)]";
  * the top, then the headline and the question box with its lenses and three syllabus questions,
  * then the syllabus as the same line the app uses. Light and dark follow the visitor's setting.
  */
-export function Landing() {
+/** `google`: whether the server can offer Google sign-in (app/page.tsx checks the keys). */
+export function Landing({ google = false }: { google?: boolean }) {
   const router = useRouter();
   const session = useSession();
   const [readOpen, setReadOpen] = useState(false);
@@ -129,7 +130,7 @@ export function Landing() {
       </footer>
 
       <ReadAsText beats={BEATS} open={readOpen} onOpenChange={setReadOpen} />
-      <LoginCard />
+      <LoginCard google={google} />
       {process.env.NODE_ENV !== "production" && <DevBadge signedIn={!!session} guest={session?.provider === "guest"} />}
     </div>
   );
