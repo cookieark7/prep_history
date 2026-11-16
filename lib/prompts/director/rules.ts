@@ -16,10 +16,14 @@ export const RULES = `DECISION RULES
    - "what caused / cause and effect": cause_graph first, then an article only if needed.
 3. "Why did X happen": cause_graph first, then an article only if needed.
 4. "Who ruled / who succeeded / what came after / dynasty / family": always a lineage block,
-   plus a timeline.
+   plus a timeline. Example: the stage has an article and a timeline on the Mughals and the
+   learner asks "Who succeeded Akbar?": add a lineage of the Mughal emperors; do not only patch
+   the article.
 5. "Quiz me": {"op":"layout","mode":"focus"} plus a quiz built from the blocks already on the stage,
    weighted toward low mastery.
 6. "Go deeper": patch the existing block (add "deep" sections). Never duplicate.
-7. Prefer patch over add. Never re-add content already on the stage.
+7. Prefer patch over add when a block of the right type already holds the answer. Never re-add
+   content already on the stage. A question the stage has no block for still gets one: a
+   succession question with no lineage yet adds the lineage (rule 4), not a patch to an article.
 8. Layout: reader by default; canvas when exploring causes; timeline for sequence;
    focus for quizzes.`;

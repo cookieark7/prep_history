@@ -142,7 +142,7 @@ Started, with something still missing. The table is the short version; each item
 | Item | How far | Waiting on | What's left |
 |---|---|---|---|
 | Sources for the syllabus | all 26 stations have sources (31 Oct) | nothing: Claude can do it | small: deepen thin stations as evals show them |
-| Lesson quality (evals) | 10 of 20 cases pass; exam lessons arrive in five parts, with repairs | nothing: Claude can do it | small to medium |
+| Lesson quality (evals) | the three known failures fixed 16 Nov; one style check and a full re-run left | nothing: Claude can do it | small: a full eval run on a fresh day's allowance |
 | Google sign-in | code done | your Google keys | small, once the keys exist |
 | Email sign-in | works in development only | your Resend key and sending domain | small, once the keys exist |
 | Turn log access | open in development only | your email in `ADMIN_EMAILS` | one line |
@@ -182,8 +182,23 @@ Started, with something still missing. The table is the short version; each item
   - a Stone Age timeline used the year 0, and one First World War turn timed out with the fallback rate-limited;
   - two lessons didn't name what the check looks for (the Rig Veda, 1776).
   - **Rerun of the four with broken practice questions, on the current prompt** (`docs/evals/2026-10-31-director-067c7bf8-cf+openrouter.md`): no line dropped in any of them, the Gupta exam lesson came with all its parts, and 2 of 4 passed every check; the other two only sent their article whole instead of section by section.
+- **Fixed 16 Nov** (two live runs of the affected cases, `docs/evals/2026-11-16-*`):
+  - **Pasted text cited nothing:** the search ignored the paste, so the passages found were unrelated. The search now includes the paste's opening, and the prompt says the paste is the student's reading, never a source to cite. The pasted case cited its sources in all three runs since (12 citations in the first).
+  - **"Meanwhile" questions cited nothing:** "What was happening in China while Rome fought Carthage?" retrieved only Punic War passages. Now the clock half's passages give a span of years and the subject is searched within it (`retrieveMeanwhile`), so it finds the Qin and Han passages and cites them.
+  - **Succession questions only patched the article:** rule 7 ("prefer patch") overrode rule 4 ("always a lineage"). Rule 7 now says a question the stage has no block for still gets one, and rule 4 has the Akbar example. The succession case added its family tree in both runs. The check stays: a succession question deserves a family tree.
+  - **Lines dropped as broken JSON:** replaying every saved raw run found the slips the current model makes, and each now has a repair:
+    - a `)` typed for a closing bracket;
+    - an article section closed before its `depth`;
+    - list items written as JSON text;
+    - a value left out (`"when":,`);
+    - invented card kinds ("debate", "compare");
+    - the year 0 (now 1 BCE, as astronomical numbering counts it).
+
+    Of 366 saved lines, the only ones still lost are 2 corrupted streams from old models the adapter now refuses, and 2 runs where the model stopped mid-answer.
+- **Left:**
+  - one style check, "articles add the brief section only": some lessons send a whole article in one line instead of section by section. Nothing is lost; the student just sees it a little later.
+  - a full run of all 32 cases on a fresh day's allowance, to measure the new prompt as a whole (one full run uses most of the free daily allowance).
 - **Who:** Claude.
-- **Next:** run the original 16 two or three times on each prompt to settle 12 against 9; run the exam and source cases a few times on the current prompt; then decide the Akbar check and fix the citing of pasted text.
 
 ### Sign-in and admin setup
 These need accounts and keys that only you can create. Until they exist, a deployed copy lets people in as guests only, and nobody can open the turn log.

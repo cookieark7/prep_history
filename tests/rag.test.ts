@@ -5,7 +5,7 @@ import * as schema from "@/lib/db/schema";
 import { chunkArticle, contentHash, sections, textPeriod } from "@/lib/rag/chunk";
 import { Citations, formatSources, withCitations } from "@/lib/rag/citations";
 import { fakeEmbedder } from "@/lib/rag/embed";
-import { keywordTerms, retrieve, type Retrieved } from "@/lib/rag/retrieve";
+import { keywordTerms, meanwhileParts, retrieve, retrieveMeanwhile, type Retrieved } from "@/lib/rag/retrieve";
 import { testDb } from "./helpers/db";
 
 const para = (topic: string, n = 60) => `${topic} ${"word ".repeat(n)}ended.`;
@@ -151,5 +151,52 @@ describe("citations", () => {
   it("formats the sources block for the Director", () => {
     expect(formatSources([src("S1", 101)])).toBe("<sources>\n[S1] Second Punic War › Cannae (years -216 to -216)\nAt Cannae Hannibal won.\n\n</sources>");
     expect(formatSources([])).toBe("");
+  });
+});
+
+describe("meanwhile questions", () => {
+  it("splits a question into its subject and its clock, only when the subject names something", () => {
+    expect(meanwhileParts("What was happening in China while Rome fought Carthage?"))
+      .toEqual({ subject: "What was happening in China", anchor: "Rome fought Carthage?" });
+    expect(meanwhileParts("What was India like at the same time as the Black Death?"))
+      .toEqual({ subject: "What was India like", anchor: "the Black Death?" });
+    expect(meanwhileParts("What happened while I was reading?")).toBeNull();
+    expect(meanwhileParts("Why did Rome beat Carthage?")).toBeNull();
+  });
+
+  let db: Db;
+  let close: () => Promise<void>;
+  const embedder = fakeEmbedder();
+  const docs: [string, string, string, [number, number]][] = [
+    ["wiki:Punic", "Second Punic War › Cannae", "Rome fought Carthage: Hannibal won at Cannae.", [-216, -216]],
+    ["wiki:Punic", "Second Punic War › Zama", "Rome fought Carthage again and won at Zama.", [-202, -202]],
+    ["wiki:Qin", "Qin dynasty › Unification", "What was happening in China: the Qin unified China in 221 BCE.", [-221, -206]],
+    ["wiki:Opium", "First Opium War › Causes", "What was happening in China: Britain fought China over opium.", [1839, 1842]],
+  ];
+  beforeAll(async () => {
+    ({ db, close } = await testDb());
+    await db.insert(schema.sourceDocs).values(["wiki:Punic", "wiki:Qin", "wiki:Opium"].map((id) => (
+      { id, kind: "wikipedia", title: id.slice(5), url: `https://en.wikipedia.org/wiki/${id.slice(5)}`, license: "CC BY-SA 4.0", attribution: "x" }
+    )));
+    const vecs = await embedder.embed(docs.map((d) => d[2]));
+    await db.insert(schema.chunks).values(docs.map(([docId, heading, text, p], i) => ({
+      docId, ord: i, headingPath: heading, text, tokens: 30, periodFrom: p[0], periodTo: p[1],
+      contentHash: contentHash(text), embedding: vecs[i], embeddingModel: embedder.model,
+    })));
+  }, 30_000);
+  afterAll(() => close());
+
+  it("searches the subject within the clock's years: Qin China, not the Opium War", async () => {
+    const r = await retrieveMeanwhile(db, embedder, { subject: "What was happening in China", anchor: "Rome fought Carthage" }, { k: 4 });
+    const titles = r.map((x) => x.title);
+    expect(titles[0]).toBe("Qin");
+    expect(titles).toContain("Punic");
+    expect(titles).not.toContain("Opium");
+    expect(r.map((x) => x.sid)).toEqual(r.map((_, i) => `S${i + 1}`));
+  });
+
+  it("keeps a span search to passages inside the span", async () => {
+    const r = await retrieve(db, embedder, { query: "What was happening in China", within: [1800, 1900], k: 4 });
+    expect(r.map((x) => x.title)).toEqual(["Opium"]);
   });
 });

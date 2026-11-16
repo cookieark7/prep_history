@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { validateLine, type StreamLine } from "@/lib/contracts";
 import { newLineStats, validLines } from "@/lib/director/pipeline";
-import { clip, mendJson, rebalanceJson, repairLine } from "@/lib/director/repair";
+import { clip, fillMissingValues, mendJson, rebalanceJson, repairLine } from "@/lib/director/repair";
 
 const graphLine = (nodeConf: string, edgeConf = "high") => ({
   t: "op",
@@ -133,6 +133,75 @@ describe("rebalanceJson", () => {
   it("leaves balanced text alone, and gives up inside an open string", () => {
     expect(rebalanceJson('{"a":[1]}')).toBeNull();
     expect(rebalanceJson('{"a":"open')).toBeNull();
+  });
+});
+
+describe("slips seen in the 28 and 31 Oct evals (replayed raw output)", () => {
+  it("reads a ')' typed for a closing bracket as that bracket (the people-lens family tree)", () => {
+    const broken = '{"t":"op","op":{"op":"add","block":{"links":[{"from":"p1","to":"p2"}]}})';
+    expect(JSON.parse(rebalanceJson(broken)!)).toEqual({ t: "op", op: { op: "add", block: { links: [{ from: "p1", to: "p2" }] } } });
+    // after a resync has already added the brace it was missing, the ")" still closes the line
+    expect(JSON.parse(rebalanceJson('{"a":{"b":1})}')!)).toEqual({ a: { b: 1 } });
+  });
+
+  it("moves a section's depth back inside the section the model closed too early (the people lens)", () => {
+    const broken = '{"t":"op","op":{"op":"patch","id":"b1","set":{"sections":[{"h":"Peshwa era","md":"Baji Rao I expanded north. [E][S1]"},"depth":"standard"}}}';
+    const m = mendJson(broken)!;
+    expect(JSON.parse(m.text)).toEqual({ t: "op", op: { op: "patch", id: "b1", set: { sections: [{ h: "Peshwa era", md: "Baji Rao I expanded north. [E][S1]", depth: "standard" }] } } });
+    expect(m.fixes).toContain("moved a section's depth back inside it");
+  });
+
+  it("fills a value the model left out with null, but never inside a string", () => {
+    expect(fillMissingValues('{"when":,"t_offset":-,"x":1,"y":-}')).toBe('{"when":null,"t_offset":null,"x":1,"y":null}');
+    expect(fillMissingValues('{"md":"Note:, then ratio 3:}"}')).toBeNull();
+    const m = mendJson('{"nodes":[{"id":"n1","when":,"t_offset":null}]}')!;
+    expect(JSON.parse(m.text)).toEqual({ nodes: [{ id: "n1", when: null, t_offset: null }] });
+    expect(m.fixes).toEqual(["filled a missing value with null"]);
+  });
+
+  it("maps a card kind a free model invents to its closest real kind, and leaves the unknown alone", () => {
+    const card = (kind: string) => ({ t: "card", card: { id: "c1", kind, front: "Did it matter?", back: "Yes.", source_ref: { block: "b1", node: null } } });
+    const debate = repairLine(card("debate"));
+    expect((debate.value as { card: { kind: string } }).card.kind).toBe("significance");
+    expect(debate.fixes).toContain("card kind");
+    expect((repairLine(card("Why")).value as { card: { kind: string } }).card.kind).toBe("why");
+    expect((repairLine(card("compare")).value as { card: { kind: string } }).card.kind).toBe("significance");
+    expect(repairLine(card("riddle")).fixes).not.toContain("card kind");
+    expect(repairLine(card("fact")).fixes).toEqual([]);
+  });
+
+  it("reads list items written as JSON text back into objects (the Maurya cause map)", () => {
+    const line = { t: "op", op: { op: "add", after: null, block: {
+      id: "b2", type: "cause_graph", title: "Why the Mauryas fell", because: "",
+      nodes: [
+        { id: "n0", label: "Collapse", layer: "event", when: -180, t_offset: null, confidence: "E" },
+        '{"id":"n1","label":"Weak successors","layer":"trigger","when":-232,"t_offset":null,"confidence":"E"}',
+        "plain words stay as they are",
+      ],
+      edges: [],
+    } } };
+    const r = repairLine(line);
+    const nodes = (r.value as { op: { block: { nodes: unknown[] } } }).op.block.nodes;
+    expect(nodes[1]).toEqual({ id: "n1", label: "Weak successors", layer: "trigger", when: -232, t_offset: null, confidence: "E" });
+    expect(nodes[2]).toBe("plain words stay as they are");
+    expect(r.fixes).toContain("items written as text");
+  });
+
+  it("turns the year 0 into 1 BCE in calendar years, but not in offsets or generations", () => {
+    const line = {
+      t: "op", op: { op: "add", after: null, block: {
+        id: "b2", type: "timeline", title: "Bhimbetka", because: "",
+        range: { from: -40000, to: 0 },
+        events: [{ id: "e1", track: "t1", start: 0, end: null, label: "Later paintings", importance: 2, confidence: "L" }],
+      } },
+    };
+    const r = repairLine(line);
+    const b = (r.value as { op: { block: { range: { to: number }; events: { start: number }[] } } }).op.block;
+    expect(b.range.to).toBe(-1);
+    expect(b.events[0].start).toBe(-1);
+    expect(r.fixes).toContain("year 0");
+    const node = repairLine({ t: "op", op: { op: "add", after: null, block: { id: "b1", type: "cause_graph", title: "x", because: "", nodes: [{ id: "n1", label: "x", layer: "event", when: null, t_offset: 0, confidence: "E" }], edges: [] } } });
+    expect(node.fixes).not.toContain("year 0");
   });
 });
 

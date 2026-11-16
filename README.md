@@ -44,7 +44,7 @@ The server refuses to start when the LLM chain is incomplete and names the missi
 | "quiz me" / "test me" (with a lesson on stage) | layout focus + a quiz for that lesson |
 | "go deeper" / the deeper follow-up chip | a patch that adds a deep article section |
 | a Disagree note on the Rome article | a debate callout next to it (M1 test turn 5) |
-| `__broken__` | a fixture with a bad graph edge and a year-0 timeline; both lines are dropped and logged |
+| `__broken__` | a fixture with a bad graph edge and a year-0 timeline; the graph is dropped, the year 0 is repaired to 1 BCE, and both are logged |
 
 ## Checks
 

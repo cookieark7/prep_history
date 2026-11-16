@@ -3,7 +3,7 @@ import type { TurnRequest } from "@/lib/contracts";
 import { schema, type Db } from "@/lib/db/client";
 import { Citations, formatSources } from "@/lib/rag/citations";
 import type { Embedder } from "@/lib/rag/embed";
-import { retrieve, type Retrieved } from "@/lib/rag/retrieve";
+import { retrieve, type Retrieved, meanwhileParts, retrieveMeanwhile } from "@/lib/rag/retrieve";
 import { recentExchanges } from "@/lib/turns/log";
 import { buildContext } from "./context";
 
@@ -33,9 +33,10 @@ export async function prepareTurn(turn: TurnRequest, deps: { db: Db | null; embe
   else {
     try {
       const period = lessonId ? await lessonPeriod(db, lessonId) : null;
-      sources = await retrieve(db, embedder, {
-        query, period, k: Number(process.env.RAG_K ?? 6), tokenBudget: Number(process.env.RAG_SOURCE_TOKENS ?? 2200), signal: deps.signal,
-      });
+      const opts = { period, k: Number(process.env.RAG_K ?? 6), tokenBudget: Number(process.env.RAG_SOURCE_TOKENS ?? 2200), signal: deps.signal };
+      // "What was happening in China while Rome fought Carthage?" searches China within Rome's years
+      const meanwhile = turn.message ? meanwhileParts(turn.message) : null;
+      sources = meanwhile ? await retrieveMeanwhile(db, embedder, meanwhile, opts) : await retrieve(db, embedder, { query, ...opts });
     } catch (e) {
       retrievalNote = `retrieval failed: ${(e as Error).message}`; // the lesson goes on without sources
     }
@@ -58,7 +59,10 @@ export function retrievalQuery(turn: TurnRequest): string | null {
   const ask =
     turn.message?.trim() ||
     (ev?.event === "ask_why" ? ev.selection : ev?.event === "expand_node" ? ev.label : ev?.event === "note_created" ? `${ev.quote} ${ev.text}` : "");
-  const q = [ask, topic && !ask.toLowerCase().includes(topic.toLowerCase()) ? topic : ""].filter(Boolean).join(" — ");
+  // A pasted reading carries the subject ("help me understand what I'm reading" doesn't), so its
+  // opening joins the search; without it the passages found have nothing to do with the paste.
+  const reading = turn.source_text?.trim().replace(/\s+/g, " ").slice(0, 300) ?? "";
+  const q = [ask.slice(0, reading ? 200 : 500), topic && !ask.toLowerCase().includes(topic.toLowerCase()) ? topic : "", reading].filter(Boolean).join(" — ");
   return q.trim() ? q.slice(0, 500) : null;
 }
 

@@ -10,5 +10,7 @@ its article and section. When it is there:
   may use general knowledge: tag it [L] or [C] and leave it uncited.
 - Never invent an id. Never cite in say, titles, labels, graph, timeline or quiz fields.
 Without a <sources> block, write no citations.
+A <source_text> is what the learner is reading, not one of the passages: never cite it and never
+give it an [S#]. When a fact in the reading is also in a passage, cite the passage.
 With learner_goal exam: every "Key facts" line the passages cover is cited. A fact they do not
 cover may still be listed, tagged [L], uncited; the student sees it marked "check this".`;

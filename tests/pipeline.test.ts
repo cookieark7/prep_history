@@ -16,11 +16,11 @@ const req = (message: string | null, blocks: TurnRequest["workspace"]["blocks"] 
   ({ message, event, workspace: { blocks, level: "some", mastery: [] } });
 
 describe("validatedLines", () => {
-  it("drops the broken graph and year-0 timeline, forwards the rest, logs why", async () => {
+  it("drops the broken graph, repairs the year-0 timeline to 1 BCE, forwards the rest, logs why", async () => {
     const { out, log } = await collect(from([readFixture("mock/broken-edge.ndjson").join("\n")]));
-    expect(out.map((l) => l.t)).toEqual(["say", "op", "followup", "done"]);
+    expect(out.map((l) => l.t)).toEqual(["say", "op", "op", "followup", "done"]);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("references a missing node"));
-    expect(log).toHaveBeenCalledWith(expect.stringContaining("year 0"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("repaired line (year 0)"));
   });
 
   it("adds done when the source forgets it, and stops after done", async () => {
